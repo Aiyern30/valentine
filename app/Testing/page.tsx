@@ -1,47 +1,73 @@
 "use client";
 
 import AnimatedEnvelope from "@/components/AnimatedEnvelope";
-import React from "react";
+import { motion } from "framer-motion";
 
-export default function EnvelopeDemo() {
-  const handleEnvelopeOpen = () => {
-    console.log("Envelope opened!");
-    // You can trigger any action here, like fetching the message from the database
-  };
-
+export default function ConfessionView() {
   return (
     <AnimatedEnvelope
       recipientName="F.G."
-      senderName="HHHH"
-      onOpen={handleEnvelopeOpen}
+      senderName="HHH"
+      envelopeStyle="romantic"
+      onOpen={() => {
+        console.log("Envelope opened!");
+        // Track in analytics, update database, etc.
+      }}
     >
-      {/* Your confession/message content goes here */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-center mb-6">
-          <div className="w-16 h-16 bg-pink-500 rounded-full flex items-center justify-center">
-            <span className="text-3xl">💕</span>
-          </div>
+      {/* Your message content */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="space-y-6"
+      >
+        {/* Heart icon */}
+        <div className="flex justify-center">
+          <motion.div
+            className="w-20 h-20 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex items-center justify-center shadow-lg"
+            animate={{
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            <span className="text-4xl">💕</span>
+          </motion.div>
         </div>
 
-        <h1 className="text-3xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+        {/* Title */}
+        <h1 className="text-3xl md:text-4xl font-bold text-center bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
           A Special Message for You
         </h1>
 
-        <div className="prose prose-invert max-w-none">
-          <p className="text-gray-300 text-lg leading-relaxed">
-            Your confession message will appear here after the envelope opens...
+        {/* Message */}
+        <div className="bg-gray-800/50 rounded-2xl p-6 border border-pink-500/20">
+          <p className="text-gray-200 text-lg leading-relaxed text-center">
+            Your heartfelt message goes here...
           </p>
         </div>
 
-        <div className="flex justify-center gap-4 pt-6">
-          <button className="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-400 text-white rounded-full hover:from-pink-600 hover:to-rose-500 transition">
-            Reply
-          </button>
-          <button className="px-6 py-3 bg-gray-700 text-white rounded-full hover:bg-gray-600 transition">
+        {/* Action buttons */}
+        <div className="flex flex-wrap justify-center gap-4 pt-4">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-8 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-full font-medium shadow-lg hover:shadow-xl transition-shadow"
+          >
+            Send Reply
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-8 py-3 bg-gray-700 text-white rounded-full font-medium hover:bg-gray-600 transition-colors"
+          >
             Save
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
     </AnimatedEnvelope>
   );
 }
