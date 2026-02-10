@@ -1,7 +1,13 @@
+"use client";
+
 import { Milestone } from "@/types";
 import { Calendar, Flag } from "lucide-react";
+import { useState } from "react";
+import { CreateEventDialog } from "./create-event-dialog";
 
 export function UpcomingEvents({ milestones }: { milestones: Milestone[] }) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   return (
     <div className="bg-white dark:bg-zinc-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-zinc-700/50">
       <div className="flex items-center justify-between mb-6">
@@ -58,11 +64,19 @@ export function UpcomingEvents({ milestones }: { milestones: Milestone[] }) {
           ))
         )}
 
-        <button className="w-full py-3 border border-dashed border-gray-300 dark:border-zinc-700 rounded-xl text-sm text-gray-500 hover:border-rose-400 hover:text-rose-500 transition-colors flex items-center justify-center gap-2">
+        <button
+          onClick={() => setIsDialogOpen(true)}
+          className="w-full py-3 border border-dashed border-gray-300 dark:border-zinc-700 rounded-xl text-sm text-gray-500 hover:border-rose-400 hover:text-rose-500 transition-colors flex items-center justify-center gap-2"
+        >
           <Flag className="w-4 h-4" />
           Add New Milestone
         </button>
       </div>
+
+      <CreateEventDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+      />
     </div>
   );
 }
