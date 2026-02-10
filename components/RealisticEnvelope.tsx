@@ -29,7 +29,7 @@ export default function RealisticEnvelope({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-purple-900 flex items-center justify-center p-4 overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-purple-900 via-pink-900 to-purple-900 flex items-center justify-center p-4 overflow-hidden">
       {/* Floating particles background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(30)].map((_, i) => (
@@ -77,7 +77,7 @@ export default function RealisticEnvelope({
           >
             {/* Ambient glow */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-pink-500/30 to-purple-500/30 blur-3xl rounded-3xl"
+              className="absolute inset-0 bg-linear-to-r from-pink-500/30 to-purple-500/30 blur-3xl rounded-3xl"
               animate={{
                 scale: [1, 1.1, 1],
                 opacity: [0.4, 0.6, 0.4],
@@ -91,12 +91,12 @@ export default function RealisticEnvelope({
 
             {/* Main envelope container */}
             <motion.div
-              className="relative bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl rounded-3xl overflow-hidden cursor-pointer"
+              className="relative bg-linear-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-xl rounded-3xl overflow-hidden cursor-pointer"
               onClick={handleOpen}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="relative aspect-[16/10] p-8 md:p-12">
+              <div className="relative aspect-16/10 p-8 md:p-12">
                 {/* 3D Perspective container */}
                 <div
                   className="relative w-full h-full"
@@ -224,7 +224,7 @@ export default function RealisticEnvelope({
 
                     {/* Flap back face (visible when flipped) */}
                     <motion.div
-                      className="absolute inset-0 bg-gradient-to-b from-purple-900/40 to-pink-900/40"
+                      className="absolute inset-0 bg-linear-to-b from-purple-900/40 to-pink-900/40"
                       style={{
                         transformStyle: "preserve-3d",
                         transform: "rotateX(180deg)",
@@ -235,7 +235,7 @@ export default function RealisticEnvelope({
 
                   {/* Letter/Paper inside (reveals when opening) */}
                   <motion.div
-                    className="absolute inset-0 m-auto w-[90%] h-[85%] bg-gradient-to-br from-pink-50/5 to-purple-50/5 rounded-lg border border-pink-300/20"
+                    className="absolute inset-0 m-auto w-[90%] h-[85%] bg-linear-to-br from-pink-50/5 to-purple-50/5 rounded-lg border border-pink-300/20"
                     initial={{ y: 0, opacity: 0 }}
                     animate={
                       isAnimating
@@ -285,7 +285,7 @@ export default function RealisticEnvelope({
                       <div className="absolute inset-0 bg-pink-500 rounded-full blur-xl opacity-60" />
 
                       {/* Seal */}
-                      <div className="relative w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-pink-500 to-rose-600 rounded-full flex items-center justify-center shadow-2xl">
+                      <div className="relative w-16 h-16 md:w-20 md:h-20 bg-linear-to-br from-pink-500 to-rose-600 rounded-full flex items-center justify-center shadow-2xl">
                         <motion.span
                           className="text-3xl md:text-4xl"
                           animate={{
@@ -371,7 +371,7 @@ export default function RealisticEnvelope({
           >
             {/* Content glow */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-pink-500/30 to-purple-500/30 blur-3xl rounded-3xl"
+              className="absolute inset-0 bg-linear-to-r from-pink-500/30 to-purple-500/30 blur-3xl rounded-3xl"
               animate={{
                 scale: [1, 1.05, 1],
                 opacity: [0.3, 0.5, 0.3],
@@ -383,7 +383,7 @@ export default function RealisticEnvelope({
               }}
             />
 
-            <div className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-3xl border-2 border-pink-500/30 shadow-2xl p-8 md:p-12">
+            <div className="relative bg-linear-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-3xl border-2 border-pink-500/30 shadow-2xl p-8 md:p-12">
               {children}
             </div>
           </motion.div>

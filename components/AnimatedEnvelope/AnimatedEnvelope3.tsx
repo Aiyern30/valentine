@@ -64,7 +64,7 @@ export function AnimatedEnvelope() {
                 duration: 1.5,
                 ease: "easeOut",
               }}
-              className="absolute z-0 w-64 h-64 rounded-full bg-gradient-to-r from-amber-200 via-orange-400 to-transparent blur-3xl"
+              className="absolute z-0 w-64 h-64 rounded-full bg-linear-to-r from-amber-200 via-orange-400 to-transparent blur-3xl"
             />
           )}
         </AnimatePresence>
@@ -189,7 +189,7 @@ export function AnimatedEnvelope() {
               opacity: 1,
             }}
             animate={
-              status === "revealed"
+              (status === "revealed"
                 ? {
                     y: -150,
                     opacity: 0,
@@ -198,19 +198,19 @@ export function AnimatedEnvelope() {
                     WebkitMaskImage:
                       "linear-gradient(to top, transparent, black 20%)",
                   }
-                : {}
+                : {}) as any
             }
             transition={{
               duration: 0.6,
               ease: [0.22, 1, 0.36, 1],
             }}
           >
-            <div className="w-full h-[240px] bg-gradient-to-br from-[#9e1b32] to-[#7a1325] shadow-inner relative">
+            <div className="w-full h-[240px] bg-linear-to-br from-[#9e1b32] to-[#7a1325] shadow-inner relative">
               {/* Flap Triangle (Top) */}
               <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
 
               {/* The triangular flap visual */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[170px] border-l-transparent border-r-[170px] border-r-transparent border-t-[140px] border-t-[#b92b45] drop-shadow-md origin-top"></div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-170 border-l-transparent border-r-170 border-r-transparent border-t-140 border-t-[#b92b45] drop-shadow-md origin-top"></div>
             </div>
           </motion.div>
 
@@ -222,7 +222,7 @@ export function AnimatedEnvelope() {
               opacity: 1,
             }}
             animate={
-              status === "revealed"
+              (status === "revealed"
                 ? {
                     y: 150,
                     opacity: 0,
@@ -231,17 +231,17 @@ export function AnimatedEnvelope() {
                     WebkitMaskImage:
                       "linear-gradient(to bottom, transparent, black 20%)",
                   }
-                : {}
+                : {}) as any
             }
             transition={{
               duration: 0.6,
               ease: [0.22, 1, 0.36, 1],
             }}
           >
-            <div className="w-full h-[240px] absolute bottom-0 bg-gradient-to-tr from-[#8a1529] to-[#a31c35] shadow-inner flex items-end justify-center">
+            <div className="w-full h-[240px] absolute bottom-0 bg-linear-to-tr from-[#8a1529] to-[#a31c35] shadow-inner flex items-end justify-center">
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
               {/* Bottom fold visual */}
-              <div className="w-0 h-0 border-l-[170px] border-l-transparent border-r-[170px] border-r-transparent border-b-[120px] border-b-[#94182e]/80 absolute bottom-0"></div>
+              <div className="w-0 h-0 border-l-170 border-l-transparent border-r-170 border-r-transparent border-b-120 border-b-[#94182e]/80 absolute bottom-0"></div>
             </div>
           </motion.div>
 
@@ -285,8 +285,8 @@ export function AnimatedEnvelope() {
             }
           >
             {/* Seal Body */}
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-700 via-red-600 to-red-800 shadow-lg flex items-center justify-center border-2 border-red-900/30 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            <div className="w-16 h-16 rounded-full bg-linear-to-br from-red-700 via-red-600 to-red-800 shadow-lg flex items-center justify-center border-2 border-red-900/30 relative overflow-hidden">
+              <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent"></div>
 
               {/* Inner Ring */}
               <div className="w-12 h-12 rounded-full border border-red-800/50 flex items-center justify-center bg-red-700/50 shadow-inner">

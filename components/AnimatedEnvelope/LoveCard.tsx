@@ -20,7 +20,7 @@ export function LoveCard() {
             My Dearest,
           </h2>
 
-          <div className="w-12 h-[1px] bg-rose-300 mx-auto my-4" />
+          <div className="w-12 h-px bg-rose-300 mx-auto my-4" />
 
           <p className="font-serif text-slate-600 leading-relaxed text-sm md:text-base italic">
             "In all the world, there is no heart for me like yours. In all the

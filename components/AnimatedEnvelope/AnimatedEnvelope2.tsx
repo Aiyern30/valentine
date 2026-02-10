@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, easeInOut } from "framer-motion";
 import { Heart } from "lucide-react";
 import { LoveCard } from "./LoveCard";
 import { SparkleParticles } from "./SparkleParticles";
@@ -108,11 +108,11 @@ export function AnimatedEnvelope() {
                     transition: {
                       y: {
                         duration: 1.2,
-                        ease: "easeInOut",
+                        ease: easeInOut,
                       },
                       rotate: {
                         duration: 1.2,
-                        ease: "easeInOut",
+                        ease: easeInOut,
                         times: [0, 0.3, 0.7, 1],
                       },
                     },
@@ -133,7 +133,7 @@ export function AnimatedEnvelope() {
                           y: {
                             repeat: Infinity,
                             duration: 3,
-                            ease: "easeInOut",
+                            ease: easeInOut,
                           },
                           scale: {
                             duration: 0.5,
@@ -200,7 +200,7 @@ export function AnimatedEnvelope() {
           }
           transition={{
             duration: 0.8,
-            ease: "easeInOut",
+            ease: easeInOut,
           }}
           style={{
             transformStyle: "preserve-3d",
@@ -274,7 +274,7 @@ export function AnimatedEnvelope() {
                 }
               >
                 <div className="relative group">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-300 to-rose-500 shadow-lg flex items-center justify-center border-2 border-rose-200/50">
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-rose-300 to-rose-500 shadow-lg flex items-center justify-center border-2 border-rose-200/50">
                     <Heart className="w-6 h-6 text-white fill-white" />
                   </div>
                   {stage === "idle" && (

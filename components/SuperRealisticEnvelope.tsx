@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { easeInOut, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 export default function SuperRealisticEnvelope({
@@ -28,7 +28,7 @@ export default function SuperRealisticEnvelope({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-purple-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-purple-900 via-pink-900 to-purple-900 flex items-center justify-center p-4">
       <style jsx>{`
         @keyframes flapOpen {
           0% {
@@ -90,7 +90,7 @@ export default function SuperRealisticEnvelope({
             className="relative cursor-pointer"
             style={{ perspective: "1200px" }}
           >
-            <div className="relative bg-gradient-to-br from-gray-800/90 to-gray-900/90 rounded-3xl p-8 md:p-16 border-2 border-pink-500/30">
+            <div className="relative bg-linear-to-br from-gray-800/90 to-gray-900/90 rounded-3xl p-8 md:p-16 border-2 border-pink-500/30">
               <div
                 className="relative"
                 style={{
@@ -100,11 +100,11 @@ export default function SuperRealisticEnvelope({
                 }}
               >
                 {/* Envelope back */}
-                <div className="absolute inset-0 border-2 border-pink-400/30 rounded-xl bg-gradient-to-br from-gray-700/20 to-gray-800/20" />
+                <div className="absolute inset-0 border-2 border-pink-400/30 rounded-xl bg-linear-to-br from-gray-700/20 to-gray-800/20" />
 
                 {/* Letter inside */}
                 <div
-                  className={`absolute inset-0 m-auto w-[85%] h-[75%] bg-gradient-to-br from-pink-50/10 to-purple-50/10 rounded-lg border border-pink-200/20 ${
+                  className={`absolute inset-0 m-auto w-[85%] h-[75%] bg-linear-to-br from-pink-50/10 to-purple-50/10 rounded-lg border border-pink-200/20 ${
                     step === "opening" ? "letter-sliding" : ""
                   }`}
                   style={{
@@ -201,7 +201,7 @@ export default function SuperRealisticEnvelope({
                   <div className="relative">
                     <div className="absolute inset-0 bg-pink-500/60 rounded-full blur-xl" />
                     <motion.div
-                      className="relative w-20 h-20 bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 rounded-full flex items-center justify-center shadow-2xl border-2 border-pink-300/30"
+                      className="relative w-20 h-20 bg-linear-to-br from-pink-500 via-rose-500 to-pink-600 rounded-full flex items-center justify-center shadow-2xl border-2 border-pink-300/30"
                       animate={
                         step === "closed"
                           ? {
@@ -217,7 +217,7 @@ export default function SuperRealisticEnvelope({
                       transition={{
                         duration: 2,
                         repeat: Infinity,
-                        ease: "easeInOut",
+                        ease: easeInOut,
                       }}
                     >
                       <span className="text-4xl filter drop-shadow-lg">♥</span>
@@ -267,7 +267,7 @@ export default function SuperRealisticEnvelope({
           transition={{ type: "spring", damping: 20, stiffness: 100 }}
           className="w-full max-w-3xl"
         >
-          <div className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-3xl border-2 border-pink-500/30 shadow-2xl p-8 md:p-12">
+          <div className="bg-linear-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-xl rounded-3xl border-2 border-pink-500/30 shadow-2xl p-8 md:p-12">
             {children}
           </div>
         </motion.div>

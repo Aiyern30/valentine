@@ -180,7 +180,7 @@ export function AnimatedEnvelope() {
                 <h3 className="font-serif text-xl text-[#5C4B38] tracking-wide">
                   You're Invited
                 </h3>
-                <div className="w-12 h-[1px] bg-[#D4C4B0] my-2" />
+                <div className="w-12 h-px bg-[#D4C4B0] my-2" />
                 <p className="text-[10px] uppercase tracking-widest text-[#8C7B66] font-medium">
                   Saturday, October 24
                 </p>
@@ -202,7 +202,7 @@ export function AnimatedEnvelope() {
               }}
             >
               <div
-                className="w-full h-full bg-gradient-to-br from-[#F5E6D3] to-[#EDD9C4] rounded-b-lg shadow-inner"
+                className="w-full h-full bg-linear-to-br from-[#F5E6D3] to-[#EDD9C4] rounded-b-lg shadow-inner"
                 style={{
                   clipPath:
                     "polygon(0 100%, 100% 100%, 100% 40%, 50% 65%, 0 40%)",
@@ -211,7 +211,7 @@ export function AnimatedEnvelope() {
               />
               {/* Side folds simulation for depth */}
               <div
-                className="absolute inset-0 bg-gradient-to-b from-black/5 to-transparent opacity-20"
+                className="absolute inset-0 bg-linear-to-b from-black/5 to-transparent opacity-20"
                 style={{
                   clipPath:
                     "polygon(0 100%, 100% 100%, 100% 40%, 50% 65%, 0 40%)",
@@ -230,7 +230,7 @@ export function AnimatedEnvelope() {
             >
               {/* Flap Outer Face */}
               <div
-                className="absolute inset-0 bg-gradient-to-b from-[#F2E3D0] to-[#E6D2BC] rounded-t-lg backface-hidden"
+                className="absolute inset-0 bg-linear-to-b from-[#F2E3D0] to-[#E6D2BC] rounded-t-lg backface-hidden"
                 style={{
                   clipPath: "polygon(0 0, 100% 0, 50% 55%)",
                   boxShadow:
@@ -238,7 +238,7 @@ export function AnimatedEnvelope() {
                 }}
               >
                 {/* Subtle crease line at top */}
-                <div className="absolute top-0 left-0 right-0 h-[1px] bg-white/40" />
+                <div className="absolute top-0 left-0 right-0 h-px bg-white/40" />
               </div>
 
               {/* Flap Inner Face (visible when open) - sits flush against envelope back */}
