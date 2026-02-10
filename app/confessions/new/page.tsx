@@ -1,0 +1,807 @@
+"use client";
+import React, { useState, ChangeEvent } from "react";
+import { ChevronLeft, ChevronRight, Upload, Sparkles, X } from "lucide-react";
+
+// Type Definitions
+interface FormData {
+  lovedOneName: string;
+  petName: string;
+  yourName: string;
+  relationshipStatus: RelationshipStatus;
+  message: string;
+  photos: File[];
+  theme: Theme;
+  musicUrl: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  showOptional?: boolean;
+}
+
+type RelationshipStatus =
+  | "Dating"
+  | "Engaged"
+  | "Married"
+  | "Seeing someone"
+  | "Friend"
+  | "Mother"
+  | "Father"
+  | "Sibling"
+  | "Relative"
+  | "";
+
+type Theme = "Life" | "Fall" | "Christmas" | "Birthday";
+
+interface RelationshipOption {
+  icon: string;
+  label: RelationshipStatus;
+}
+
+interface MessageSuggestion {
+  title: string;
+  text: string;
+}
+
+interface MessageSuggestionsMap {
+  [key: string]: MessageSuggestion[];
+}
+
+type MusicService =
+  | "YouTube"
+  | "Spotify"
+  | "Apple Music"
+  | "Deezer"
+  | "Amazon Music";
+
+interface ValidationErrors {
+  lovedOneName?: string;
+  relationshipStatus?: string;
+  message?: string;
+  email?: string;
+  phone?: string;
+  fullName?: string;
+}
+
+// Main Component
+export default function CondolenceForm() {
+  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+  const [formData, setFormData] = useState<FormData>({
+    lovedOneName: "",
+    petName: "",
+    yourName: "",
+    relationshipStatus: "",
+    message: "",
+    photos: [],
+    theme: "Life",
+    musicUrl: "",
+    fullName: "",
+    email: "",
+    phone: "",
+    showOptional: false,
+  });
+
+  const totalSteps: number = 5;
+
+  const relationshipOptions: RelationshipOption[] = [
+    { icon: "💕", label: "Dating" },
+    { icon: "💎", label: "Engaged" },
+    { icon: "🏠", label: "Married" },
+    { icon: "✨", label: "Seeing someone" },
+    { icon: "😊", label: "Friend" },
+    { icon: "👩", label: "Mother" },
+    { icon: "👨", label: "Father" },
+    { icon: "👥", label: "Sibling" },
+    { icon: "👪", label: "Relative" },
+  ];
+
+  const messageSuggestions: MessageSuggestionsMap = {
+    Engaged: [
+      {
+        title: "Eternal Commitment",
+        text: "Our commitment is just the beginning of a wonderful journey. I can't wait to call you my spouse. 💍",
+      },
+      {
+        title: "Countdown",
+        text: "Counting the days to make our union official. Every day closer to forever with you. 💕",
+      },
+    ],
+    Married: [
+      {
+        title: "Forever Together",
+        text: "Through every season of life, my love for you only grows stronger. Forever grateful to call you mine.",
+      },
+    ],
+    Friend: [
+      {
+        title: "Cherished Friendship",
+        text: "Your friendship has been a constant light in my life. Thank you for always being there.",
+      },
+    ],
+    Mother: [
+      {
+        title: "Grateful Heart",
+        text: "Thank you for your unconditional love and endless support. You've shaped who I am today.",
+      },
+    ],
+    Father: [
+      {
+        title: "Pillar of Strength",
+        text: "Your wisdom and guidance have been my foundation. Thank you for always believing in me.",
+      },
+    ],
+  };
+
+  const themes: Theme[] = ["Life", "Fall", "Christmas", "Birthday"];
+
+  const musicServices: MusicService[] = [
+    "YouTube",
+    "Spotify",
+    "Apple Music",
+    "Deezer",
+    "Amazon Music",
+  ];
+
+  // Validation Functions
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^\+?\d{10,15}$/;
+    return phoneRegex.test(phone.replace(/[\s-()]/g, ""));
+  };
+
+  const validateStep = (step: number): ValidationErrors => {
+    const newErrors: ValidationErrors = {};
+
+    switch (step) {
+      case 0:
+        if (!formData.lovedOneName.trim()) {
+          newErrors.lovedOneName = "Loved one's name is required";
+        } else if (formData.lovedOneName.length > 150) {
+          newErrors.lovedOneName = "Name cannot exceed 150 characters";
+        }
+        break;
+
+      case 1:
+        if (!formData.relationshipStatus) {
+          newErrors.relationshipStatus = "Please select a relationship status";
+        }
+        break;
+
+      case 2:
+        if (!formData.message.trim()) {
+          newErrors.message = "Please write a message";
+        } else if (formData.message.length > 2000) {
+          newErrors.message = "Message cannot exceed 2000 characters";
+        }
+        break;
+
+      case 4:
+        if (formData.fullName && formData.fullName.length > 100) {
+          newErrors.fullName = "Name cannot exceed 100 characters";
+        }
+        if (formData.email && !validateEmail(formData.email)) {
+          newErrors.email = "Please enter a valid email address";
+        }
+        if (formData.phone && !validatePhone(formData.phone)) {
+          newErrors.phone = "Please enter a valid phone number";
+        }
+        break;
+    }
+
+    return newErrors;
+  };
+
+  // Update form data with type safety
+  const updateFormData = <K extends keyof FormData>(
+    field: K,
+    value: FormData[K],
+  ): void => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
+    // Clear error for this field when user starts typing
+    if (errors[field as keyof ValidationErrors]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field as keyof ValidationErrors];
+        return newErrors;
+      });
+    }
+  };
+
+  // Handle photo upload
+  const handlePhotoUpload = (e: ChangeEvent<HTMLInputElement>): void => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter((file) => {
+      const isImage = file.type.startsWith("image/");
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB max
+      return isImage && isValidSize;
+    });
+
+    if (formData.photos.length + validFiles.length <= 10) {
+      updateFormData("photos", [...formData.photos, ...validFiles]);
+    } else {
+      alert("You can only upload up to 10 photos");
+    }
+  };
+
+  // Remove photo
+  const removePhoto = (index: number): void => {
+    updateFormData(
+      "photos",
+      formData.photos.filter((_, i) => i !== index),
+    );
+  };
+
+  // Navigation
+  const nextStep = (): void => {
+    const stepErrors = validateStep(currentStep);
+
+    if (Object.keys(stepErrors).length > 0) {
+      setErrors(stepErrors);
+      return;
+    }
+
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep(currentStep + 1);
+      setErrors({});
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const prevStep = (): void => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+      setErrors({});
+    }
+  };
+
+  // Check if user can proceed
+  const canProceed = (): boolean => {
+    switch (currentStep) {
+      case 0:
+        return (
+          formData.lovedOneName.trim() !== "" &&
+          formData.lovedOneName.length <= 150
+        );
+      case 1:
+        return formData.relationshipStatus !== "";
+      case 2:
+        return (
+          formData.message.trim() !== "" && formData.message.length <= 2000
+        );
+      case 3:
+        return true; // Photos are optional
+      case 4:
+        return true; // All fields on this step are optional
+      default:
+        return false;
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = (): void => {
+    console.log("Form submitted:", formData);
+    // Here you would typically send the data to your backend
+    alert("Condolence form submitted successfully!");
+  };
+
+  // Detect music service from URL
+  const detectMusicService = (url: string): MusicService | null => {
+    if (
+      url.includes("youtube.com") ||
+      url.includes("youtu.be") ||
+      url.includes("music.youtube.com")
+    ) {
+      return "YouTube";
+    } else if (url.includes("spotify.com")) {
+      return "Spotify";
+    } else if (url.includes("music.apple.com")) {
+      return "Apple Music";
+    } else if (url.includes("deezer.com")) {
+      return "Deezer";
+    } else if (url.includes("music.amazon.com")) {
+      return "Amazon Music";
+    }
+    return null;
+  };
+
+  // Get character count color
+  const getCharCountColor = (current: number, max: number): string => {
+    const percentage = (current / max) * 100;
+    if (percentage >= 90) return "text-red-400";
+    if (percentage >= 75) return "text-yellow-400";
+    return "text-gray-400";
+  };
+
+  return (
+    <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-linear-to-r from-pink-500 to-rose-400 transition-all duration-300"
+              style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+            />
+          </div>
+          <div className="text-center text-sm text-gray-400 mt-2">
+            Step {currentStep + 1} of {totalSteps}
+          </div>
+        </div>
+
+        {/* Step 0: Basic Information */}
+        {currentStep === 0 && (
+          <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl">
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Loved One's Name <span className="text-pink-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.lovedOneName}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    updateFormData("lovedOneName", e.target.value)
+                  }
+                  className={`w-full bg-gray-700/50 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500 ${
+                    errors.lovedOneName ? "border-red-500" : "border-gray-600"
+                  }`}
+                  placeholder="Enter name"
+                  maxLength={150}
+                />
+                <div className="flex justify-between items-center mt-1">
+                  {errors.lovedOneName && (
+                    <span className="text-xs text-red-400">
+                      {errors.lovedOneName}
+                    </span>
+                  )}
+                  <span
+                    className={`text-xs ml-auto ${getCharCountColor(formData.lovedOneName.length, 150)}`}
+                  >
+                    {formData.lovedOneName.length}/150
+                  </span>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-700 pt-6">
+                <button
+                  onClick={() =>
+                    updateFormData("showOptional", !formData.showOptional)
+                  }
+                  className="flex items-center gap-2 text-pink-400 text-sm font-medium hover:text-pink-300 transition"
+                >
+                  <Sparkles size={16} />
+                  Optional Fields
+                  <ChevronRight
+                    size={16}
+                    className={`transform transition-transform ${formData.showOptional ? "rotate-90" : ""}`}
+                  />
+                </button>
+
+                {formData.showOptional && (
+                  <div className="mt-4 space-y-4 animate-fadeIn">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Pet Name
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.petName}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                          updateFormData("petName", e.target.value)
+                        }
+                        placeholder="What do you call your love?"
+                        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        maxLength={50}
+                      />
+                      <div
+                        className={`text-right text-xs mt-1 ${getCharCountColor(formData.petName.length, 50)}`}
+                      >
+                        {formData.petName.length}/50
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Your Name
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.yourName}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                          updateFormData("yourName", e.target.value)
+                        }
+                        placeholder="Your name or leave blank for anonymous"
+                        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        maxLength={50}
+                      />
+                      <div
+                        className={`text-right text-xs mt-1 ${getCharCountColor(formData.yourName.length, 50)}`}
+                      >
+                        {formData.yourName.length}/50
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button className="flex items-center gap-2 text-pink-400 text-sm bg-pink-500/10 px-4 py-2 rounded-full hover:bg-pink-500/20 transition">
+                <Sparkles size={16} />
+                Need inspiration?
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 1: Relationship Status */}
+        {currentStep === 1 && (
+          <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-6">
+                  Relationship Status <span className="text-pink-400">*</span>
+                </h2>
+                <div className="grid grid-cols-3 gap-4">
+                  {relationshipOptions.map((option: RelationshipOption) => (
+                    <button
+                      key={option.label}
+                      onClick={() =>
+                        updateFormData("relationshipStatus", option.label)
+                      }
+                      className={`p-6 rounded-xl border-2 transition-all ${
+                        formData.relationshipStatus === option.label
+                          ? "border-pink-500 bg-pink-500/10 scale-105"
+                          : "border-gray-600 bg-gray-700/30 hover:border-gray-500 hover:scale-102"
+                      }`}
+                    >
+                      <div className="text-3xl mb-2">{option.icon}</div>
+                      <div className="text-sm font-medium">{option.label}</div>
+                    </button>
+                  ))}
+                </div>
+                {errors.relationshipStatus && (
+                  <p className="text-xs text-red-400 mt-2">
+                    {errors.relationshipStatus}
+                  </p>
+                )}
+              </div>
+
+              <div className="text-sm text-gray-400 mt-4">Select status</div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Message */}
+        {currentStep === 2 && (
+          <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl">
+            <div className="space-y-6">
+              {formData.relationshipStatus && (
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    onClick={() => setCurrentStep(1)}
+                    className="px-4 py-2 rounded-full border border-pink-500 text-pink-400 text-sm hover:bg-pink-500/10 transition flex items-center gap-2"
+                  >
+                    {formData.relationshipStatus}
+                    <span className="text-xs">✏️</span>
+                  </button>
+                </div>
+              )}
+
+              <div className="text-center text-sm text-gray-400 mb-4">
+                Tap to change the status or keep writing your message below.
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Your Message <span className="text-pink-400">*</span>
+                </label>
+                <div className="relative">
+                  <textarea
+                    value={formData.message}
+                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                      updateFormData("message", e.target.value)
+                    }
+                    placeholder="Write your special message here..."
+                    className={`w-full bg-gray-700/50 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500 min-h-[200px] resize-none ${
+                      errors.message ? "border-red-500" : "border-gray-600"
+                    }`}
+                    maxLength={2000}
+                  />
+                  <button className="absolute top-3 right-3 text-gray-400 hover:text-white text-xs">
+                    Fullscreen
+                  </button>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  {errors.message && (
+                    <span className="text-xs text-red-400">
+                      {errors.message}
+                    </span>
+                  )}
+                  <span
+                    className={`text-xs ml-auto ${getCharCountColor(formData.message.length, 2000)}`}
+                  >
+                    {formData.message.length}/2000
+                  </span>
+                </div>
+              </div>
+
+              {formData.relationshipStatus &&
+                messageSuggestions[formData.relationshipStatus] && (
+                  <div className="border-t border-gray-700 pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-pink-400 font-medium flex items-center gap-2">
+                        😊 Message Suggestions
+                      </h3>
+                      <button className="text-xs text-gray-400 hover:text-white">
+                        See all
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      {messageSuggestions[formData.relationshipStatus].map(
+                        (suggestion: MessageSuggestion, idx: number) => (
+                          <button
+                            key={idx}
+                            onClick={() =>
+                              updateFormData("message", suggestion.text)
+                            }
+                            className="w-full text-left p-4 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition border border-gray-600"
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="text-pink-400">💕</span>
+                              <div className="flex-1">
+                                <div className="font-medium text-sm mb-1">
+                                  {suggestion.title}
+                                </div>
+                                <div className="text-sm text-gray-300">
+                                  {suggestion.text}
+                                </div>
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(
+                                    suggestion.text,
+                                  );
+                                }}
+                                className="text-gray-400 hover:text-white"
+                                title="Copy to clipboard"
+                              >
+                                📋
+                              </button>
+                            </div>
+                          </button>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                )}
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Photos */}
+        {currentStep === 3 && (
+          <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold">
+                  Add Photos{" "}
+                  <span className="text-gray-400 text-sm font-normal">
+                    (optional)
+                  </span>
+                </h2>
+                <span
+                  className={`text-sm ${formData.photos.length === 10 ? "text-yellow-400" : "text-gray-400"}`}
+                >
+                  {formData.photos.length}/10 images
+                </span>
+              </div>
+
+              {formData.photos.length < 10 && (
+                <div className="border-2 border-dashed border-gray-600 rounded-xl p-12 text-center hover:border-pink-500 transition cursor-pointer">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                    id="photo-upload"
+                  />
+                  <label htmlFor="photo-upload" className="cursor-pointer">
+                    <Upload className="mx-auto mb-4 text-gray-400" size={48} />
+                    <div className="text-gray-300 mb-2">
+                      Click or drag photos here
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      ({formData.photos.length} / 10 files) • Max 10MB per file
+                    </div>
+                  </label>
+                </div>
+              )}
+
+              {formData.photos.length > 0 && (
+                <div className="grid grid-cols-5 gap-3">
+                  {formData.photos.map((photo: File, idx: number) => (
+                    <div
+                      key={idx}
+                      className="relative aspect-square bg-gray-700 rounded-lg overflow-hidden group"
+                    >
+                      <img
+                        src={URL.createObjectURL(photo)}
+                        alt={`Upload ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={() => removePhoto(idx)}
+                        className="absolute top-1 right-1 bg-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition hover:bg-red-600"
+                        title="Remove photo"
+                      >
+                        <X size={14} />
+                      </button>
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-xs text-white p-1 text-center opacity-0 group-hover:opacity-100 transition">
+                        {photo.name}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="bg-gray-700/30 border border-gray-600 rounded-lg p-4 text-sm text-gray-300">
+                <div className="flex items-start gap-2">
+                  <span>ℹ️</span>
+                  <div>
+                    <div className="mb-2">
+                      Photos are optional - you can proceed with just a message.
+                    </div>
+                    <div className="text-gray-400">
+                      Your photos will make the tribute even more special, but
+                      you can proceed with just a message.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Personalization */}
+        {currentStep === 4 && (
+          <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl">
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                  <Sparkles className="text-pink-400" size={20} />
+                  Theme
+                </h2>
+                <div className="grid grid-cols-4 gap-4">
+                  {themes.map((theme: Theme) => (
+                    <button
+                      key={theme}
+                      onClick={() => updateFormData("theme", theme)}
+                      className={`py-3 px-4 rounded-lg border-2 transition-all ${
+                        formData.theme === theme
+                          ? "border-pink-500 bg-pink-500/10 scale-105"
+                          : "border-gray-600 bg-gray-700/30 hover:border-gray-500"
+                      }`}
+                    >
+                      {theme}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                  🎵 Add Music{" "}
+                  <span className="text-gray-400 font-normal">(Optional)</span>
+                </h3>
+                <input
+                  type="url"
+                  value={formData.musicUrl}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    updateFormData("musicUrl", e.target.value)
+                  }
+                  placeholder="Paste a URL from YouTube, Spotify, Apple Music, Deezer, or Amazon Music (we detect automatically!)"
+                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm"
+                />
+
+                {formData.musicUrl && detectMusicService(formData.musicUrl) && (
+                  <div className="mt-2 text-sm text-green-400 flex items-center gap-2">
+                    ✓ Detected: {detectMusicService(formData.musicUrl)}
+                  </div>
+                )}
+
+                <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
+                  {musicServices.map((service: MusicService) => (
+                    <button
+                      key={service}
+                      className="shrink-0 bg-gray-700/50 px-4 py-2 rounded-lg text-sm hover:bg-gray-700 transition"
+                    >
+                      {service}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-4 bg-gray-700/30 border border-gray-600 rounded-lg p-3 text-xs text-gray-400">
+                  <div className="flex items-start gap-2">
+                    <span>ℹ️</span>
+                    <div>
+                      Paste a music URL and we will detect it automatically.
+                      <div className="mt-1 space-y-1">
+                        <div>
+                          <strong>YouTube:</strong> youtube.com, youtu.be,
+                          music.youtube.com
+                        </div>
+                        <div>
+                          <strong>Spotify:</strong> open.spotify.com/track,
+                          open.spotify.com/playlist
+                        </div>
+                        <div>
+                          <strong>Apple Music:</strong> music.apple.com
+                        </div>
+                        <div>
+                          <strong>Deezer:</strong> deezer.com
+                        </div>
+                        <div>
+                          <strong>Amazon Music:</strong> music.amazon.com
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation Buttons */}
+        <div className="flex items-center justify-between mt-8">
+          <button
+            onClick={prevStep}
+            disabled={currentStep === 0}
+            className={`flex items-center gap-2 px-6 py-3 rounded-full transition ${
+              currentStep === 0
+                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                : "bg-gray-700 hover:bg-gray-600 text-white"
+            }`}
+          >
+            <ChevronLeft size={20} />
+            Back
+          </button>
+
+          <button
+            onClick={nextStep}
+            disabled={!canProceed()}
+            className={`flex items-center gap-2 px-8 py-3 rounded-full transition ${
+              canProceed()
+                ? "bg-linear-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white shadow-lg"
+                : "bg-gray-700 text-gray-500 cursor-not-allowed"
+            }`}
+          >
+            {currentStep === totalSteps - 1 ? "Complete" : "Next"}
+            <ChevronRight size={20} />
+          </button>
+        </div>
+
+        {/* Back to homepage link */}
+        {currentStep > 0 && (
+          <button
+            onClick={() => setCurrentStep(0)}
+            className="mt-4 text-sm text-gray-400 hover:text-white flex items-center gap-2 mx-auto"
+          >
+            <ChevronLeft size={16} />
+            Back to the homepage
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

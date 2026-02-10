@@ -18,28 +18,28 @@ export function DashboardActions() {
       description: "Write a digital love letter",
       icon: <PenLine className="w-6 h-6 text-purple-500" />,
       color: "bg-purple-50 dark:bg-purple-900/20",
-      href: "/dashboard/confessions/new",
+      href: "/confessions/new",
     },
     {
       title: "Ask a Question",
       description: "The classic Yes/No game",
       icon: <Smile className="w-6 h-6 text-pink-500" />,
       color: "bg-pink-50 dark:bg-pink-900/20",
-      href: "/dashboard/ask",
+      href: "/ask",
     },
     {
       title: "Upload Memory",
       description: "Add photos to gallery",
       icon: <ImageIcon className="w-6 h-6 text-blue-500" />,
       color: "bg-blue-50 dark:bg-blue-900/20",
-      href: "/dashboard/gallery/upload",
+      href: "/gallery/upload",
     },
     {
       title: "Plan Date",
       description: "Add to calendar",
       icon: <Calendar className="w-6 h-6 text-emerald-500" />,
       color: "bg-emerald-50 dark:bg-emerald-900/20",
-      href: "/dashboard/calendar/new",
+      href: "/calendar/new",
     },
   ];
 
