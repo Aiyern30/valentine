@@ -322,13 +322,13 @@ export default function CondolenceForm() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 md:p-8">
+    <div className="min-h-screen bg-transparent p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
             <div
-              className="h-full bg-linear-to-r from-pink-500 to-rose-400 transition-all duration-300"
+              className="h-full bg-linear-to-r from-rose-500 to-pink-500 transition-all duration-300"
               style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
             />
           </div>
@@ -339,7 +339,7 @@ export default function CondolenceForm() {
 
         {/* Step 0: Basic Information */}
         {currentStep === 0 && (
-          <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl">
+          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -351,8 +351,10 @@ export default function CondolenceForm() {
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     updateFormData("lovedOneName", e.target.value)
                   }
-                  className={`w-full bg-gray-700/50 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500 ${
-                    errors.lovedOneName ? "border-red-500" : "border-gray-600"
+                  className={`w-full bg-gray-50 dark:bg-zinc-900 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all ${
+                    errors.lovedOneName
+                      ? "border-red-500"
+                      : "border-rose-100 dark:border-rose-900/30"
                   }`}
                   placeholder="Enter name"
                   maxLength={150}
@@ -399,7 +401,7 @@ export default function CondolenceForm() {
                           updateFormData("petName", e.target.value)
                         }
                         placeholder="What do you call your love?"
-                        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        className="w-full bg-gray-50 dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500"
                         maxLength={50}
                       />
                       <div
@@ -420,7 +422,7 @@ export default function CondolenceForm() {
                           updateFormData("yourName", e.target.value)
                         }
                         placeholder="Your name or leave blank for anonymous"
-                        className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        className="w-full bg-gray-50 dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500"
                         maxLength={50}
                       />
                       <div
@@ -433,7 +435,7 @@ export default function CondolenceForm() {
                 )}
               </div>
 
-              <button className="flex items-center gap-2 text-pink-400 text-sm bg-pink-500/10 px-4 py-2 rounded-full hover:bg-pink-500/20 transition">
+              <button className="flex items-center gap-2 text-rose-500 text-sm bg-rose-500/10 px-4 py-2 rounded-full hover:bg-rose-500/20 transition">
                 <Sparkles size={16} />
                 Need inspiration?
               </button>
@@ -443,11 +445,11 @@ export default function CondolenceForm() {
 
         {/* Step 1: Relationship Status */}
         {currentStep === 1 && (
-          <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl">
+          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-semibold mb-6">
-                  Relationship Status <span className="text-pink-400">*</span>
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                  Relationship Status <span className="text-rose-500">*</span>
                 </h2>
                 <div className="grid grid-cols-3 gap-4">
                   {relationshipOptions.map((option: RelationshipOption) => (
@@ -456,10 +458,10 @@ export default function CondolenceForm() {
                       onClick={() =>
                         updateFormData("relationshipStatus", option.label)
                       }
-                      className={`p-6 rounded-xl border-2 transition-all ${
+                      className={`p-6 rounded-2xl border-2 transition-all ${
                         formData.relationshipStatus === option.label
-                          ? "border-pink-500 bg-pink-500/10 scale-105"
-                          : "border-gray-600 bg-gray-700/30 hover:border-gray-500 hover:scale-102"
+                          ? "border-rose-500 bg-rose-500/10 scale-105"
+                          : "border-rose-50 dark:border-rose-900/20 bg-gray-50 dark:bg-zinc-900/50 hover:border-rose-200 hover:scale-102"
                       }`}
                     >
                       <div className="text-3xl mb-2">{option.icon}</div>
@@ -481,7 +483,7 @@ export default function CondolenceForm() {
 
         {/* Step 2: Message */}
         {currentStep === 2 && (
-          <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl">
+          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
             <div className="space-y-6">
               {formData.relationshipStatus && (
                 <div className="flex items-center justify-between mb-4">
@@ -510,8 +512,10 @@ export default function CondolenceForm() {
                       updateFormData("message", e.target.value)
                     }
                     placeholder="Write your special message here..."
-                    className={`w-full bg-gray-700/50 border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500 min-h-[200px] resize-none ${
-                      errors.message ? "border-red-500" : "border-gray-600"
+                    className={`w-full bg-gray-50 dark:bg-zinc-900 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 min-h-[200px] resize-none transition-all ${
+                      errors.message
+                        ? "border-red-500"
+                        : "border-rose-100 dark:border-rose-900/30"
                     }`}
                     maxLength={2000}
                   />
@@ -589,7 +593,7 @@ export default function CondolenceForm() {
 
         {/* Step 3: Photos */}
         {currentStep === 3 && (
-          <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl">
+          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">
@@ -606,7 +610,7 @@ export default function CondolenceForm() {
               </div>
 
               {formData.photos.length < 10 && (
-                <div className="border-2 border-dashed border-gray-600 rounded-xl p-12 text-center hover:border-pink-500 transition cursor-pointer">
+                <div className="border-2 border-dashed border-rose-100 dark:border-rose-900/30 bg-gray-50 dark:bg-zinc-900/50 rounded-2xl p-12 text-center hover:border-rose-500 transition cursor-pointer group">
                   <input
                     type="file"
                     multiple
@@ -630,23 +634,20 @@ export default function CondolenceForm() {
               {formData.photos.length > 0 && (
                 <div className="grid grid-cols-5 gap-3">
                   {formData.photos.map((photo: File, idx: number) => (
-                    <div
-                      key={idx}
-                      className="relative aspect-square bg-gray-700 rounded-lg overflow-hidden group"
-                    >
+                    <div className="relative aspect-square bg-gray-100 dark:bg-zinc-900 rounded-xl overflow-hidden group">
                       <img
                         src={URL.createObjectURL(photo)}
                         alt={`Upload ${idx + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform group-hover:scale-110"
                       />
                       <button
                         onClick={() => removePhoto(idx)}
-                        className="absolute top-1 right-1 bg-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition hover:bg-red-600"
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition shadow-lg hover:bg-red-600"
                         title="Remove photo"
                       >
                         <X size={14} />
                       </button>
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-xs text-white p-1 text-center opacity-0 group-hover:opacity-100 transition">
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-sm text-[10px] text-white p-1.5 text-center opacity-0 group-hover:opacity-100 transition">
                         {photo.name}
                       </div>
                     </div>
@@ -654,14 +655,14 @@ export default function CondolenceForm() {
                 </div>
               )}
 
-              <div className="bg-gray-700/30 border border-gray-600 rounded-lg p-4 text-sm text-gray-300">
-                <div className="flex items-start gap-2">
-                  <span>ℹ️</span>
+              <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl p-4 text-sm">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl">ℹ️</span>
                   <div>
-                    <div className="mb-2">
-                      Photos are optional - you can proceed with just a message.
+                    <div className="font-semibold text-rose-900 dark:text-rose-100 mb-1">
+                      Photos are optional
                     </div>
-                    <div className="text-gray-400">
+                    <div className="text-rose-700/80 dark:text-rose-300/80">
                       Your photos will make the tribute even more special, but
                       you can proceed with just a message.
                     </div>
@@ -674,11 +675,11 @@ export default function CondolenceForm() {
 
         {/* Step 4: Personalization */}
         {currentStep === 4 && (
-          <div className="bg-gray-800/50 backdrop-blur rounded-2xl p-8 shadow-2xl">
+          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
             <div className="space-y-8">
               <div>
                 <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-                  <Sparkles className="text-pink-400" size={20} />
+                  <Sparkles className="text-rose-500" size={20} />
                   Theme
                 </h2>
                 <div className="grid grid-cols-4 gap-4">
@@ -686,10 +687,10 @@ export default function CondolenceForm() {
                     <button
                       key={theme}
                       onClick={() => updateFormData("theme", theme)}
-                      className={`py-3 px-4 rounded-lg border-2 transition-all ${
+                      className={`py-3 px-4 rounded-xl border-2 transition-all ${
                         formData.theme === theme
-                          ? "border-pink-500 bg-pink-500/10 scale-105"
-                          : "border-gray-600 bg-gray-700/30 hover:border-gray-500"
+                          ? "border-rose-500 bg-rose-500/10 scale-105"
+                          : "border-rose-50 dark:border-rose-900/20 bg-gray-50 dark:bg-zinc-900/50 hover:border-rose-200"
                       }`}
                     >
                       {theme}
@@ -709,8 +710,8 @@ export default function CondolenceForm() {
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     updateFormData("musicUrl", e.target.value)
                   }
-                  placeholder="Paste a URL from YouTube, Spotify, Apple Music, Deezer, or Amazon Music (we detect automatically!)"
-                  className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm"
+                  placeholder="Paste a URL from YouTube, Spotify, Apple Music..."
+                  className="w-full bg-gray-50 dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm transition-all"
                 />
 
                 {formData.musicUrl && detectMusicService(formData.musicUrl) && (
@@ -723,26 +724,26 @@ export default function CondolenceForm() {
                   {musicServices.map((service: MusicService) => (
                     <button
                       key={service}
-                      className="shrink-0 bg-gray-700/50 px-4 py-2 rounded-lg text-sm hover:bg-gray-700 transition"
+                      className="shrink-0 bg-rose-50 dark:bg-rose-900/20 px-4 py-2 rounded-xl text-sm font-medium text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
                     >
                       {service}
                     </button>
                   ))}
                 </div>
 
-                <div className="mt-4 bg-gray-700/30 border border-gray-600 rounded-lg p-3 text-xs text-gray-400">
-                  <div className="flex items-start gap-2">
-                    <span>ℹ️</span>
+                <div className="mt-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-2xl p-4 text-xs">
+                  <div className="flex items-start gap-3">
+                    <span className="text-lg">ℹ️</span>
                     <div>
-                      Paste a music URL and we will detect it automatically.
-                      <div className="mt-1 space-y-1">
+                      <div className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                        Paste a music URL and we will detect it automatically.
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5 text-blue-800/70 dark:text-blue-300/70">
                         <div>
-                          <strong>YouTube:</strong> youtube.com, youtu.be,
-                          music.youtube.com
+                          <strong>YouTube:</strong> youtube.com, youtu.be
                         </div>
                         <div>
-                          <strong>Spotify:</strong> open.spotify.com/track,
-                          open.spotify.com/playlist
+                          <strong>Spotify:</strong> open.spotify.com
                         </div>
                         <div>
                           <strong>Apple Music:</strong> music.apple.com
@@ -750,7 +751,7 @@ export default function CondolenceForm() {
                         <div>
                           <strong>Deezer:</strong> deezer.com
                         </div>
-                        <div>
+                        <div className="md:col-span-2">
                           <strong>Amazon Music:</strong> music.amazon.com
                         </div>
                       </div>
@@ -769,8 +770,8 @@ export default function CondolenceForm() {
             disabled={currentStep === 0}
             className={`flex items-center gap-2 px-6 py-3 rounded-full transition ${
               currentStep === 0
-                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                : "bg-gray-700 hover:bg-gray-600 text-white"
+                ? "bg-gray-200 dark:bg-zinc-800 text-gray-400 cursor-not-allowed"
+                : "bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 text-gray-900 dark:text-white border border-rose-100 dark:border-rose-900/30"
             }`}
           >
             <ChevronLeft size={20} />
@@ -780,10 +781,10 @@ export default function CondolenceForm() {
           <button
             onClick={nextStep}
             disabled={!canProceed()}
-            className={`flex items-center gap-2 px-8 py-3 rounded-full transition ${
+            className={`flex items-center gap-2 px-8 py-3 rounded-full transition-all ${
               canProceed()
-                ? "bg-linear-to-r from-pink-500 to-rose-400 hover:from-pink-600 hover:to-rose-500 text-white shadow-lg"
-                : "bg-gray-700 text-gray-500 cursor-not-allowed"
+                ? "bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white shadow-lg shadow-rose-200 dark:shadow-rose-900/20"
+                : "bg-gray-200 dark:bg-zinc-800 text-gray-400 cursor-not-allowed"
             }`}
           >
             {currentStep === totalSteps - 1 ? "Complete" : "Next"}
@@ -795,7 +796,7 @@ export default function CondolenceForm() {
         {currentStep > 0 && (
           <button
             onClick={() => setCurrentStep(0)}
-            className="mt-4 text-sm text-gray-400 hover:text-white flex items-center gap-2 mx-auto"
+            className="mt-4 text-sm text-gray-400 hover:text-rose-500 transition-colors flex items-center gap-2 mx-auto"
           >
             <ChevronLeft size={16} />
             Back to the homepage
