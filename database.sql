@@ -29,6 +29,15 @@ CREATE TABLE public.confessions (
   responded_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
   expires_at timestamp with time zone,
+  loved_one_name text,
+  pet_name text,
+  sender_name text,
+  relationship_status text,
+  music_url text,
+  photos jsonb DEFAULT '[]'::jsonb,
+  sender_full_name text,
+  sender_email text,
+  sender_phone text,
   CONSTRAINT confessions_pkey PRIMARY KEY (id),
   CONSTRAINT confessions_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.profiles(id)
 );
