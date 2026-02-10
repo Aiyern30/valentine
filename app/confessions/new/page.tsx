@@ -1,6 +1,13 @@
 "use client";
 import React, { useState, ChangeEvent } from "react";
-import { ChevronLeft, ChevronRight, Upload, Sparkles, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Upload,
+  Sparkles,
+  X,
+  Heart,
+} from "lucide-react";
 
 // Type Definitions
 interface FormData {
@@ -11,6 +18,7 @@ interface FormData {
   message: string;
   photos: File[];
   theme: Theme;
+  envelopeStyle: EnvelopeStyle;
   musicUrl: string;
   fullName: string;
   email: string;
@@ -31,6 +39,15 @@ type RelationshipStatus =
   | "";
 
 type Theme = "Life" | "Fall" | "Christmas" | "Birthday";
+
+type EnvelopeStyle = "Vintage" | "Romantic" | "Midnight" | "Modern";
+
+interface EnvelopeOption {
+  id: EnvelopeStyle;
+  name: string;
+  preview: string;
+  colors: string;
+}
 
 interface RelationshipOption {
   icon: string;
@@ -65,6 +82,7 @@ interface ValidationErrors {
 // Main Component
 export default function CondolenceForm() {
   const [currentStep, setCurrentStep] = useState<number>(0);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [formData, setFormData] = useState<FormData>({
     lovedOneName: "",
@@ -74,6 +92,7 @@ export default function CondolenceForm() {
     message: "",
     photos: [],
     theme: "Life",
+    envelopeStyle: "Romantic",
     musicUrl: "",
     fullName: "",
     email: "",
@@ -81,7 +100,7 @@ export default function CondolenceForm() {
     showOptional: false,
   });
 
-  const totalSteps: number = 5;
+  const totalSteps: number = 6;
 
   const relationshipOptions: RelationshipOption[] = [
     { icon: "💕", label: "Dating" },
@@ -133,6 +152,35 @@ export default function CondolenceForm() {
   };
 
   const themes: Theme[] = ["Life", "Fall", "Christmas", "Birthday"];
+
+  const envelopeOptions: EnvelopeOption[] = [
+    {
+      id: "Romantic",
+      name: "Soft Heart",
+      preview: "💌",
+      colors:
+        "from-rose-100 to-pink-200 dark:from-rose-900/40 dark:to-pink-900/40",
+    },
+    {
+      id: "Vintage",
+      name: "Classic Wax",
+      preview: "📜",
+      colors:
+        "from-orange-50 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30",
+    },
+    {
+      id: "Midnight",
+      name: "Neon Night",
+      preview: "✨",
+      colors: "bg-zinc-900",
+    },
+    {
+      id: "Modern",
+      name: "Glassmorphism",
+      preview: "💎",
+      colors: "bg-white/20 backdrop-blur-md border-white/30",
+    },
+  ];
 
   const musicServices: MusicService[] = [
     "YouTube",
@@ -281,6 +329,8 @@ export default function CondolenceForm() {
         return true; // Photos are optional
       case 4:
         return true; // All fields on this step are optional
+      case 5:
+        return true; // Preview step
       default:
         return false;
     }
@@ -700,6 +750,40 @@ export default function CondolenceForm() {
               </div>
 
               <div>
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                  <Upload className="text-rose-500" size={20} />
+                  Envelope Style
+                </h2>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {envelopeOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => updateFormData("envelopeStyle", option.id)}
+                      className={`relative group overflow-hidden rounded-2xl border-2 transition-all p-4 ${
+                        formData.envelopeStyle === option.id
+                          ? "border-rose-500 bg-rose-50 dark:bg-rose-950/30 scale-105"
+                          : "border-rose-100 dark:border-rose-900/20 bg-gray-50 dark:bg-zinc-900/50 hover:border-rose-300"
+                      }`}
+                    >
+                      <div
+                        className={`aspect-4/3 rounded-xl mb-3 flex items-center justify-center text-4xl shadow-sm transition-transform group-hover:scale-110 bg-linear-to-br ${option.colors}`}
+                      >
+                        {option.preview}
+                      </div>
+                      <div className="text-sm font-semibold text-center truncate">
+                        {option.name}
+                      </div>
+                      {formData.envelopeStyle === option.id && (
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center text-[10px] text-white animate-in zoom-in">
+                          ✓
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
                 <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
                   🎵 Add Music{" "}
                   <span className="text-gray-400 font-normal">(Optional)</span>
@@ -758,6 +842,176 @@ export default function CondolenceForm() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 5: Final Preview */}
+        {currentStep === 5 && (
+          <div className="space-y-8 animate-in fade-in zoom-in duration-500">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Final Preview
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400">
+                This is exactly what your loved one will see. Tap the seal to
+                preview the animation.
+              </p>
+            </div>
+
+            {/* Preview Stage */}
+            <div className="relative aspect-16/10 w-full max-w-2xl mx-auto bg-zinc-950 rounded-3xl overflow-hidden shadow-2xl border border-zinc-800 flex items-center justify-center p-8">
+              {/* Background Glow based on Theme */}
+              <div
+                className={`absolute inset-0 opacity-20 blur-[100px] transition-all duration-700 ${
+                  formData.envelopeStyle === "Romantic"
+                    ? "bg-rose-500"
+                    : formData.envelopeStyle === "Vintage"
+                      ? "bg-amber-600"
+                      : formData.envelopeStyle === "Midnight"
+                        ? "bg-blue-600"
+                        : "bg-white"
+                }`}
+              />
+
+              {!isPreviewOpen ? (
+                /* Closed Envelope View */
+                <div
+                  className={`relative w-full max-w-md aspect-4/3 rounded-2xl border-2 transition-all duration-500 cursor-pointer group flex flex-col items-center justify-center p-6 shadow-2xl ${
+                    formData.envelopeStyle === "Romantic"
+                      ? "border-rose-500/30 bg-rose-950/20 shadow-rose-500/10"
+                      : formData.envelopeStyle === "Vintage"
+                        ? "border-amber-900/40 bg-orange-950/20 shadow-amber-900/10"
+                        : formData.envelopeStyle === "Midnight"
+                          ? "border-zinc-700 bg-zinc-900 shadow-black"
+                          : "border-white/20 bg-white/10 backdrop-blur-md"
+                  }`}
+                  onClick={() => setIsPreviewOpen(true)}
+                >
+                  {/* To/From Section */}
+                  <div className="absolute top-12 left-12 space-y-1">
+                    <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-medium">
+                      To:
+                    </span>
+                    <p className="font-script text-2xl text-rose-300 ml-2 drop-shadow-sm">
+                      {formData.lovedOneName || "My Love"}
+                    </p>
+                  </div>
+
+                  <div className="absolute bottom-12 right-12 text-right space-y-1">
+                    <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-medium">
+                      From:
+                    </span>
+                    <p className="font-script text-xl text-rose-300 mr-2 drop-shadow-sm">
+                      {formData.yourName || "Someone special"}
+                    </p>
+                  </div>
+
+                  {/* Seal/Button */}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-rose-500 blur-xl opacity-40 group-hover:opacity-60 transition-opacity animate-pulse" />
+                    <button
+                      className={`relative w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow-lg transform group-hover:scale-110 transition-transform ${
+                        formData.envelopeStyle === "Romantic"
+                          ? "bg-rose-500 text-white"
+                          : formData.envelopeStyle === "Vintage"
+                            ? "bg-amber-700 text-amber-100"
+                            : formData.envelopeStyle === "Midnight"
+                              ? "bg-zinc-800 text-blue-400"
+                              : "bg-white text-zinc-900"
+                      }`}
+                    >
+                      {envelopeOptions.find(
+                        (o) => o.id === formData.envelopeStyle,
+                      )?.preview || "✉️"}
+                    </button>
+                    <div className="mt-4 text-center">
+                      <p className="text-[10px] text-zinc-500 uppercase tracking-widest animate-bounce">
+                        Tap to open
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Envelope Flap Lines */}
+                  <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none opacity-20"
+                    viewBox="0 0 400 300"
+                  >
+                    <path
+                      d="M0 0 L200 150 L400 0"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    />
+                    <path
+                      d="M0 300 L200 150 L400 300"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                </div>
+              ) : (
+                /* Opened Message View */
+                <div className="relative w-full max-w-md bg-transparent text-center space-y-8 animate-in slide-in-from-bottom-12 duration-700">
+                  <div className="space-y-4">
+                    <p className="font-script text-4xl text-rose-400 drop-shadow-md">
+                      {formData.lovedOneName || "My Love"}
+                    </p>
+                    <p className="text-zinc-500 font-mono tracking-tighter opacity-80">
+                      "123123123123"
+                    </p>
+                  </div>
+
+                  <div className="flex justify-center gap-2 text-rose-500/40">
+                    <Heart size={20} fill="currentColor" />
+                    <Heart size={20} fill="currentColor" />
+                    <Heart size={20} fill="currentColor" />
+                  </div>
+
+                  <div className="space-y-4">
+                    <p className="text-sm text-zinc-500 italic">with love,</p>
+                    <p className="font-script text-3xl text-rose-400">
+                      {formData.yourName || "Someone special"}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsPreviewOpen(false);
+                    }}
+                    className="text-xs text-zinc-500 underline underline-offset-4 hover:text-white transition-colors"
+                  >
+                    Close preview
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Style Toggles for Preview Page */}
+            <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-6 border border-rose-100 dark:border-rose-900/20 shadow-lg max-w-2xl mx-auto">
+              <h3 className="text-sm font-semibold mb-4 text-center text-zinc-500 uppercase tracking-widest">
+                Quick Toggles
+              </h3>
+              <div className="grid grid-cols-4 gap-3">
+                {envelopeOptions.map((opt) => (
+                  <button
+                    key={opt.id}
+                    onClick={() => updateFormData("envelopeStyle", opt.id)}
+                    className={`p-3 rounded-2xl border flex flex-col items-center gap-1 transition-all ${
+                      formData.envelopeStyle === opt.id
+                        ? "border-rose-500 bg-rose-50 dark:bg-rose-500/20"
+                        : "border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800"
+                    }`}
+                  >
+                    <span className="text-xl">{opt.preview}</span>
+                    <span className="text-[10px] font-medium truncate w-full text-center">
+                      {opt.id}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
           </div>

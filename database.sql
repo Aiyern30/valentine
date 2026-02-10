@@ -38,6 +38,7 @@ CREATE TABLE public.confessions (
   sender_full_name text,
   sender_email text,
   sender_phone text,
+  envelope_style text DEFAULT 'Romantic',
   CONSTRAINT confessions_pkey PRIMARY KEY (id),
   CONSTRAINT confessions_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.profiles(id)
 );
