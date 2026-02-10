@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { easeInOut, easeOut, motion, spring } from "framer-motion";
 export function AnimatedEnvelope() {
   const [isOpen, setIsOpen] = useState(false);
   // Animation Variants
@@ -9,7 +9,7 @@ export function AnimatedEnvelope() {
       zIndex: 30,
       transition: {
         duration: 0.6,
-        ease: "easeOut",
+        ease: easeOut,
       },
     },
     open: {
@@ -17,7 +17,7 @@ export function AnimatedEnvelope() {
       zIndex: 0,
       transition: {
         duration: 0.6,
-        ease: "easeInOut",
+        ease: easeInOut,
       },
     },
   };
@@ -38,7 +38,7 @@ export function AnimatedEnvelope() {
       transition: {
         delay: 0.6,
         duration: 0.8,
-        type: "spring",
+        type: spring,
         stiffness: 100,
         damping: 20,
       },
