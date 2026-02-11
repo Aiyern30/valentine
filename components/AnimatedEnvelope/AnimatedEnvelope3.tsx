@@ -125,7 +125,13 @@ export function AnimatedEnvelope({
 
         {/* 3D FOLDING CARD */}
         <motion.div
-          className="absolute z-10 w-[300px] h-[200px] overflow-hidden flex flex-col items-center justify-center text-center p-6 border border-stone-100"
+          className="absolute z-10 flex flex-col items-center justify-center text-center p-6 left-1/2"
+          style={{
+            x: "-50%",
+            top: "-40px",
+            width: "320px",
+            height: "400px",
+          }}
           initial={{ scale: 0.3, y: 50, rotateX: 15, opacity: 0 }}
           animate={
             status === "revealed"
@@ -187,29 +193,27 @@ export function AnimatedEnvelope({
             >
               {/* CARD FRONT (Cover) */}
               <div
-                className="absolute inset-0 rounded-lg p-6 flex flex-col items-center justify-center text-center shadow-md border border-stone-200"
+                className="absolute inset-0 rounded-lg p-8 flex flex-col items-center justify-center text-center shadow-md border border-stone-200"
                 style={{
                   backgroundColor: cardColor,
                   backfaceVisibility: "hidden",
                   zIndex: 2,
                 }}
               >
-                <div className="border-2 border-double border-stone-200 w-full h-full p-4 flex flex-col items-center justify-center relative">
-                  <div className="w-10 h-10 rounded-full bg-stone-50 flex items-center justify-center mb-3">
-                    <Heart size={20} className="text-rose-500 fill-rose-500" />
-                  </div>
-                  <h2 className="font-serif text-xl text-stone-800 tracking-wide font-medium mb-2">
-                    {title}
-                  </h2>
-                  <p className="font-serif text-sm text-stone-500 opacity-60">
-                    For: {recipient || "Someone Special"}
+                <div className="w-10 h-10 rounded-full bg-stone-50 flex items-center justify-center mb-3">
+                  <Heart size={20} className="text-rose-500 fill-rose-500" />
+                </div>
+                <h2 className="font-serif text-xl text-stone-800 tracking-wide font-medium mb-2">
+                  {title}
+                </h2>
+                <p className="font-serif text-sm text-stone-500 opacity-60">
+                  For: {recipient || "Someone Special"}
+                </p>
+                <div className="mt-6 flex flex-col items-center gap-2 opacity-20">
+                  <div className="w-4 h-4 rounded-full border border-stone-400 rotate-45" />
+                  <p className="text-[7px] uppercase tracking-[0.4em] font-bold text-stone-950">
+                    Reveal
                   </p>
-                  <div className="mt-6 flex flex-col items-center gap-2 opacity-20">
-                    <div className="w-4 h-4 rounded-full border border-stone-400 rotate-45" />
-                    <p className="text-[7px] uppercase tracking-[0.4em] font-bold text-stone-950">
-                      Reveal
-                    </p>
-                  </div>
                 </div>
               </div>
 
@@ -266,13 +270,19 @@ export function AnimatedEnvelope({
                 ? {
                     y: -150,
                     opacity: 0,
-                    maskImage:
-                      "linear-gradient(to top, transparent, black 20%)",
-                    WebkitMaskImage:
-                      "linear-gradient(to top, transparent, black 20%)",
                   }
                 : {}
             }
+            style={{
+              maskImage:
+                status === "revealed"
+                  ? "linear-gradient(to top, transparent, black 20%)"
+                  : undefined,
+              WebkitMaskImage:
+                status === "revealed"
+                  ? "linear-gradient(to top, transparent, black 20%)"
+                  : undefined,
+            }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
             <div
@@ -283,7 +293,7 @@ export function AnimatedEnvelope({
             >
               <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
               <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[170px] border-l-transparent border-r-[170px] border-r-transparent border-t-[140px] drop-shadow-md origin-top"
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-170 border-l-transparent border-r-170 border-r-transparent border-t-140 drop-shadow-md origin-top"
                 style={{ borderTopColor: flapColor }}
               ></div>
             </div>
@@ -298,13 +308,19 @@ export function AnimatedEnvelope({
                 ? {
                     y: 150,
                     opacity: 0,
-                    maskImage:
-                      "linear-gradient(to bottom, transparent, black 20%)",
-                    WebkitMaskImage:
-                      "linear-gradient(to bottom, transparent, black 20%)",
                   }
                 : {}
             }
+            style={{
+              maskImage:
+                status === "revealed"
+                  ? "linear-gradient(to bottom, transparent, black 20%)"
+                  : undefined,
+              WebkitMaskImage:
+                status === "revealed"
+                  ? "linear-gradient(to bottom, transparent, black 20%)"
+                  : undefined,
+            }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
             <div
@@ -315,7 +331,7 @@ export function AnimatedEnvelope({
             >
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
               <div
-                className="w-0 h-0 border-l-[170px] border-l-transparent border-r-[170px] border-r-transparent border-b-[120px] absolute bottom-0"
+                className="w-0 h-0 border-l-170 border-l-transparent border-r-170 border-r-transparent border-b-120 absolute bottom-0"
                 style={{ borderBottomColor: `${pocketColor}cc` }}
               ></div>
             </div>

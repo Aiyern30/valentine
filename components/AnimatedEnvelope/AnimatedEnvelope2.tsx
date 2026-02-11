@@ -98,9 +98,12 @@ export function AnimatedEnvelope({
 
         {/* 2. The 3D Folding Card */}
         <motion.div
-          className="absolute left-4 right-4 h-[90%] origin-center"
+          className="absolute left-1/2 origin-center"
           style={{
-            top: "5%",
+            x: "-50%",
+            top: "-20px",
+            width: "320px",
+            height: "400px",
             zIndex:
               stage === "card-rise" ||
               stage === "floating" ||
@@ -108,18 +111,20 @@ export function AnimatedEnvelope({
                 ? 50
                 : 5,
           }}
-          initial={{ y: 0, scale: 1, rotate: 0 }}
+          initial={{ y: 0, scale: 1, rotate: 0, opacity: 0 }}
           animate={
             stage === "idle" ||
             stage === "seal-dissolve" ||
             stage === "flap-open"
-              ? { y: 0 }
+              ? { y: 0, opacity: 0 }
               : stage === "card-rise"
                 ? {
                     y: -120,
+                    opacity: 1,
                     rotate: [0, -2, 2, 0],
                     transition: {
                       y: { duration: 1.2, ease: easeInOut },
+                      opacity: { duration: 0.3 },
                       rotate: {
                         duration: 1.2,
                         ease: easeInOut,
@@ -128,11 +133,17 @@ export function AnimatedEnvelope({
                     },
                   }
                 : stage === "envelope-fade"
-                  ? { y: -50, scale: 1.1, transition: { duration: 1 } }
+                  ? {
+                      y: -50,
+                      scale: 1.1,
+                      opacity: 1,
+                      transition: { duration: 1 },
+                    }
                   : stage === "floating"
                     ? {
                         y: [-50, -60, -50],
                         scale: 1.1,
+                        opacity: 1,
                         transition: {
                           y: { repeat: Infinity, duration: 3, ease: easeInOut },
                           scale: { duration: 0.5 },
