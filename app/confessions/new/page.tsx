@@ -8,7 +8,9 @@ import {
   X,
   Heart,
 } from "lucide-react";
-import { AnimatedEnvelope } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
+import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
+import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
+import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
 
 // Type Definitions
 interface FormData {
@@ -20,6 +22,7 @@ interface FormData {
   photos: File[];
   theme: Theme;
   envelopeStyle: EnvelopeStyle;
+  animationVariant: AnimationVariant;
   musicUrl: string;
   fullName: string;
   email: string;
@@ -42,6 +45,8 @@ type RelationshipStatus =
 type Theme = "Life" | "Fall" | "Christmas" | "Birthday";
 
 type EnvelopeStyle = "Vintage" | "Romantic" | "Midnight" | "Modern";
+
+type AnimationVariant = "Classic" | "Elegant" | "Dramatic";
 
 interface EnvelopeOption {
   id: EnvelopeStyle;
@@ -94,6 +99,7 @@ export default function CondolenceForm() {
     photos: [],
     theme: "Life",
     envelopeStyle: "Romantic",
+    animationVariant: "Classic",
     musicUrl: "",
     fullName: "",
     email: "",
@@ -877,53 +883,165 @@ export default function CondolenceForm() {
               />
 
               <div className="scale-75 md:scale-100 origin-center transition-transform duration-500">
-                <AnimatedEnvelope
-                  recipient={formData.lovedOneName}
-                  sender={formData.yourName || "Someone special"}
-                  message={formData.message}
-                  isOpen={isPreviewOpen}
-                  onOpenChange={setIsPreviewOpen}
-                  photos={formData.photos.map((p) => URL.createObjectURL(p))}
-                  {...(formData.envelopeStyle === "Romantic"
-                    ? {
-                        envelopeColor: "#FFB6C1",
-                        pocketColor: "#FFB6C1",
-                        flapColor: "#FFC0CB",
-                        flapBackColor: "#DB7093",
-                        cardColor: "#FFF0F5",
-                        titleColor: "#9D174D",
-                        textColor: "#BE185D",
-                      }
-                    : formData.envelopeStyle === "Vintage"
+                {formData.animationVariant === "Classic" && (
+                  <AnimatedEnvelope1
+                    title={
+                      formData.message.split(" ").slice(0, 3).join(" ") ||
+                      "Love Letter"
+                    }
+                    recipient={formData.lovedOneName}
+                    sender={formData.yourName || "Someone special"}
+                    message={formData.message}
+                    isOpen={isPreviewOpen}
+                    onOpenChange={setIsPreviewOpen}
+                    photos={formData.photos.map((p) => URL.createObjectURL(p))}
+                    {...(formData.envelopeStyle === "Romantic"
                       ? {
-                          envelopeColor: "#D4A574",
-                          pocketColor: "#D4A574",
-                          flapColor: "#DEB887",
-                          flapBackColor: "#C49A6C",
-                          cardColor: "#FEFCF3",
-                          titleColor: "#5D4037",
-                          textColor: "#8D6E63",
+                          envelopeColor: "#FFB6C1",
+                          pocketColor: "#FFB6C1",
+                          flapColor: "#FFC0CB",
+                          flapBackColor: "#DB7093",
+                          cardColor: "#FFF0F5",
+                          titleColor: "#9D174D",
+                          textColor: "#BE185D",
                         }
-                      : formData.envelopeStyle === "Midnight"
+                      : formData.envelopeStyle === "Vintage"
                         ? {
-                            envelopeColor: "#18181b",
-                            pocketColor: "#18181b",
-                            flapColor: "#27272a",
-                            flapBackColor: "#09090b",
-                            cardColor: "#27272a",
-                            textColor: "#a1a1aa",
-                            titleColor: "#f4f4f5",
+                            envelopeColor: "#D4A574",
+                            pocketColor: "#D4A574",
+                            flapColor: "#DEB887",
+                            flapBackColor: "#C49A6C",
+                            cardColor: "#FEFCF3",
+                            titleColor: "#5D4037",
+                            textColor: "#8D6E63",
                           }
-                        : {
-                            envelopeColor: "rgba(255, 255, 255, 0.1)",
-                            pocketColor: "rgba(255, 255, 255, 0.1)",
-                            flapColor: "rgba(255, 255, 255, 0.2)",
-                            flapBackColor: "rgba(255, 255, 255, 0.05)",
-                            cardColor: "rgba(255, 255, 255, 0.9)",
-                            titleColor: "#333",
-                            textColor: "#666",
-                          })}
-                />
+                        : formData.envelopeStyle === "Midnight"
+                          ? {
+                              envelopeColor: "#18181b",
+                              pocketColor: "#18181b",
+                              flapColor: "#27272a",
+                              flapBackColor: "#09090b",
+                              cardColor: "#FDFBF7",
+                              textColor: "#57534e",
+                              titleColor: "#1c1917",
+                            }
+                          : {
+                              envelopeColor: "rgba(255, 255, 255, 0.1)",
+                              pocketColor: "rgba(255, 255, 255, 0.1)",
+                              flapColor: "rgba(255, 255, 255, 0.2)",
+                              flapBackColor: "rgba(255, 255, 255, 0.05)",
+                              cardColor: "rgba(255, 255, 255, 0.9)",
+                              titleColor: "#333",
+                              textColor: "#666",
+                            })}
+                  />
+                )}
+                {formData.animationVariant === "Elegant" && (
+                  <AnimatedEnvelope2
+                    title={
+                      formData.message.split(" ").slice(0, 3).join(" ") ||
+                      "Love Letter"
+                    }
+                    recipient={formData.lovedOneName}
+                    sender={formData.yourName || "Someone special"}
+                    message={formData.message}
+                    isOpen={isPreviewOpen}
+                    onOpenChange={setIsPreviewOpen}
+                    photos={formData.photos.map((p) => URL.createObjectURL(p))}
+                    {...(formData.envelopeStyle === "Romantic"
+                      ? {
+                          envelopeColor: "#FFB6C1",
+                          pocketColor: "#FFB6C1",
+                          flapColor: "#FFC0CB",
+                          flapBackColor: "#DB7093",
+                          cardColor: "#FFF0F5",
+                          titleColor: "#9D174D",
+                          textColor: "#BE185D",
+                        }
+                      : formData.envelopeStyle === "Vintage"
+                        ? {
+                            envelopeColor: "#f5e6d0",
+                            pocketColor: "#ede0cc",
+                            flapColor: "#e8d5bc",
+                            flapBackColor: "#f5e6d0",
+                            cardColor: "#fffcf5",
+                            titleColor: "#1e293b",
+                            textColor: "#475569",
+                          }
+                        : formData.envelopeStyle === "Midnight"
+                          ? {
+                              envelopeColor: "#1a1a1a",
+                              pocketColor: "#111111",
+                              flapColor: "#2a2a2a",
+                              flapBackColor: "#1a1a1a",
+                              cardColor: "#FDFBF7",
+                              textColor: "#57534e",
+                              titleColor: "#1c1917",
+                            }
+                          : {
+                              envelopeColor: "rgba(255, 255, 255, 0.1)",
+                              pocketColor: "rgba(255, 255, 255, 0.1)",
+                              flapColor: "rgba(255, 255, 255, 0.2)",
+                              flapBackColor: "rgba(255, 255, 255, 0.05)",
+                              cardColor: "rgba(255, 255, 255, 0.9)",
+                              titleColor: "#333",
+                              textColor: "#666",
+                            })}
+                  />
+                )}
+                {formData.animationVariant === "Dramatic" && (
+                  <AnimatedEnvelope3
+                    title={
+                      formData.message.split(" ").slice(0, 3).join(" ") ||
+                      "Love Letter"
+                    }
+                    recipient={formData.lovedOneName}
+                    sender={formData.yourName || "Someone special"}
+                    message={formData.message}
+                    isOpen={isPreviewOpen}
+                    onOpenChange={setIsPreviewOpen}
+                    photos={formData.photos.map((p) => URL.createObjectURL(p))}
+                    {...(formData.envelopeStyle === "Romantic"
+                      ? {
+                          envelopeColor: "#FFB6C1",
+                          pocketColor: "#FFB6C1",
+                          flapColor: "#FFC0CB",
+                          flapBackColor: "#DB7093",
+                          cardColor: "#FFF0F5",
+                          titleColor: "#9D174D",
+                          textColor: "#BE185D",
+                        }
+                      : formData.envelopeStyle === "Vintage"
+                        ? {
+                            envelopeColor: "#f5e6d0",
+                            pocketColor: "#ede0cc",
+                            flapColor: "#e8d5bc",
+                            flapBackColor: "#f5e6d0",
+                            cardColor: "#fffcf5",
+                            titleColor: "#1e293b",
+                            textColor: "#475569",
+                          }
+                        : formData.envelopeStyle === "Midnight"
+                          ? {
+                              envelopeColor: "#1a1a1a",
+                              pocketColor: "#111111",
+                              flapColor: "#2a2a2a",
+                              flapBackColor: "#1a1a1a",
+                              cardColor: "#FDFBF7",
+                              textColor: "#57534e",
+                              titleColor: "#1c1917",
+                            }
+                          : {
+                              envelopeColor: "rgba(255, 255, 255, 0.1)",
+                              pocketColor: "rgba(255, 255, 255, 0.1)",
+                              flapColor: "rgba(255, 255, 255, 0.2)",
+                              flapBackColor: "rgba(255, 255, 255, 0.05)",
+                              cardColor: "rgba(255, 255, 255, 0.9)",
+                              titleColor: "#333",
+                              textColor: "#666",
+                            })}
+                  />
+                )}
               </div>
 
               {isPreviewOpen && (
@@ -940,27 +1058,57 @@ export default function CondolenceForm() {
             </div>
 
             {/* Style Toggles for Preview Page */}
-            <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-4 border border-rose-100 dark:border-rose-900/20 shadow-lg max-w-md mx-auto">
-              <h3 className="text-xs font-semibold mb-3 text-center text-zinc-500 uppercase tracking-widest">
-                Quick Style Toggles
-              </h3>
-              <div className="grid grid-cols-4 gap-2">
-                {envelopeOptions.map((opt) => (
-                  <button
-                    key={opt.id}
-                    onClick={() => updateFormData("envelopeStyle", opt.id)}
-                    className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all ${
-                      formData.envelopeStyle === opt.id
-                        ? "border-rose-500 bg-rose-50 dark:bg-rose-500/20"
-                        : "border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800"
-                    }`}
-                  >
-                    <span className="text-lg">{opt.preview}</span>
-                    <span className="text-[10px] font-medium truncate w-full text-center">
-                      {opt.id}
-                    </span>
-                  </button>
-                ))}
+            <div className="space-y-4 max-w-md mx-auto">
+              {/* Animation Variant Selector */}
+              <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-4 border border-rose-100 dark:border-rose-900/20 shadow-lg">
+                <h3 className="text-xs font-semibold mb-3 text-center text-zinc-500 uppercase tracking-widest">
+                  Animation Style
+                </h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {["Classic", "Elegant", "Dramatic"].map((variant) => (
+                    <button
+                      key={variant}
+                      onClick={() =>
+                        updateFormData(
+                          "animationVariant",
+                          variant as AnimationVariant,
+                        )
+                      }
+                      className={`p-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${
+                        formData.animationVariant === variant
+                          ? "border-rose-500 bg-rose-50 dark:bg-rose-500/20"
+                          : "border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800"
+                      }`}
+                    >
+                      <span className="text-sm font-medium">{variant}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Envelope Theme Selector */}
+              <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-4 border border-rose-100 dark:border-rose-900/20 shadow-lg">
+                <h3 className="text-xs font-semibold mb-3 text-center text-zinc-500 uppercase tracking-widest">
+                  Envelope Theme
+                </h3>
+                <div className="grid grid-cols-4 gap-2">
+                  {envelopeOptions.map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => updateFormData("envelopeStyle", opt.id)}
+                      className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all ${
+                        formData.envelopeStyle === opt.id
+                          ? "border-rose-500 bg-rose-50 dark:bg-rose-500/20"
+                          : "border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800"
+                      }`}
+                    >
+                      <span className="text-lg">{opt.preview}</span>
+                      <span className="text-[10px] font-medium truncate w-full text-center">
+                        {opt.id}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
