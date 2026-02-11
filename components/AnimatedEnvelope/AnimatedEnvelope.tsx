@@ -31,8 +31,10 @@ export function AnimatedEnvelope({
   cardColor = "#FEFCF3",
   textColor = "#8D6E63",
   titleColor = "#5D4037",
-}: AnimatedEnvelopeProps) {
+  photos = [],
+}: AnimatedEnvelopeProps & { photos?: string[] }) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [isCardFoldOpen, setIsCardFoldOpen] = useState(false);
   const isOpen =
     controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
 
@@ -45,6 +47,14 @@ export function AnimatedEnvelope({
       }
     }
   };
+
+  // Reset card when closing
+  React.useEffect(() => {
+    if (!isOpen) {
+      const timer = setTimeout(() => setIsCardFoldOpen(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Animation Variants
   const flapVariants = {
@@ -83,7 +93,6 @@ export function AnimatedEnvelope({
       opacity: 1,
       scale: 1,
       zIndex: 40,
-      rotate: -2,
       transition: {
         delay: 0.6,
         duration: 0.8,
@@ -180,62 +189,164 @@ export function AnimatedEnvelope({
             </p>
           </motion.div>
 
-          {/* CARD (Content) */}
+          {/* 3D FOLDING CARD */}
           <motion.div
             variants={cardVariants}
             initial="closed"
             animate={isOpen ? "open" : "closed"}
-            className="absolute left-1/2 top-2 w-[280px] h-[360px] rounded-lg p-6 flex flex-col items-center text-center shadow-sm border origin-bottom"
-            style={{
-              x: "-50%",
-              backgroundColor: cardColor,
-              borderColor: "rgba(0,0,0,0.05)",
+            className="absolute left-1/2 top-4 w-[280px] h-[360px] origin-bottom perspective-1000"
+            style={{ x: "-50%" }}
+            onClick={(e) => {
+              if (isOpen) {
+                e.stopPropagation();
+                setIsCardFoldOpen(!isCardFoldOpen);
+              }
             }}
           >
-            {/* Paper Texture Overlay */}
-            <div className="absolute inset-0 bg-noise opacity-30 rounded-lg pointer-events-none" />
+            <div
+              className="relative w-full h-full preserve-3d transition-transform duration-700"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              {/* BACK OF CARD (Static right side) */}
+              <div
+                className="absolute inset-0 rounded-r-lg p-6 flex flex-col shadow-inner border border-black/5"
+                style={{ backgroundColor: cardColor, left: "2px" }}
+              >
+                <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
+                  <p
+                    className="font-['Lora'] text-sm leading-relaxed"
+                    style={{ color: textColor }}
+                  >
+                    {message}
+                  </p>
+                  <p
+                    className="font-['Caveat'] text-2xl mt-8"
+                    style={{ color: titleColor }}
+                  >
+                    With love, <br /> {sender}
+                  </p>
+                </div>
 
-            {/* Card Content */}
-            <div className="relative z-10 mt-8 w-full">
-              <div
-                className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center opacity-80"
-                style={{
-                  backgroundColor: "rgba(0,0,0,0.05)",
-                  color: titleColor,
-                }}
-              >
-                <Heart size={24} fill="currentColor" />
+                {photos.length > 0 && photos.length <= 3 && (
+                  <div className="mt-4 pt-4 border-t border-black/5">
+                    <div className="grid grid-cols-3 gap-1">
+                      {photos.map((photo, i) => (
+                        <div
+                          key={i}
+                          className="aspect-square rounded bg-black/5 overflow-hidden"
+                        >
+                          <img
+                            src={photo}
+                            className="w-full h-full object-cover"
+                            alt=""
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <h2
-                className="font-['Caveat'] text-3xl mb-3 font-bold"
-                style={{ color: titleColor }}
+
+              {/* FOLDING PART (Front Cover and Inside Left) */}
+              <motion.div
+                className="absolute inset-0 origin-left preserve-3d"
+                animate={{ rotateY: isCardFoldOpen ? -160 : 0 }}
+                transition={{ duration: 0.8, ease: easeInOut }}
+                style={{ transformStyle: "preserve-3d" }}
               >
-                {title}
-              </h2>
-              {recipient && (
-                <p
-                  className="font-['Caveat'] text-xl mb-2"
-                  style={{ color: titleColor }}
+                {/* CARD FRONT (Cover) */}
+                <div
+                  className="absolute inset-0 rounded-lg p-8 flex flex-col items-center justify-center text-center backface-hidden shadow-md border border-black/5"
+                  style={{
+                    backgroundColor: cardColor,
+                    backfaceVisibility: "hidden",
+                    zIndex: 2,
+                  }}
                 >
-                  To: {recipient}
-                </p>
-              )}
-              <p
-                className="font-['Lora'] text-sm leading-relaxed max-h-[120px] overflow-y-auto"
-                style={{ color: textColor }}
-              >
-                {message}
-              </p>
-              <div
-                className="mt-6 w-full h-px"
-                style={{ backgroundColor: "rgba(0,0,0,0.1)" }}
-              />
-              <p
-                className="font-['Caveat'] text-xl mt-4"
-                style={{ color: titleColor }}
-              >
-                With love, <br /> {sender}
-              </p>
+                  <div className="absolute inset-0 bg-noise opacity-30 rounded-lg pointer-events-none" />
+                  <div
+                    className="w-16 h-16 rounded-full mb-6 flex items-center justify-center"
+                    style={{
+                      backgroundColor: "rgba(0,0,0,0.03)",
+                      color: titleColor,
+                    }}
+                  >
+                    <Heart size={32} fill="currentColor" />
+                  </div>
+                  <h2
+                    className="font-['Caveat'] text-4xl mb-2 font-bold"
+                    style={{ color: titleColor }}
+                  >
+                    {title}
+                  </h2>
+                  <p
+                    className="font-['Caveat'] text-xl opacity-60"
+                    style={{ color: titleColor }}
+                  >
+                    For: {recipient || "Someone special"}
+                  </p>
+
+                  <div className="mt-12 flex flex-col items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded-full border-2 border-dashed flex items-center justify-center animate-pulse"
+                      style={{ borderColor: titleColor }}
+                    >
+                      <span
+                        className="text-[10px]"
+                        style={{ color: titleColor }}
+                      >
+                        TAP
+                      </span>
+                    </div>
+                    <p
+                      className="text-[10px] uppercase tracking-[0.2em] font-bold"
+                      style={{ color: titleColor, opacity: 0.4 }}
+                    >
+                      Open Card
+                    </p>
+                  </div>
+                </div>
+
+                {/* CARD INSIDE LEFT */}
+                <div
+                  className="absolute inset-0 rounded-lg p-6 bg-white backface-hidden flex flex-col border border-black/5"
+                  style={{
+                    backgroundColor: cardColor,
+                    transform: "rotateY(180deg)",
+                    backfaceVisibility: "hidden",
+                  }}
+                >
+                  <h3
+                    className="font-['Caveat'] text-xl mb-4 opacity-70"
+                    style={{ color: titleColor }}
+                  >
+                    Special Memories
+                  </h3>
+                  <div className="flex-1 grid grid-cols-2 gap-2 overflow-y-auto custom-scrollbar pr-1">
+                    {photos.length > 0 ? (
+                      photos.map((photo, i) => (
+                        <div
+                          key={i}
+                          className="aspect-square rounded-md overflow-hidden bg-black/5 transition-transform hover:scale-105"
+                        >
+                          <img
+                            src={photo}
+                            className="w-full h-full object-cover"
+                            alt=""
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-2 flex flex-col items-center justify-center h-full opacity-20">
+                        <Heart size={48} />
+                        <p className="text-[10px] mt-2 font-bold uppercase tracking-widest">
+                          Always & Forever
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </motion.div>
 

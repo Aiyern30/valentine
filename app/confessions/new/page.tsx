@@ -883,6 +883,7 @@ export default function CondolenceForm() {
                   message={formData.message}
                   isOpen={isPreviewOpen}
                   onOpenChange={setIsPreviewOpen}
+                  photos={formData.photos.map((p) => URL.createObjectURL(p))}
                   {...(formData.envelopeStyle === "Romantic"
                     ? {
                         envelopeColor: "#FFB6C1",
