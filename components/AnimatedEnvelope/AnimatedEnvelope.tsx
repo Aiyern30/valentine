@@ -52,6 +52,7 @@ export function AnimatedEnvelope({
       rotateX: 0,
       zIndex: 30,
       transition: {
+        delay: 0.3,
         duration: 0.6,
         ease: easeOut,
       },
@@ -68,16 +69,19 @@ export function AnimatedEnvelope({
 
   const cardVariants = {
     closed: {
-      y: 0,
-      opacity: 1,
-      rotate: 0,
+      y: 20,
+      opacity: 0,
+      scale: 0.9,
       zIndex: 10,
       transition: {
         duration: 0.5,
+        ease: easeOut,
       },
     },
     open: {
       y: -180,
+      opacity: 1,
+      scale: 1,
       zIndex: 40,
       rotate: -2,
       transition: {
@@ -137,38 +141,44 @@ export function AnimatedEnvelope({
           />
 
           {/* Names on Envelope (Visible when closed) */}
-          {!isOpen && (
-            <>
-              <div className="absolute top-8 left-8 space-y-0.5 z-10 pointer-events-none opacity-40">
-                <span
-                  className="text-[8px] uppercase tracking-widest font-bold"
-                  style={{ color: titleColor }}
-                >
-                  To:
-                </span>
-                <p
-                  className="font-['Caveat'] text-xl leading-none"
-                  style={{ color: titleColor }}
-                >
-                  {recipient || "My Love"}
-                </p>
-              </div>
-              <div className="absolute bottom-8 right-8 text-right space-y-0.5 z-10 pointer-events-none opacity-40">
-                <span
-                  className="text-[8px] uppercase tracking-widest font-bold"
-                  style={{ color: titleColor }}
-                >
-                  From:
-                </span>
-                <p
-                  className="font-['Caveat'] text-lg leading-none"
-                  style={{ color: titleColor }}
-                >
-                  {sender}
-                </p>
-              </div>
-            </>
-          )}
+          <motion.div
+            initial={{ opacity: 0.4 }}
+            animate={{ opacity: isOpen ? 0 : 0.4 }}
+            transition={{ duration: 0.3 }}
+            className="absolute top-8 left-8 space-y-0.5 z-10 pointer-events-none"
+          >
+            <span
+              className="text-[8px] uppercase tracking-widest font-bold"
+              style={{ color: titleColor }}
+            >
+              To:
+            </span>
+            <p
+              className="font-['Caveat'] text-xl leading-none"
+              style={{ color: titleColor }}
+            >
+              {recipient || "My Love"}
+            </p>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0.4 }}
+            animate={{ opacity: isOpen ? 0 : 0.4 }}
+            transition={{ duration: 0.3 }}
+            className="absolute bottom-8 right-8 text-right space-y-0.5 z-10 pointer-events-none"
+          >
+            <span
+              className="text-[8px] uppercase tracking-widest font-bold"
+              style={{ color: titleColor }}
+            >
+              From:
+            </span>
+            <p
+              className="font-['Caveat'] text-lg leading-none"
+              style={{ color: titleColor }}
+            >
+              {sender}
+            </p>
+          </motion.div>
 
           {/* CARD (Content) */}
           <motion.div
