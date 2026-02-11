@@ -8,6 +8,7 @@ import {
   X,
   Heart,
 } from "lucide-react";
+import { AnimatedEnvelope } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
 
 // Type Definitions
 interface FormData {
@@ -855,13 +856,13 @@ export default function CondolenceForm() {
                 Final Preview
               </h2>
               <p className="text-gray-500 dark:text-gray-400">
-                This is exactly what your loved one will see. Tap the seal to
-                preview the animation.
+                This is exactly what your loved one will see. Click the envelope
+                to preview the animation.
               </p>
             </div>
 
             {/* Preview Stage */}
-            <div className="relative aspect-16/10 w-full max-w-2xl mx-auto bg-zinc-950 rounded-3xl overflow-hidden shadow-2xl border border-zinc-800 flex items-center justify-center p-8">
+            <div className="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-[500px]">
               {/* Background Glow based on Theme */}
               <div
                 className={`absolute inset-0 opacity-20 blur-[100px] transition-all duration-700 ${
@@ -875,138 +876,85 @@ export default function CondolenceForm() {
                 }`}
               />
 
-              {!isPreviewOpen ? (
-                /* Closed Envelope View */
-                <div
-                  className={`relative w-full max-w-md aspect-4/3 rounded-2xl border-2 transition-all duration-500 cursor-pointer group flex flex-col items-center justify-center p-6 shadow-2xl ${
-                    formData.envelopeStyle === "Romantic"
-                      ? "border-rose-500/30 bg-rose-950/20 shadow-rose-500/10"
-                      : formData.envelopeStyle === "Vintage"
-                        ? "border-amber-900/40 bg-orange-950/20 shadow-amber-900/10"
-                        : formData.envelopeStyle === "Midnight"
-                          ? "border-zinc-700 bg-zinc-900 shadow-black"
-                          : "border-white/20 bg-white/10 backdrop-blur-md"
-                  }`}
-                  onClick={() => setIsPreviewOpen(true)}
+              <div className="scale-75 md:scale-100 origin-center transition-transform duration-500">
+                <AnimatedEnvelope
+                  recipient={formData.lovedOneName}
+                  sender={formData.yourName || "Someone special"}
+                  message={formData.message}
+                  isOpen={isPreviewOpen}
+                  onOpenChange={setIsPreviewOpen}
+                  {...(formData.envelopeStyle === "Romantic"
+                    ? {
+                        envelopeColor: "#FFB6C1",
+                        pocketColor: "#FFB6C1",
+                        flapColor: "#FFC0CB",
+                        flapBackColor: "#DB7093",
+                        cardColor: "#FFF0F5",
+                        titleColor: "#9D174D",
+                        textColor: "#BE185D",
+                      }
+                    : formData.envelopeStyle === "Vintage"
+                      ? {
+                          envelopeColor: "#D4A574",
+                          pocketColor: "#D4A574",
+                          flapColor: "#DEB887",
+                          flapBackColor: "#C49A6C",
+                          cardColor: "#FEFCF3",
+                          titleColor: "#5D4037",
+                          textColor: "#8D6E63",
+                        }
+                      : formData.envelopeStyle === "Midnight"
+                        ? {
+                            envelopeColor: "#18181b",
+                            pocketColor: "#18181b",
+                            flapColor: "#27272a",
+                            flapBackColor: "#09090b",
+                            cardColor: "#27272a",
+                            textColor: "#a1a1aa",
+                            titleColor: "#f4f4f5",
+                          }
+                        : {
+                            envelopeColor: "rgba(255, 255, 255, 0.1)",
+                            pocketColor: "rgba(255, 255, 255, 0.1)",
+                            flapColor: "rgba(255, 255, 255, 0.2)",
+                            flapBackColor: "rgba(255, 255, 255, 0.05)",
+                            cardColor: "rgba(255, 255, 255, 0.9)",
+                            titleColor: "#333",
+                            textColor: "#666",
+                          })}
+                />
+              </div>
+
+              {isPreviewOpen && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsPreviewOpen(false);
+                  }}
+                  className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-zinc-500 underline underline-offset-4 hover:text-white transition-colors z-50"
                 >
-                  {/* To/From Section */}
-                  <div className="absolute top-12 left-12 space-y-1">
-                    <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-medium">
-                      To:
-                    </span>
-                    <p className="font-script text-2xl text-rose-300 ml-2 drop-shadow-sm">
-                      {formData.lovedOneName || "My Love"}
-                    </p>
-                  </div>
-
-                  <div className="absolute bottom-12 right-12 text-right space-y-1">
-                    <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-medium">
-                      From:
-                    </span>
-                    <p className="font-script text-xl text-rose-300 mr-2 drop-shadow-sm">
-                      {formData.yourName || "Someone special"}
-                    </p>
-                  </div>
-
-                  {/* Seal/Button */}
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-rose-500 blur-xl opacity-40 group-hover:opacity-60 transition-opacity animate-pulse" />
-                    <button
-                      className={`relative w-16 h-16 rounded-full flex items-center justify-center text-2xl shadow-lg transform group-hover:scale-110 transition-transform ${
-                        formData.envelopeStyle === "Romantic"
-                          ? "bg-rose-500 text-white"
-                          : formData.envelopeStyle === "Vintage"
-                            ? "bg-amber-700 text-amber-100"
-                            : formData.envelopeStyle === "Midnight"
-                              ? "bg-zinc-800 text-blue-400"
-                              : "bg-white text-zinc-900"
-                      }`}
-                    >
-                      {envelopeOptions.find(
-                        (o) => o.id === formData.envelopeStyle,
-                      )?.preview || "✉️"}
-                    </button>
-                    <div className="mt-4 text-center">
-                      <p className="text-[10px] text-zinc-500 uppercase tracking-widest animate-bounce">
-                        Tap to open
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Envelope Flap Lines */}
-                  <svg
-                    className="absolute inset-0 w-full h-full pointer-events-none opacity-20"
-                    viewBox="0 0 400 300"
-                  >
-                    <path
-                      d="M0 0 L200 150 L400 0"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    />
-                    <path
-                      d="M0 300 L200 150 L400 300"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                </div>
-              ) : (
-                /* Opened Message View */
-                <div className="relative w-full max-w-md bg-transparent text-center space-y-8 animate-in slide-in-from-bottom-12 duration-700">
-                  <div className="space-y-4">
-                    <p className="font-script text-4xl text-rose-400 drop-shadow-md">
-                      {formData.lovedOneName || "My Love"}
-                    </p>
-                    <p className="text-zinc-500 font-mono tracking-tighter opacity-80">
-                      "123123123123"
-                    </p>
-                  </div>
-
-                  <div className="flex justify-center gap-2 text-rose-500/40">
-                    <Heart size={20} fill="currentColor" />
-                    <Heart size={20} fill="currentColor" />
-                    <Heart size={20} fill="currentColor" />
-                  </div>
-
-                  <div className="space-y-4">
-                    <p className="text-sm text-zinc-500 italic">with love,</p>
-                    <p className="font-script text-3xl text-rose-400">
-                      {formData.yourName || "Someone special"}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsPreviewOpen(false);
-                    }}
-                    className="text-xs text-zinc-500 underline underline-offset-4 hover:text-white transition-colors"
-                  >
-                    Close preview
-                  </button>
-                </div>
+                  Close preview
+                </button>
               )}
             </div>
 
             {/* Style Toggles for Preview Page */}
-            <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-6 border border-rose-100 dark:border-rose-900/20 shadow-lg max-w-2xl mx-auto">
-              <h3 className="text-sm font-semibold mb-4 text-center text-zinc-500 uppercase tracking-widest">
-                Quick Toggles
+            <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-4 border border-rose-100 dark:border-rose-900/20 shadow-lg max-w-md mx-auto">
+              <h3 className="text-xs font-semibold mb-3 text-center text-zinc-500 uppercase tracking-widest">
+                Quick Style Toggles
               </h3>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-4 gap-2">
                 {envelopeOptions.map((opt) => (
                   <button
                     key={opt.id}
                     onClick={() => updateFormData("envelopeStyle", opt.id)}
-                    className={`p-3 rounded-2xl border flex flex-col items-center gap-1 transition-all ${
+                    className={`p-2 rounded-xl border flex flex-col items-center gap-1 transition-all ${
                       formData.envelopeStyle === opt.id
                         ? "border-rose-500 bg-rose-50 dark:bg-rose-500/20"
                         : "border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800"
                     }`}
                   >
-                    <span className="text-xl">{opt.preview}</span>
+                    <span className="text-lg">{opt.preview}</span>
                     <span className="text-[10px] font-medium truncate w-full text-center">
                       {opt.id}
                     </span>

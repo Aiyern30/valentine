@@ -1,7 +1,51 @@
 import React, { useState } from "react";
 import { easeInOut, easeOut, motion, spring } from "framer-motion";
-export function AnimatedEnvelope() {
-  const [isOpen, setIsOpen] = useState(false);
+import { Heart } from "lucide-react";
+interface AnimatedEnvelopeProps {
+  title?: string;
+  message?: string;
+  sender?: string;
+  recipient?: string;
+  isOpen?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
+  envelopeColor?: string;
+  pocketColor?: string;
+  flapColor?: string;
+  flapBackColor?: string;
+  cardColor?: string;
+  textColor?: string;
+  titleColor?: string;
+}
+
+export function AnimatedEnvelope({
+  title = "You've got mail!",
+  message = "We are delighted to invite you to our special event. Please join us for an evening of celebration and joy.",
+  sender = "The Team",
+  recipient,
+  isOpen: controlledIsOpen,
+  onOpenChange,
+  envelopeColor = "#D4A574",
+  pocketColor = "#D4A574",
+  flapColor = "#DEB887",
+  flapBackColor = "#C49A6C",
+  cardColor = "#FEFCF3",
+  textColor = "#8D6E63",
+  titleColor = "#5D4037",
+}: AnimatedEnvelopeProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen =
+    controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+
+  const handleOpen = () => {
+    if (!isOpen) {
+      if (onOpenChange) {
+        onOpenChange(true);
+      } else {
+        setInternalIsOpen(true);
+      }
+    }
+  };
+
   // Animation Variants
   const flapVariants = {
     closed: {
@@ -21,6 +65,7 @@ export function AnimatedEnvelope() {
       },
     },
   };
+
   const cardVariants = {
     closed: {
       y: 0,
@@ -44,6 +89,7 @@ export function AnimatedEnvelope() {
       },
     },
   };
+
   const shadowVariants = {
     closed: {
       opacity: 0,
@@ -58,12 +104,13 @@ export function AnimatedEnvelope() {
       },
     },
   };
+
   return (
     <div className="relative flex flex-col items-center justify-center min-h-[600px] perspective-1000">
       {/* Interaction Wrapper */}
       <div
         className="relative w-[320px] h-[220px] cursor-pointer group"
-        onClick={() => !isOpen && setIsOpen(true)}
+        onClick={handleOpen}
       >
         {/* Hover Scale Effect (only when closed) */}
         <motion.div
@@ -81,66 +128,114 @@ export function AnimatedEnvelope() {
           }}
         >
           {/* ENVELOPE BACK (Base) */}
-          <div className="absolute inset-0 bg-[#D4A574] rounded-md shadow-lg border border-[#C09060] z-0" />
+          <div
+            className="absolute inset-0 rounded-md shadow-lg z-0"
+            style={{
+              backgroundColor: envelopeColor,
+              border: `1px solid ${pocketColor}`,
+            }}
+          />
+
+          {/* Names on Envelope (Visible when closed) */}
+          {!isOpen && (
+            <>
+              <div className="absolute top-8 left-8 space-y-0.5 z-10 pointer-events-none opacity-40">
+                <span
+                  className="text-[8px] uppercase tracking-widest font-bold"
+                  style={{ color: titleColor }}
+                >
+                  To:
+                </span>
+                <p
+                  className="font-['Caveat'] text-xl leading-none"
+                  style={{ color: titleColor }}
+                >
+                  {recipient || "My Love"}
+                </p>
+              </div>
+              <div className="absolute bottom-8 right-8 text-right space-y-0.5 z-10 pointer-events-none opacity-40">
+                <span
+                  className="text-[8px] uppercase tracking-widest font-bold"
+                  style={{ color: titleColor }}
+                >
+                  From:
+                </span>
+                <p
+                  className="font-['Caveat'] text-lg leading-none"
+                  style={{ color: titleColor }}
+                >
+                  {sender}
+                </p>
+              </div>
+            </>
+          )}
 
           {/* CARD (Content) */}
           <motion.div
             variants={cardVariants}
             initial="closed"
             animate={isOpen ? "open" : "closed"}
-            className="absolute left-1/2 top-2 w-[280px] h-[360px] bg-[#FEFCF3] rounded-lg p-6 flex flex-col items-center text-center shadow-sm border border-[#E6E0D0] origin-bottom"
+            className="absolute left-1/2 top-2 w-[280px] h-[360px] rounded-lg p-6 flex flex-col items-center text-center shadow-sm border origin-bottom"
             style={{
               x: "-50%",
+              backgroundColor: cardColor,
+              borderColor: "rgba(0,0,0,0.05)",
             }}
           >
             {/* Paper Texture Overlay */}
             <div className="absolute inset-0 bg-noise opacity-30 rounded-lg pointer-events-none" />
 
             {/* Card Content */}
-            <div className="relative z-10 mt-8">
-              <div className="w-12 h-12 bg-[#F0E6D2] rounded-full mx-auto mb-4 flex items-center justify-center text-[#8B4513] opacity-80">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                  <polyline points="22,6 12,13 2,6" />
-                </svg>
+            <div className="relative z-10 mt-8 w-full">
+              <div
+                className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center opacity-80"
+                style={{
+                  backgroundColor: "rgba(0,0,0,0.05)",
+                  color: titleColor,
+                }}
+              >
+                <Heart size={24} fill="currentColor" />
               </div>
-              <h2 className="font-['Caveat'] text-3xl text-[#5D4037] mb-3 font-bold">
-                You've got mail!
+              <h2
+                className="font-['Caveat'] text-3xl mb-3 font-bold"
+                style={{ color: titleColor }}
+              >
+                {title}
               </h2>
-              <p className="font-['Lora'] text-sm text-[#8D6E63] leading-relaxed">
-                We are delighted to invite you to our special event. Please join
-                us for an evening of celebration and joy.
+              {recipient && (
+                <p
+                  className="font-['Caveat'] text-xl mb-2"
+                  style={{ color: titleColor }}
+                >
+                  To: {recipient}
+                </p>
+              )}
+              <p
+                className="font-['Lora'] text-sm leading-relaxed max-h-[120px] overflow-y-auto"
+                style={{ color: textColor }}
+              >
+                {message}
               </p>
-              <div className="mt-6 w-full h-px bg-[#E6E0D0]" />
-              <p className="font-['Caveat'] text-xl text-[#5D4037] mt-4">
-                With love, <br /> The Team
+              <div
+                className="mt-6 w-full h-px"
+                style={{ backgroundColor: "rgba(0,0,0,0.1)" }}
+              />
+              <p
+                className="font-['Caveat'] text-xl mt-4"
+                style={{ color: titleColor }}
+              >
+                With love, <br /> {sender}
               </p>
             </div>
           </motion.div>
 
           {/* ENVELOPE FRONT (Pocket) */}
-          {/* This covers the bottom part of the card so it looks like it's inside */}
           <div
             className="absolute bottom-0 left-0 w-full h-full z-20 pointer-events-none"
             style={{
-              background: `linear-gradient(to top right, #D4A574 50%, transparent 50%),
-                           linear-gradient(to top left, #D4A574 50%, transparent 50%)`,
-              backgroundSize: "100% 100%",
               clipPath: "polygon(0 100%, 100% 100%, 100% 0, 50% 50%, 0 0)",
-              // Note: Using a simpler approach for the pocket shape to ensure it covers correctly
             }}
           >
-            {/* We use SVG for better control over the envelope pocket shape */}
             <svg
               width="100%"
               height="100%"
@@ -150,8 +245,8 @@ export function AnimatedEnvelope() {
             >
               <path
                 d="M0,0 L160,110 L320,0 L320,220 L0,220 Z"
-                fill="#D4A574"
-                stroke="#C09060"
+                fill={pocketColor}
+                stroke="rgba(0,0,0,0.1)"
                 strokeWidth="1"
               />
               <path
@@ -171,7 +266,6 @@ export function AnimatedEnvelope() {
             className="absolute top-0 left-0 w-full h-[110px] z-30 origin-top"
             style={{
               transformStyle: "preserve-3d",
-              // The flap is hinged at the top of the envelope body
             }}
           >
             {/* Front of Flap (matches envelope color) */}
@@ -179,9 +273,9 @@ export function AnimatedEnvelope() {
               className="absolute inset-0 w-full h-full"
               style={{
                 clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-                backgroundColor: "#DEB887",
+                backgroundColor: flapColor,
                 backfaceVisibility: "hidden",
-                borderTop: "1px solid #C09060",
+                borderTop: "1px solid rgba(0,0,0,0.1)",
                 filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.1))",
               }}
             >
@@ -193,7 +287,7 @@ export function AnimatedEnvelope() {
               className="absolute inset-0 w-full h-full"
               style={{
                 clipPath: "polygon(0 100%, 100% 100%, 50% 0)",
-                backgroundColor: "#C49A6C",
+                backgroundColor: flapBackColor,
                 transform: "rotateX(180deg)",
                 backfaceVisibility: "hidden",
               }}
@@ -222,7 +316,8 @@ export function AnimatedEnvelope() {
             delay: 1,
             duration: 1,
           }}
-          className="absolute -bottom-12 left-0 w-full text-center font-['Caveat'] text-xl text-[#8D6E63] opacity-60"
+          className="absolute -bottom-12 left-0 w-full text-center font-['Caveat'] text-xl opacity-60"
+          style={{ color: textColor }}
         >
           Click to open
         </motion.p>
