@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { easeInOut, easeOut, motion, spring } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence, easeInOut } from "framer-motion";
 import { Heart } from "lucide-react";
+import { SparkleParticles } from "./SparkleParticles";
 
 interface AnimatedEnvelopeProps {
   title?: string;
@@ -19,6 +20,14 @@ interface AnimatedEnvelopeProps {
   photos?: string[];
 }
 
+type AnimationStage =
+  | "idle"
+  | "seal-dissolve"
+  | "flap-open"
+  | "card-rise"
+  | "envelope-fade"
+  | "floating";
+
 export function AnimatedEnvelope({
   title = "You've got mail!",
   message = "We are delighted to invite you to our special event. Please join us for an evening of celebration and joy.",
@@ -35,268 +44,343 @@ export function AnimatedEnvelope({
   titleColor = "#1e293b",
   photos = [],
 }: AnimatedEnvelopeProps) {
-  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [stage, setStage] = useState<AnimationStage>("idle");
+  const [showSparkles, setShowSparkles] = useState(false);
   const [isCardFoldOpen, setIsCardFoldOpen] = useState(false);
+
   const isOpen =
-    controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+    controlledIsOpen !== undefined ? controlledIsOpen : stage !== "idle";
 
-  const handleOpen = () => {
-    if (!isOpen) {
-      if (onOpenChange) {
-        onOpenChange(true);
-      } else {
-        setInternalIsOpen(true);
-      }
+  const handleOpen = async () => {
+    if (stage !== "idle") return;
+
+    if (onOpenChange) {
+      onOpenChange(true);
     }
+
+    // Sequence orchestration
+    setStage("seal-dissolve");
+    setTimeout(() => setStage("flap-open"), 800);
+    setTimeout(() => setStage("card-rise"), 1400);
+    setTimeout(() => setStage("envelope-fade"), 2400);
+    setTimeout(() => {
+      setShowSparkles(true);
+      setStage("floating");
+    }, 3000);
   };
 
-  // Reset card when closing
-  React.useEffect(() => {
-    if (!isOpen) {
-      const timer = setTimeout(() => setIsCardFoldOpen(false), 1000);
-      return () => clearTimeout(timer);
+  // Reset when controlled isOpen becomes false
+  useEffect(() => {
+    if (controlledIsOpen === false) {
+      setStage("idle");
+      setShowSparkles(false);
+      setIsCardFoldOpen(false);
     }
-  }, [isOpen]);
-
-  const flapVariants = {
-    closed: {
-      rotateX: 0,
-      zIndex: 30,
-      transition: { delay: 0.3, duration: 0.6, ease: easeOut },
-    },
-    open: {
-      rotateX: 180,
-      zIndex: 0,
-      transition: { duration: 0.6, ease: easeInOut },
-    },
-  };
-
-  const cardVariants = {
-    closed: {
-      y: 20,
-      opacity: 0,
-      scale: 0.9,
-      zIndex: 10,
-      transition: { duration: 0.5, ease: easeOut },
-    },
-    open: {
-      y: -180,
-      opacity: 1,
-      scale: 1,
-      zIndex: 40,
-      transition: {
-        delay: 0.6,
-        duration: 0.8,
-        type: spring,
-        stiffness: 100,
-        damping: 20,
-      },
-    },
-  };
+  }, [controlledIsOpen]);
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-[600px] perspective-1000">
-      <div
-        className="relative w-[320px] h-[220px] cursor-pointer group"
-        onClick={handleOpen}
-      >
+    <div className="relative w-full h-full flex items-center justify-center perspective-1000">
+      <div className="relative w-[320px] h-[220px] md:w-[360px] md:h-[240px]">
+        <SparkleParticles active={showSparkles} />
+
+        {/* 1. Envelope Back */}
         <motion.div
-          className="relative w-full h-full"
-          animate={isOpen ? "open" : "closed"}
-          whileHover={!isOpen ? { scale: 1.02 } : {}}
-          transition={{ duration: 0.2 }}
+          className="absolute inset-0 rounded-md shadow-2xl"
+          style={{ backgroundColor: envelopeColor }}
+          initial={{ opacity: 1, scale: 1, y: 0 }}
+          animate={
+            stage === "envelope-fade" || stage === "floating"
+              ? { opacity: 0, scale: 0.8, y: 100 }
+              : { opacity: 1, scale: 1, y: 0 }
+          }
+          transition={{ duration: 0.8 }}
+        />
+
+        {/* 2. The 3D Folding Card */}
+        <motion.div
+          className="absolute left-4 right-4 h-[90%] origin-center"
+          style={{
+            top: "5%",
+            zIndex:
+              stage === "card-rise" ||
+              stage === "floating" ||
+              stage === "envelope-fade"
+                ? 50
+                : 5,
+          }}
+          initial={{ y: 0, scale: 1, rotate: 0 }}
+          animate={
+            stage === "idle" ||
+            stage === "seal-dissolve" ||
+            stage === "flap-open"
+              ? { y: 0 }
+              : stage === "card-rise"
+                ? {
+                    y: -120,
+                    rotate: [0, -2, 2, 0],
+                    transition: {
+                      y: { duration: 1.2, ease: easeInOut },
+                      rotate: {
+                        duration: 1.2,
+                        ease: easeInOut,
+                        times: [0, 0.3, 0.7, 1],
+                      },
+                    },
+                  }
+                : stage === "envelope-fade"
+                  ? { y: -50, scale: 1.1, transition: { duration: 1 } }
+                  : stage === "floating"
+                    ? {
+                        y: [-50, -60, -50],
+                        scale: 1.1,
+                        transition: {
+                          y: { repeat: Infinity, duration: 3, ease: easeInOut },
+                          scale: { duration: 0.5 },
+                        },
+                      }
+                    : {}
+          }
+          onClick={(e) => {
+            if (stage === "floating" || stage === "envelope-fade") {
+              e.stopPropagation();
+              setIsCardFoldOpen(!isCardFoldOpen);
+            }
+          }}
         >
-          {/* ENVELOPE BACK */}
           <div
-            className="absolute inset-0 rounded-md shadow-2xl z-0"
-            style={{
-              backgroundColor: envelopeColor,
-              border: `1px solid ${pocketColor}`,
-            }}
-          />
-
-          {/* Names on Envelope */}
-          <motion.div
-            initial={{ opacity: 0.4 }}
-            animate={{ opacity: isOpen ? 0 : 0.4 }}
-            transition={{ duration: 0.3 }}
-            className="absolute top-8 left-8 space-y-0.5 z-10 pointer-events-none"
+            className="relative w-full h-full"
+            style={{ transformStyle: "preserve-3d" }}
           >
-            <span
-              className="text-[8px] uppercase tracking-widest font-bold"
-              style={{ color: titleColor }}
-            >
-              To:
-            </span>
-            <p
-              className="font-serif text-xl leading-none"
-              style={{ color: titleColor }}
-            >
-              {recipient || "My Love"}
-            </p>
-          </motion.div>
-
-          {/* 3D FOLDING CARD */}
-          <motion.div
-            variants={cardVariants}
-            initial="closed"
-            animate={isOpen ? "open" : "closed"}
-            className="absolute left-1/2 top-4 w-[280px] h-[360px] origin-bottom perspective-1000"
-            style={{ x: "-50%" }}
-            onClick={(e) => {
-              if (isOpen) {
-                e.stopPropagation();
-                setIsCardFoldOpen(!isCardFoldOpen);
-              }
-            }}
-          >
+            {/* BACK OF CARD (Right Page) */}
             <div
-              className="relative w-full h-full"
-              style={{ transformStyle: "preserve-3d" }}
+              className="absolute inset-0 rounded-r-lg p-6 flex flex-col shadow-inner border border-black/10"
+              style={{
+                backgroundColor: cardColor,
+                borderLeft: "none",
+              }}
             >
-              {/* BACK OF CARD (Right Page when open) */}
+              <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
+                <p
+                  className="font-serif text-sm leading-relaxed"
+                  style={{ color: textColor }}
+                >
+                  {message}
+                </p>
+                <p
+                  className="font-serif text-2xl mt-8"
+                  style={{ color: titleColor }}
+                >
+                  With love, <br /> {sender}
+                </p>
+              </div>
+            </div>
+
+            {/* FOLDING PART (Front Cover + Inside Left) */}
+            <motion.div
+              className="absolute inset-0 origin-left preserve-3d"
+              style={{ transformStyle: "preserve-3d" }}
+              animate={{ rotateY: isCardFoldOpen ? -175 : 0 }}
+              transition={{ duration: 0.8, ease: easeInOut }}
+            >
+              {/* CARD FRONT (Cover) */}
               <div
-                className="absolute inset-0 rounded-r-lg p-6 flex flex-col shadow-inner border border-black/5"
+                className="absolute inset-0 rounded-lg p-8 flex flex-col items-center justify-center text-center shadow-md border border-black/10"
                 style={{
                   backgroundColor: cardColor,
-                  borderLeft: "none",
+                  backfaceVisibility: "hidden",
+                  zIndex: 2,
                 }}
               >
-                <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
-                  <p
-                    className="font-serif text-sm leading-relaxed italic"
-                    style={{ color: textColor }}
+                <div className="absolute inset-0 bg-noise opacity-30 rounded-lg pointer-events-none" />
+                <div
+                  className="w-16 h-16 rounded-full mb-6 flex items-center justify-center"
+                  style={{
+                    backgroundColor: "rgba(0,0,0,0.03)",
+                    color: titleColor,
+                  }}
+                >
+                  <Heart size={32} fill="currentColor" />
+                </div>
+                <h2
+                  className="font-['Caveat'] text-4xl mb-2 font-bold"
+                  style={{ color: titleColor }}
+                >
+                  {title}
+                </h2>
+                <p
+                  className="font-['Caveat'] text-xl opacity-60"
+                  style={{ color: titleColor }}
+                >
+                  For: {recipient || "Someone special"}
+                </p>
+
+                <div className="mt-12 flex flex-col items-center gap-2">
+                  <div
+                    className="w-8 h-8 rounded-full border-2 border-dashed flex items-center justify-center animate-pulse"
+                    style={{ borderColor: titleColor }}
                   >
-                    {message}
-                  </p>
+                    <span className="text-[10px]" style={{ color: titleColor }}>
+                      TAP
+                    </span>
+                  </div>
                   <p
-                    className="font-serif text-lg mt-8 font-medium"
-                    style={{ color: titleColor }}
+                    className="text-[10px] uppercase tracking-[0.2em] font-bold"
+                    style={{ color: titleColor, opacity: 0.4 }}
                   >
-                    Forever Yours, <br /> {sender}
+                    Open Card
                   </p>
                 </div>
               </div>
 
-              <motion.div
-                className="absolute inset-0 origin-left"
-                style={{ transformStyle: "preserve-3d" }}
-                animate={{ rotateY: isCardFoldOpen ? -175 : 0 }}
-                transition={{ duration: 0.8, ease: easeInOut }}
+              {/* CARD INSIDE LEFT */}
+              <div
+                className="absolute inset-0 rounded-l-lg p-6 bg-white backface-hidden flex flex-col border border-black/10 shadow-inner"
+                style={{
+                  backgroundColor: cardColor,
+                  transform: "rotateY(180deg)",
+                  backfaceVisibility: "hidden",
+                  borderRight: "none",
+                }}
               >
-                {/* FRONT COVER */}
-                <div
-                  className="absolute inset-0 rounded-lg p-6 flex flex-col items-center justify-center text-center shadow-md border border-black/5"
-                  style={{
-                    backgroundColor: cardColor,
-                    backfaceVisibility: "hidden",
-                    zIndex: 2,
-                  }}
+                <h3
+                  className="font-['Caveat'] text-xl mb-4 opacity-70"
+                  style={{ color: titleColor }}
                 >
-                  <Heart
-                    size={32}
-                    className="text-rose-400 fill-rose-100 opacity-60 mb-4"
-                  />
-                  <h2
-                    className="font-serif text-2xl font-medium"
-                    style={{ color: titleColor }}
-                  >
-                    {title}
-                  </h2>
-                  <div className="mt-8 flex flex-col items-center gap-2 opacity-30">
-                    <div className="w-6 h-6 rounded-full border border-dashed border-slate-400 animate-pulse" />
-                    <p className="text-[10px] uppercase tracking-widest font-bold">
-                      Open Me
-                    </p>
-                  </div>
-                </div>
-
-                {/* INSIDE LEFT */}
-                <div
-                  className="absolute inset-0 rounded-l-lg p-6 bg-white backface-hidden flex flex-col border border-black/5"
-                  style={{
-                    backgroundColor: cardColor,
-                    transform: "rotateY(180deg)",
-                    backfaceVisibility: "hidden",
-                    borderRight: "none",
-                  }}
-                >
-                  <h3
-                    className="font-serif text-xs uppercase tracking-widest mb-4 opacity-60"
-                    style={{ color: titleColor }}
-                  >
-                    Our Times
-                  </h3>
-                  <div className="flex-1 grid grid-cols-2 gap-2 overflow-y-auto custom-scrollbar pr-1">
-                    {photos.length > 0 ? (
-                      photos.map((photo, i) => (
-                        <div
-                          key={i}
-                          className="aspect-square rounded-sm overflow-hidden bg-black/5 shadow-sm"
-                        >
-                          <img
-                            src={photo}
-                            className="w-full h-full object-cover"
-                            alt=""
-                          />
-                        </div>
-                      ))
-                    ) : (
-                      <div className="col-span-2 flex flex-col items-center justify-center h-full opacity-10">
-                        <Heart size={40} />
+                  Special Memories
+                </h3>
+                <div className="flex-1 grid grid-cols-2 gap-2 overflow-y-auto custom-scrollbar pr-1">
+                  {photos.length > 0 ? (
+                    photos.map((photo, i) => (
+                      <div
+                        key={i}
+                        className="aspect-square rounded-md overflow-hidden bg-black/5 transition-transform hover:scale-105 shadow-sm"
+                      >
+                        <img
+                          src={photo}
+                          className="w-full h-full object-cover"
+                          alt=""
+                        />
                       </div>
-                    )}
-                  </div>
+                    ))
+                  ) : (
+                    <div className="col-span-2 flex flex-col items-center justify-center h-full opacity-20">
+                      <Heart size={48} />
+                      <p className="text-[10px] mt-2 font-bold uppercase tracking-widest">
+                        Always & Forever
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </motion.div>
-            </div>
-          </motion.div>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
 
-          {/* ENVELOPE FRONT */}
+        {/* 3. Envelope Front Pocket */}
+        <motion.div
+          className="absolute bottom-0 left-0 w-full h-full pointer-events-none"
+          style={{
+            zIndex: 10,
+            clipPath: "polygon(0 0, 50% 40%, 100% 0, 100% 100%, 0 100%)",
+            background: `linear-gradient(to bottom, ${pocketColor}, ${envelopeColor})`,
+          }}
+          initial={{ opacity: 1, y: 0 }}
+          animate={
+            stage === "envelope-fade" || stage === "floating"
+              ? { opacity: 0, y: 100 }
+              : { opacity: 1, y: 0 }
+          }
+          transition={{ duration: 0.8 }}
+        >
           <div
-            className="absolute bottom-0 left-0 w-full h-full z-20 pointer-events-none"
+            className="absolute inset-0 bg-black/5"
             style={{
-              clipPath: "polygon(0 100%, 100% 100%, 100% 0, 50% 40%, 0 0)",
+              clipPath: "polygon(0 0, 50% 40%, 100% 0, 100% 100%, 0 100%)",
+            }}
+          />
+        </motion.div>
+
+        {/* 4. Envelope Flap */}
+        <motion.div
+          className="absolute top-0 left-0 w-full h-[60%] origin-top z-20"
+          initial={{ rotateX: 0 }}
+          animate={
+            stage === "idle" || stage === "seal-dissolve"
+              ? { rotateX: 0 }
+              : { rotateX: 180 }
+          }
+          transition={{ duration: 0.8, ease: easeInOut }}
+          style={{ transformStyle: "preserve-3d", perspective: "1000px" }}
+        >
+          <div
+            className="absolute inset-0 rounded-t-md backface-hidden"
+            style={{
+              clipPath: "polygon(0 0, 100% 0, 50% 100%)",
+              backgroundColor: flapColor,
+              backfaceVisibility: "hidden",
+              zIndex: 2,
             }}
           >
-            <div
-              className="absolute inset-0 bg-black/5"
-              style={{
-                clipPath: "polygon(0 0, 50% 40%, 100% 0, 100% 100%, 0 100%)",
-              }}
-            />
-            <div
-              className="w-full h-full"
-              style={{ backgroundColor: pocketColor }}
-            />
+            <div className="absolute inset-0 bg-black/5" />
           </div>
 
-          {/* ENVELOPE FLAP */}
-          <motion.div
-            variants={flapVariants}
-            initial="closed"
-            animate={isOpen ? "open" : "closed"}
-            className="absolute top-0 left-0 w-full h-[110px] z-30 origin-top"
-            style={{ transformStyle: "preserve-3d" }}
-          >
+          {stage !== "envelope-fade" && stage !== "floating" && (
             <div
-              className="absolute inset-0 w-full h-full"
-              style={{
-                clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-                backgroundColor: flapColor,
-                backfaceVisibility: "hidden",
-              }}
-            />
-            <div
-              className="absolute inset-0 w-full h-full"
+              className="absolute inset-0 rounded-t-md"
               style={{
                 clipPath: "polygon(0 100%, 100% 100%, 50% 0)",
                 backgroundColor: flapBackColor,
                 transform: "rotateX(180deg)",
                 backfaceVisibility: "hidden",
+                zIndex: 1,
               }}
             />
-          </motion.div>
+          )}
+
+          {/* The Seal */}
+          <AnimatePresence>
+            {(stage === "idle" || stage === "seal-dissolve") && (
+              <motion.div
+                className="absolute top-[90%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer"
+                onClick={handleOpen}
+                initial={{ scale: 1, opacity: 1 }}
+                animate={
+                  stage === "idle"
+                    ? {
+                        scale: [1, 1.1, 1],
+                        boxShadow: [
+                          "0 0 0px rgba(232, 160, 180, 0)",
+                          "0 0 15px rgba(232, 160, 180, 0.6)",
+                          "0 0 0px rgba(232, 160, 180, 0)",
+                        ],
+                      }
+                    : { scale: 1.5, opacity: 0 }
+                }
+                exit={{ scale: 0, opacity: 0 }}
+                transition={
+                  stage === "idle"
+                    ? { repeat: Infinity, duration: 2 }
+                    : { duration: 0.6 }
+                }
+              >
+                <div className="relative group">
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-rose-300 to-rose-500 shadow-lg flex items-center justify-center border-2 border-rose-200/50">
+                    <Heart className="w-6 h-6 text-white fill-white" />
+                  </div>
+                  {stage === "idle" && (
+                    <motion.div
+                      className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-rose-200/80 text-xs font-serif tracking-widest uppercase"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1 }}
+                    >
+                      Click to Open
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </div>
     </div>
