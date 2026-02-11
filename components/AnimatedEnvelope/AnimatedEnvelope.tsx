@@ -207,10 +207,13 @@ export function AnimatedEnvelope({
               className="relative w-full h-full preserve-3d transition-transform duration-700"
               style={{ transformStyle: "preserve-3d" }}
             >
-              {/* BACK OF CARD (Static right side) */}
+              {/* BACK OF CARD (Right Page when open) */}
               <div
-                className="absolute inset-0 rounded-r-lg p-6 flex flex-col shadow-inner border border-black/5"
-                style={{ backgroundColor: cardColor, left: "2px" }}
+                className="absolute inset-0 rounded-r-lg rounded-l-none p-6 flex flex-col shadow-inner border border-black/10"
+                style={{
+                  backgroundColor: cardColor,
+                  borderLeft: "none", // No border on the crease
+                }}
               >
                 <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
                   <p
@@ -226,37 +229,20 @@ export function AnimatedEnvelope({
                     With love, <br /> {sender}
                   </p>
                 </div>
-
-                {photos.length > 0 && photos.length <= 3 && (
-                  <div className="mt-4 pt-4 border-t border-black/5">
-                    <div className="grid grid-cols-3 gap-1">
-                      {photos.map((photo, i) => (
-                        <div
-                          key={i}
-                          className="aspect-square rounded bg-black/5 overflow-hidden"
-                        >
-                          <img
-                            src={photo}
-                            className="w-full h-full object-cover"
-                            alt=""
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {/* FOLDING PART (Front Cover and Inside Left) */}
+              {/* FOLDING PART (Left Page when open / Front Cover when closed) */}
               <motion.div
                 className="absolute inset-0 origin-left preserve-3d"
-                animate={{ rotateY: isCardFoldOpen ? -160 : 0 }}
+                style={{
+                  transformStyle: "preserve-3d",
+                }}
+                animate={{ rotateY: isCardFoldOpen ? -175 : 0 }} // Open slightly less than 180 for better 3D look
                 transition={{ duration: 0.8, ease: easeInOut }}
-                style={{ transformStyle: "preserve-3d" }}
               >
                 {/* CARD FRONT (Cover) */}
                 <div
-                  className="absolute inset-0 rounded-lg p-8 flex flex-col items-center justify-center text-center backface-hidden shadow-md border border-black/5"
+                  className="absolute inset-0 rounded-l-lg rounded-r-none p-8 flex flex-col items-center justify-center text-center shadow-md border border-black/10"
                   style={{
                     backgroundColor: cardColor,
                     backfaceVisibility: "hidden",
@@ -307,13 +293,14 @@ export function AnimatedEnvelope({
                   </div>
                 </div>
 
-                {/* CARD INSIDE LEFT */}
+                {/* CARD INSIDE LEFT (Behind Cover) */}
                 <div
-                  className="absolute inset-0 rounded-lg p-6 bg-white backface-hidden flex flex-col border border-black/5"
+                  className="absolute inset-0 rounded-l-lg rounded-r-none p-6 bg-white backface-hidden flex flex-col border border-black/10 shadow-inner"
                   style={{
                     backgroundColor: cardColor,
                     transform: "rotateY(180deg)",
                     backfaceVisibility: "hidden",
+                    borderRight: "none", // No border on the crease
                   }}
                 >
                   <h3
@@ -327,7 +314,7 @@ export function AnimatedEnvelope({
                       photos.map((photo, i) => (
                         <div
                           key={i}
-                          className="aspect-square rounded-md overflow-hidden bg-black/5 transition-transform hover:scale-105"
+                          className="aspect-square rounded-md overflow-hidden bg-black/5 transition-transform hover:scale-105 shadow-sm"
                         >
                           <img
                             src={photo}
