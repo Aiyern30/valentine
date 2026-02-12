@@ -9,11 +9,17 @@ interface PagePhoto {
   url?: string;
 }
 
-interface SpecialMemory {
+interface CategoryItem {
   file: File | null;
   url: string;
   title: string;
   date: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  items: CategoryItem[];
 }
 
 interface AnimatedEnvelopeProps {
@@ -31,7 +37,7 @@ interface AnimatedEnvelopeProps {
   textColor?: string;
   titleColor?: string;
   pagePhotos?: { [pageIndex: number]: PagePhoto };
-  specialMemories?: SpecialMemory[];
+  categories?: Category[];
   music?: string;
 }
 
@@ -52,7 +58,7 @@ export function AnimatedEnvelope({
   textColor = "#57534e",
   titleColor = "#5D4037",
   pagePhotos = {},
-  specialMemories = [],
+  categories = [],
   music,
 }: AnimatedEnvelopeProps) {
   const [status, setStatus] = useState<EnvelopeStatus>("idle");
@@ -128,20 +134,27 @@ export function AnimatedEnvelope({
   };
 
   const renderMemories = () => {
-    if (!specialMemories.length) return null;
+    const allItems = categories.flatMap((cat) =>
+      cat.items.map((item) => ({ ...item, categoryName: cat.name })),
+    );
+    if (!allItems.length) return null;
+
     return (
       <div className="mt-8 space-y-6 pt-6 border-t border-stone-200">
         <h3 className="text-center font-serif italic text-stone-400 text-xs tracking-widest uppercase">
-          Secret Memories
+          Secret Details
         </h3>
         <div className="grid grid-cols-1 gap-6">
-          {specialMemories.map((memory, i) => (
+          {allItems.map((item, i) => (
             <div key={i} className="group flex flex-col items-center">
+              <span className="text-[9px] uppercase tracking-[0.3em] text-stone-400 font-bold mb-3">
+                {item.categoryName}
+              </span>
               <div className="relative w-full aspect-square p-2 bg-stone-50 border border-stone-200 shadow-sm rotate-1 group-hover:rotate-0 transition-transform duration-500">
-                {memory.url ? (
+                {item.url ? (
                   <img
-                    src={memory.url}
-                    alt={memory.title}
+                    src={item.url}
+                    alt={item.title}
                     className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                   />
                 ) : (
@@ -152,10 +165,10 @@ export function AnimatedEnvelope({
               </div>
               <div className="mt-4 text-center">
                 <p className="font-serif font-medium text-stone-800 text-sm">
-                  {memory.title || "A Beautiful Day"}
+                  {item.title || "A Beautiful Detail"}
                 </p>
                 <p className="font-serif italic text-stone-400 text-[10px] uppercase tracking-tighter mt-1">
-                  {memory.date}
+                  {item.date}
                 </p>
               </div>
             </div>

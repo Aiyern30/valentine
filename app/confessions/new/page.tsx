@@ -19,11 +19,17 @@ interface PagePhoto {
   url?: string; // For preview
 }
 
-interface SpecialMemory {
+interface CategoryItem {
   file: File | null;
   url: string;
   title: string;
   date: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  items: CategoryItem[];
 }
 
 interface FormData {
@@ -34,7 +40,7 @@ interface FormData {
   relationshipStatus: RelationshipStatus;
   message: string;
   pagePhotos: { [pageIndex: number]: PagePhoto }; // Photos indexed by page number
-  specialMemories: SpecialMemory[];
+  categories: Category[];
   theme: Theme;
   envelopeStyle: EnvelopeStyle;
   animationVariant: AnimationVariant;
@@ -116,7 +122,10 @@ export default function CondolenceForm() {
     relationshipStatus: "",
     message: "",
     pagePhotos: {},
-    specialMemories: [],
+    categories: [
+      { id: "memories", name: "Special Memories", items: [] },
+      { id: "qualities", name: "Special Qualities", items: [] },
+    ],
     theme: "Life",
     envelopeStyle: "Romantic",
     animationVariant: "Classic",
@@ -897,7 +906,7 @@ export default function CondolenceForm() {
           </div>
         )}
 
-        {/* Step 3: Photos Choice / Special Memories */}
+        {/* Step 3: Categories (Special Memories / Special Qualities) */}
         {currentStep === 3 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
             {wantsPhotos === null ? (
@@ -908,10 +917,10 @@ export default function CondolenceForm() {
 
                 <div>
                   <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">
-                    Would you like to add photos?
+                    Would you like to add special categories?
                   </h2>
                   <p className="text-gray-500 dark:text-gray-400">
-                    Photos make the tribute more special, but they're optional.
+                    Add special memories and qualities to make it more personal.
                   </p>
                 </div>
 
@@ -920,7 +929,7 @@ export default function CondolenceForm() {
                     onClick={() => setWantsPhotos(true)}
                     className="flex-1 px-8 py-4 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl transition-all shadow-lg font-medium"
                   >
-                    Yes, add photos
+                    Yes, let's add some
                   </button>
                   <button
                     onClick={() => {
@@ -932,152 +941,167 @@ export default function CondolenceForm() {
                     }}
                     className="flex-1 px-8 py-4 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 rounded-2xl transition-all font-medium border border-gray-200 dark:border-gray-700"
                   >
-                    No, continue without
+                    No, skip this
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <Heart className="text-rose-500" size={24} />
-                    Special Memories
-                  </h2>
-                  <button
-                    onClick={() => {
-                      const newMemories = [
-                        ...formData.specialMemories,
-                        { file: null, url: "", title: "", date: "" },
-                      ];
-                      updateFormData("specialMemories", newMemories);
-                    }}
-                    className="px-4 py-2 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-lg text-sm font-medium hover:bg-rose-100 transition-colors"
-                  >
-                    + Add New Memory
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                  {formData.specialMemories.map((memory, index) => (
-                    <div
-                      key={index}
-                      className="relative p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20 group"
-                    >
+              <div className="space-y-10">
+                {formData.categories.map((category, catIndex) => (
+                  <div key={category.id} className="space-y-6">
+                    <div className="flex items-center justify-between border-b border-rose-100 dark:border-rose-900/20 pb-4">
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        {category.id === "memories" ? (
+                          <Heart className="text-rose-500" size={24} />
+                        ) : (
+                          <Sparkles className="text-amber-500" size={24} />
+                        )}
+                        {category.name}
+                      </h2>
                       <button
                         onClick={() => {
-                          const newMemories = formData.specialMemories.filter(
-                            (_, i) => i !== index,
-                          );
-                          updateFormData("specialMemories", newMemories);
+                          const newCategories = [...formData.categories];
+                          newCategories[catIndex].items.push({
+                            file: null,
+                            url: "",
+                            title: "",
+                            date: "",
+                          });
+                          updateFormData("categories", newCategories);
                         }}
-                        className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors"
+                        className="px-4 py-2 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-lg text-sm font-medium hover:bg-rose-100 transition-colors"
                       >
-                        <X size={18} />
+                        + Add to {category.name}
                       </button>
+                    </div>
 
-                      <div className="space-y-4">
-                        <label className="block">
-                          <div
-                            className={`aspect-square rounded-xl border-2 border-dashed border-rose-200 dark:border-rose-800 flex flex-col items-center justify-center cursor-pointer hover:border-rose-400 transition-colors relative overflow-hidden ${memory.url ? "border-none" : ""}`}
-                          >
-                            {memory.url ? (
-                              <>
-                                <img
-                                  src={memory.url}
-                                  alt="Memory"
-                                  className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <Upload className="text-white" size={24} />
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <Upload
-                                  className="text-rose-300 mb-2"
-                                  size={24}
-                                />
-                                <span className="text-xs text-gray-400">
-                                  Click to upload photo
-                                </span>
-                              </>
-                            )}
-                          </div>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                const url = URL.createObjectURL(file);
-                                const newMemories = [
-                                  ...formData.specialMemories,
-                                ];
-                                newMemories[index] = {
-                                  ...newMemories[index],
-                                  file,
-                                  url,
-                                };
-                                updateFormData("specialMemories", newMemories);
-                              }
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {category.items.map((item, itemIndex) => (
+                        <div
+                          key={itemIndex}
+                          className="relative p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20 group"
+                        >
+                          <button
+                            onClick={() => {
+                              const newCategories = [...formData.categories];
+                              newCategories[catIndex].items = newCategories[
+                                catIndex
+                              ].items.filter((_, i) => i !== itemIndex);
+                              updateFormData("categories", newCategories);
                             }}
-                          />
-                        </label>
+                            className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors z-10"
+                          >
+                            <X size={18} />
+                          </button>
 
-                        <input
-                          type="text"
-                          placeholder="Memory Title"
-                          value={memory.title}
-                          onChange={(e) => {
-                            const newMemories = [...formData.specialMemories];
-                            newMemories[index] = {
-                              ...newMemories[index],
-                              title: e.target.value,
-                            };
-                            updateFormData("specialMemories", newMemories);
-                          }}
-                          className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                        />
+                          <div className="space-y-4">
+                            <label className="block">
+                              <div
+                                className={`aspect-square rounded-xl border-2 border-dashed border-rose-200 dark:border-rose-800 flex flex-col items-center justify-center cursor-pointer hover:border-rose-400 transition-colors relative overflow-hidden ${item.url ? "border-none" : ""}`}
+                              >
+                                {item.url ? (
+                                  <>
+                                    <img
+                                      src={item.url}
+                                      alt="Detail"
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                      <Upload
+                                        className="text-white"
+                                        size={24}
+                                      />
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload
+                                      className="text-rose-300 mb-2"
+                                      size={24}
+                                    />
+                                    <span className="text-xs text-gray-400">
+                                      Upload Photo
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const url = URL.createObjectURL(file);
+                                    const newCategories = [
+                                      ...formData.categories,
+                                    ];
+                                    newCategories[catIndex].items[itemIndex] = {
+                                      ...newCategories[catIndex].items[
+                                        itemIndex
+                                      ],
+                                      file,
+                                      url,
+                                    };
+                                    updateFormData("categories", newCategories);
+                                  }
+                                }}
+                              />
+                            </label>
 
-                        <input
-                          type="text"
-                          placeholder="Date (e.g., Summer 2023)"
-                          value={memory.date}
-                          onChange={(e) => {
-                            const newMemories = [...formData.specialMemories];
-                            newMemories[index] = {
-                              ...newMemories[index],
-                              date: e.target.value,
-                            };
-                            updateFormData("specialMemories", newMemories);
-                          }}
-                          className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                        />
-                      </div>
+                            <input
+                              type="text"
+                              placeholder="Title"
+                              value={item.title}
+                              onChange={(e) => {
+                                const newCategories = [...formData.categories];
+                                newCategories[catIndex].items[itemIndex].title =
+                                  e.target.value;
+                                updateFormData("categories", newCategories);
+                              }}
+                              className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                            />
+
+                            <input
+                              type="text"
+                              placeholder={
+                                category.id === "memories"
+                                  ? "Date (e.g. Summer 2023)"
+                                  : "Description"
+                              }
+                              value={item.date}
+                              onChange={(e) => {
+                                const newCategories = [...formData.categories];
+                                newCategories[catIndex].items[itemIndex].date =
+                                  e.target.value;
+                                updateFormData("categories", newCategories);
+                              }}
+                              className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                            />
+                          </div>
+                        </div>
+                      ))}
+
+                      {category.items.length === 0 && (
+                        <div className="col-span-full py-8 text-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-zinc-800 rounded-2xl">
+                          <p className="text-sm italic">
+                            No items added to {category.name} yet.
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  ))}
+                  </div>
+                ))}
 
-                  {formData.specialMemories.length === 0 && (
-                    <div className="col-span-full py-12 text-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-zinc-800 rounded-2xl">
-                      <Upload className="mx-auto mb-3 opacity-20" size={32} />
-                      <p className="text-sm">
-                        Click "+ Add New Memory" to start sharing your special
-                        moments
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end pt-4 border-t border-rose-100 dark:border-rose-900/20">
                   <button
                     onClick={() => {
                       setCurrentStep(4);
                       setWantsPhotos(null);
                     }}
-                    className="px-8 py-3 bg-linear-to-r from-rose-500 to-pink-500 text-white rounded-full font-medium shadow-lg hover:shadow-rose-300 dark:hover:shadow-rose-900/30 transition-all"
+                    className="px-8 py-3 bg-linear-to-r from-rose-500 to-pink-500 text-white rounded-full font-medium shadow-lg hover:shadow-rose-300 dark:hover:shadow-rose-900/30 transition-all font-serif"
                   >
-                    Save & Continue
+                    Save & Preview Design
                   </button>
                 </div>
               </div>
@@ -1247,7 +1271,7 @@ export default function CondolenceForm() {
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
                     pagePhotos={formData.pagePhotos}
-                    specialMemories={formData.specialMemories}
+                    categories={formData.categories}
                     music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {
@@ -1299,7 +1323,7 @@ export default function CondolenceForm() {
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
                     pagePhotos={formData.pagePhotos}
-                    specialMemories={formData.specialMemories}
+                    categories={formData.categories}
                     music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {
@@ -1351,7 +1375,7 @@ export default function CondolenceForm() {
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
                     pagePhotos={formData.pagePhotos}
-                    specialMemories={formData.specialMemories}
+                    categories={formData.categories}
                     music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {

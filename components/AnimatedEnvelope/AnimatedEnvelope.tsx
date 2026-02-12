@@ -8,11 +8,17 @@ interface PagePhoto {
   url?: string;
 }
 
-interface SpecialMemory {
+interface CategoryItem {
   file: File | null;
   url: string;
   title: string;
   date: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  items: CategoryItem[];
 }
 
 interface AnimatedEnvelopeProps {
@@ -31,7 +37,7 @@ interface AnimatedEnvelopeProps {
   titleColor?: string;
   music?: string;
   pagePhotos?: { [pageIndex: number]: PagePhoto };
-  specialMemories?: SpecialMemory[];
+  categories?: Category[];
 }
 
 export function AnimatedEnvelope({
@@ -49,7 +55,7 @@ export function AnimatedEnvelope({
   textColor = "#8D6E63",
   titleColor = "#5D4037",
   pagePhotos = {},
-  specialMemories = [],
+  categories = [],
   music,
 }: AnimatedEnvelopeProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
@@ -120,19 +126,20 @@ export function AnimatedEnvelope({
 
   // Data Chunks (Message + Memories)
   const allContentChunks = [
-    ...messageChunks
-      .slice(1)
-      .map((text, i) => ({
-        type: "message",
-        text,
-        page: i + 2,
-        total: messageChunks.length,
-      })),
-    ...specialMemories.map((memory, i) => ({
-      type: "memory",
-      ...memory,
-      index: i,
+    ...messageChunks.slice(1).map((text, i) => ({
+      type: "message",
+      text,
+      page: i + 2,
+      total: messageChunks.length,
     })),
+    ...categories.flatMap((cat) =>
+      cat.items.map((item, i) => ({
+        type: "memory",
+        ...item,
+        categoryName: cat.name,
+        index: i,
+      })),
+    ),
   ];
 
   // Data Leaves
@@ -208,6 +215,14 @@ export function AnimatedEnvelope({
       return (
         <div className="flex-1 flex flex-col">
           <div className="flex-1 bg-white/50 dark:bg-black/20 rounded-xl p-3 border border-black/5 shadow-inner flex flex-col">
+            <div className="mb-2 text-center">
+              <span
+                className="text-[10px] uppercase tracking-[0.2em] opacity-60 font-bold"
+                style={{ color: titleColor }}
+              >
+                {data.categoryName}
+              </span>
+            </div>
             <div className="flex-1 relative rounded-lg overflow-hidden border border-black/10">
               {data.url ? (
                 <img
@@ -226,10 +241,16 @@ export function AnimatedEnvelope({
                 className="font-['Caveat'] text-2xl font-bold mb-1"
                 style={{ color: titleColor }}
               >
-                {data.title || "Special Memory"}
+                {data.title ||
+                  (data.categoryName === "Special Memories"
+                    ? "Special Memory"
+                    : "Special Quality")}
               </h3>
               <p className="font-['Lora'] text-[10px] uppercase tracking-widest opacity-40 font-bold">
-                {data.date || "Secret Moment"}
+                {data.date ||
+                  (data.categoryName === "Special Memories"
+                    ? "Secret Moment"
+                    : "Detail")}
               </p>
             </div>
           </div>
@@ -237,7 +258,7 @@ export function AnimatedEnvelope({
             className="mt-4 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest"
             style={{ color: titleColor }}
           >
-            <span>MEMORY {data.index + 1}</span>
+            <span>ITEM {data.index + 1}</span>
             {!isBack ? <span>TAP TO FLIP ➔</span> : <span>← TAP TO BACK</span>}
           </div>
         </div>

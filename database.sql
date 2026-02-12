@@ -40,6 +40,7 @@ CREATE TABLE public.confessions (
   sender_email text,
   sender_phone text,
   envelope_style text DEFAULT 'Romantic',
+  categories jsonb DEFAULT '[]'::jsonb,
   CONSTRAINT confessions_pkey PRIMARY KEY (id),
   CONSTRAINT confessions_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES public.profiles(id)
 );
