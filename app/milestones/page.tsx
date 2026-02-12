@@ -1,5 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
-import { getUser, getRelationship, getMilestones } from "@/lib/data";
+import { getUser, getUserMilestones } from "@/lib/data";
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 import { MilestonesList } from "@/components/milestones/MilestonesList";
@@ -11,12 +10,7 @@ export default async function MilestonesPage() {
     redirect("/");
   }
 
-  const relationship = await getRelationship(user.id);
-  if (!relationship) {
-    redirect("/dashboard");
-  }
-
-  const milestones = await getMilestones(relationship.id);
+  const milestones = await getUserMilestones(user.id);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">

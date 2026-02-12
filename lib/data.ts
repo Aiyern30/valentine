@@ -51,6 +51,17 @@ export const getMilestones = cache(async (relationshipId: string) => {
   return data || [];
 });
 
+export const getUserMilestones = cache(async (userId: string) => {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("milestones")
+    .select("*")
+    .eq("created_by", userId)
+    .order("milestone_date", { ascending: true });
+
+  return data || [];
+});
+
 export const getRecentPhotos = cache(async (relationshipId: string) => {
   const supabase = await createClient();
   const { data } = await supabase
