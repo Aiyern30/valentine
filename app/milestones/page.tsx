@@ -1,8 +1,8 @@
 import { getUser, getUserMilestones } from "@/lib/data";
 import { redirect } from "next/navigation";
-import { Plus } from "lucide-react";
 import { MilestonesList } from "@/components/milestones/MilestonesList";
 import { MilestoneCalendar } from "@/components/milestones/MilestonesCalendar";
+import { CreateMilestoneButton } from "@/components/milestones/CreateMilestonesButton";
 
 export default async function MilestonesPage() {
   const user = await getUser();
@@ -24,10 +24,7 @@ export default async function MilestonesPage() {
             Track and celebrate your special moments together
           </p>
         </div>
-        <button className="flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm">
-          <Plus className="w-4 h-4" />
-          Add Milestone
-        </button>
+        <CreateMilestoneButton />
       </div>
 
       {/* Stats */}

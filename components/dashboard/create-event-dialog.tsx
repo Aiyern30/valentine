@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createMilestone } from "@/lib/actions";
+import { useRouter } from "next/navigation";
 import {
   X,
   Loader2,
@@ -29,6 +30,7 @@ export function CreateEventDialog({ isOpen, onClose }: CreateEventDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState(EVENT_TYPES[0].id);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
+  const router = useRouter();
 
   if (!isOpen) return null;
 
@@ -45,7 +47,9 @@ export function CreateEventDialog({ isOpen, onClose }: CreateEventDialogProps) {
       if (result.error) {
         setError(result.error);
       } else {
+        // Success - close dialog and refresh
         onClose();
+        router.refresh();
       }
     } catch (e) {
       setError("Something went wrong. Please try again.");
@@ -66,7 +70,7 @@ export function CreateEventDialog({ isOpen, onClose }: CreateEventDialogProps) {
       <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100 dark:border-zinc-800">
         <div className="p-8 pb-4 border-b border-gray-50 dark:border-zinc-800 flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 italic font-dancing">
-            Create New Event
+            Create New Milestone
           </h2>
           <button
             onClick={onClose}
@@ -85,7 +89,7 @@ export function CreateEventDialog({ isOpen, onClose }: CreateEventDialogProps) {
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-              Event Title
+              Milestone Title
             </label>
             <input
               name="title"
@@ -190,14 +194,14 @@ export function CreateEventDialog({ isOpen, onClose }: CreateEventDialogProps) {
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="px-6 py-3 rounded-2xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 font-bold transition-colors"
+              className="px-6 py-3 rounded-2xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 font-bold transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-8 py-3 rounded-2xl bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold shadow-lg shadow-rose-500/25 active:scale-95 transition-all flex items-center gap-2 group"
+              className="px-8 py-3 rounded-2xl bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold shadow-lg shadow-rose-500/25 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -205,7 +209,7 @@ export function CreateEventDialog({ isOpen, onClose }: CreateEventDialogProps) {
                   Creating...
                 </>
               ) : (
-                <>Create Event</>
+                <>Create Milestone</>
               )}
             </button>
           </div>
