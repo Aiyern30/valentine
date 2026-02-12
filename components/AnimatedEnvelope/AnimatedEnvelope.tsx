@@ -108,6 +108,12 @@ export function AnimatedEnvelope({
   // Revised Leaves construction
   const leaves: any[] = [];
 
+  const totalCategoryItems = categories.reduce(
+    (sum, cat) => sum + cat.items.length,
+    0,
+  );
+  const totalPages = messageChunks.length + totalCategoryItems;
+
   // Leaf 0: Front=Cover, Back=Page 1
   leaves.push({
     index: 0,
@@ -119,7 +125,7 @@ export function AnimatedEnvelope({
             type: "message",
             text: messageChunks[0],
             page: 1,
-            total: messageChunks.length,
+            total: totalPages,
           }
         : { type: "empty" },
   });
@@ -130,17 +136,26 @@ export function AnimatedEnvelope({
       type: "message",
       text,
       page: i + 2,
-      total: messageChunks.length,
+      total: totalPages,
     })),
     ...categories.flatMap((cat) =>
       cat.items.map((item, i) => ({
         type: "memory",
         ...item,
         categoryName: cat.name,
-        index: i,
+        // Calculate page number across all category items
       })),
     ),
   ];
+
+  // Fix page numbering for memory items
+  let currentMemoryPageIndex = messageChunks.length + 1;
+  allContentChunks.forEach((chunk) => {
+    if (chunk.type === "memory") {
+      (chunk as any).page = currentMemoryPageIndex++;
+      (chunk as any).total = totalPages;
+    }
+  });
 
   // Data Leaves
   for (let i = 0; i < allContentChunks.length; i += 2) {
@@ -223,7 +238,7 @@ export function AnimatedEnvelope({
                 {data.categoryName}
               </span>
             </div>
-            <div className="flex-1 relative rounded-lg overflow-hidden border border-black/10">
+            <div className="flex-1 relative rounded-lg overflow-hidden border border-black/10 max-h-[220px]">
               {data.url ? (
                 <img
                   src={data.url}
@@ -231,7 +246,7 @@ export function AnimatedEnvelope({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center opacity-20">
+                <div className="w-full h-full flex items-center justify-center opacity-20 py-10">
                   <Heart size={48} />
                 </div>
               )}
@@ -258,7 +273,9 @@ export function AnimatedEnvelope({
             className="mt-4 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest"
             style={{ color: titleColor }}
           >
-            <span>ITEM {data.index + 1}</span>
+            <span>
+              PAGE {data.page} / {data.total}
+            </span>
             {!isBack ? <span>TAP TO FLIP ➔</span> : <span>← TAP TO BACK</span>}
           </div>
         </div>
