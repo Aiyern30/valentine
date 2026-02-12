@@ -90,36 +90,105 @@ export function AnimatedEnvelope({
     messageChunks = message.match(/[\s\S]{1,500}/g) || [message];
   }
 
-  // Define Leaves
-  const leaves: {
-    index: number;
-    type: "cover" | "message";
-    front: any;
-    back: any;
-  }[] = [];
+  // Revised Leaves construction
+  const leaves: any[] = [];
 
-  // Leaf 0: Front=Cover, Back=Blank/Message
+  // Leaf 0: Front=Cover, Back=Page 1
   leaves.push({
     index: 0,
-    type: "cover",
-    front: null,
-    back: null,
+    type: "cover", // For styling purposes
+    front: { type: "cover" },
+    back:
+      messageChunks.length > 0
+        ? {
+            type: "message",
+            text: messageChunks[0],
+            page: 1,
+            total: messageChunks.length,
+          }
+        : { type: "empty" },
   });
 
-  // Message Leaves
-  // One chunk per leaf to ensure content always appears on the right side (Front/Recto)
-  for (let i = 0; i < messageChunks.length; i++) {
+  // Data Leaves (starting from Page 2)
+  for (let i = 1; i < messageChunks.length; i += 2) {
     leaves.push({
       index: leaves.length,
       type: "message",
       front: {
+        type: "message",
         text: messageChunks[i],
         page: i + 1,
         total: messageChunks.length,
       },
-      back: null, // Back is now always distinct from the next page
+      back:
+        i + 1 < messageChunks.length
+          ? {
+              type: "message",
+              text: messageChunks[i + 1],
+              page: i + 2,
+              total: messageChunks.length,
+            }
+          : null,
     });
   }
+
+  // Ensure last leaf has signature on back
+  const lastLeafIndex = leaves.length - 1;
+  const lastLeaf = leaves[lastLeafIndex];
+  if (!lastLeaf.back) {
+    lastLeaf.back = { type: "signature" };
+  } else {
+    leaves.push({
+      index: leaves.length,
+      type: "message",
+      front: null,
+      back: { type: "signature" },
+    });
+  }
+
+  // Helper to render a message page content
+  const renderMessagePage = (data: any, isBack: boolean = false) => {
+    if (!data || data.type !== "message") return null;
+
+    return (
+      <>
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="block">
+            {pagePhotos[data.page - 1] && pagePhotos[data.page - 1].url && (
+              <div
+                className={`w-1/3 mb-2 animate-in fade-in zoom-in duration-700 ${
+                  pagePhotos[data.page - 1].position === "right"
+                    ? "float-right ml-4"
+                    : "float-left mr-4"
+                }`}
+              >
+                <img
+                  src={pagePhotos[data.page - 1].url}
+                  alt={`Page ${data.page}`}
+                  className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4"
+                />
+              </div>
+            )}
+            <p
+              className="font-['Lora'] text-base leading-relaxed"
+              style={{ color: textColor }}
+            >
+              {data.text}
+            </p>
+          </div>
+        </div>
+        <div
+          className="mt-4 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest"
+          style={{ color: titleColor }}
+        >
+          <span>
+            PAGE {data.page} / {data.total}
+          </span>
+          {!isBack ? <span>TAP TO FLIP ➔</span> : <span>← TAP TO BACK</span>}
+        </div>
+      </>
+    );
+  };
   const handleOpen = () => {
     if (!isOpen) {
       if (onOpenChange) {
@@ -371,13 +440,13 @@ export function AnimatedEnvelope({
                   >
                     {/* FRONT FACE */}
                     <div
-                      className={`absolute inset-0 rounded-r-lg rounded-l-none bg-white backface-hidden shadow-md border border-black/10 overflow-hidden ${leaf.type === "cover" ? "flex flex-col items-center justify-center text-center" : "p-8 flex flex-col"}`}
+                      className={`absolute inset-0 rounded-r-lg rounded-l-none bg-white backface-hidden shadow-md border border-black/10 overflow-hidden ${leaf.front?.type === "cover" ? "flex flex-col items-center justify-center text-center" : "p-8 flex flex-col"}`}
                       style={{
                         backgroundColor: cardColor,
                         backfaceVisibility: "hidden",
                       }}
                     >
-                      {leaf.type === "cover" ? (
+                      {leaf.front?.type === "cover" ? (
                         <>
                           <div className="absolute inset-0 bg-noise opacity-30 pointer-events-none" />
                           <div
@@ -421,46 +490,12 @@ export function AnimatedEnvelope({
                             </p>
                           </div>
                         </>
+                      ) : leaf.front?.type === "message" ? (
+                        renderMessagePage(leaf.front)
                       ) : (
-                        <>
-                          {/* Message Page Front */}
-                          <div className="flex-1 overflow-y-auto custom-scrollbar">
-                            <div className="block">
-                              {pagePhotos[leaf.front.page - 1] &&
-                                pagePhotos[leaf.front.page - 1].url && (
-                                  <div
-                                    className={`w-1/3 mb-2 animate-in fade-in zoom-in duration-700 ${
-                                      pagePhotos[leaf.front.page - 1]
-                                        .position === "right"
-                                        ? "float-right ml-4"
-                                        : "float-left mr-4"
-                                    }`}
-                                  >
-                                    <img
-                                      src={pagePhotos[leaf.front.page - 1].url}
-                                      alt={`Page ${leaf.front.page}`}
-                                      className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4"
-                                    />
-                                  </div>
-                                )}
-                              <p
-                                className="font-['Lora'] text-base leading-relaxed"
-                                style={{ color: textColor }}
-                              >
-                                {leaf.front.text}
-                              </p>
-                            </div>
-                          </div>
-                          <div
-                            className="mt-4 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest"
-                            style={{ color: titleColor }}
-                          >
-                            <span>
-                              PAGE {leaf.front.page} / {leaf.front.total}
-                            </span>
-                            <span>TAP TO FLIP ➔</span>
-                          </div>
-                        </>
+                        <div className="flex-1 flex items-center justify-center opacity-[0.03]">
+                          <Heart size={120} />
+                        </div>
                       )}
                     </div>
 
@@ -474,22 +509,9 @@ export function AnimatedEnvelope({
                         borderRight: "none",
                       }}
                     >
-                      {leaf.index === 0 ? (
-                        // Blank back of cover or instructions
-                        <div className="flex-1 flex flex-col items-center justify-center text-center opacity-30">
-                          <Heart
-                            size={48}
-                            style={{ color: titleColor }}
-                            className="mb-4"
-                          />
-                          <p
-                            className="font-['Caveat'] text-2xl"
-                            style={{ color: titleColor }}
-                          >
-                            Always & Forever
-                          </p>
-                        </div>
-                      ) : leaf.index === leaves.length - 1 ? (
+                      {leaf.back?.type === "message" ? (
+                        renderMessagePage(leaf.back, true)
+                      ) : leaf.back?.type === "signature" ? (
                         // LAST PAGE BACK - SHOW SENDER/SIGNATURE
                         <div className="flex-1 flex flex-col items-center justify-center text-center">
                           <div className="mb-6 opacity-20">
@@ -523,9 +545,19 @@ export function AnimatedEnvelope({
                           </div>
                         </div>
                       ) : (
-                        // Message Leaf Back (Decorative/Empty)
-                        <div className="flex-1 flex items-center justify-center opacity-[0.03]">
-                          <Heart size={120} />
+                        // Blank back / Placeholder
+                        <div className="flex-1 flex flex-col items-center justify-center text-center opacity-30">
+                          <Heart
+                            size={48}
+                            style={{ color: titleColor }}
+                            className="mb-4"
+                          />
+                          <p
+                            className="font-['Caveat'] text-2xl"
+                            style={{ color: titleColor }}
+                          >
+                            Always & Forever
+                          </p>
                         </div>
                       )}
                     </div>

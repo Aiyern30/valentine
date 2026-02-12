@@ -86,6 +86,38 @@ export function AnimatedEnvelope({
     [music],
   );
 
+  const delimiter = "<<<PAGE_BREAK>>>";
+  const messageChunks = message ? message.split(delimiter) : [""];
+
+  // Helper to render a message page content
+  const renderMessagePage = (pageIndex: number, isRight: boolean = false) => {
+    const chunk = messageChunks[pageIndex];
+    if (chunk === undefined) return null;
+
+    return (
+      <div className="block">
+        {pagePhotos[pageIndex] && pagePhotos[pageIndex].url && (
+          <div
+            className={`w-1/3 mb-2 animate-in fade-in zoom-in duration-700 ${
+              pagePhotos[pageIndex].position === "right"
+                ? "float-right ml-4"
+                : "float-left mr-4"
+            }`}
+          >
+            <img
+              src={pagePhotos[pageIndex].url}
+              alt={`Page ${pageIndex + 1}`}
+              className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4 grayscale hover:grayscale-0 transition-all duration-500"
+            />
+          </div>
+        )}
+        <p className="font-serif text-sm leading-relaxed text-stone-600 italic">
+          {chunk}
+        </p>
+      </div>
+    );
+  };
+
   const handleOpen = () => {
     if (status !== "idle") return;
 
@@ -217,26 +249,7 @@ export function AnimatedEnvelope({
                 <Sparkles size={16} />
               </div>
               <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
-                <div className="block">
-                  {pagePhotos[0] && pagePhotos[0].url && (
-                    <div
-                      className={`w-1/3 mb-2 animate-in fade-in zoom-in duration-700 ${
-                        pagePhotos[0].position === "right"
-                          ? "float-right ml-4"
-                          : "float-left mr-4"
-                      }`}
-                    >
-                      <img
-                        src={pagePhotos[0].url}
-                        alt="Message photo"
-                        className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4 grayscale hover:grayscale-0 transition-all duration-500"
-                      />
-                    </div>
-                  )}
-                  <p className="font-serif text-sm leading-relaxed text-stone-600 italic">
-                    {message}
-                  </p>
-                </div>
+                {renderMessagePage(1, true)}
                 <p className="font-serif text-2xl mt-6 text-stone-800 font-medium">
                   With Love, <br /> {sender}
                 </p>
@@ -286,11 +299,16 @@ export function AnimatedEnvelope({
                   borderRight: "none",
                 }}
               >
-                <div className="flex-1 flex flex-col items-center justify-center text-center opacity-[0.05]">
-                  <Heart size={48} />
-                  <p className="text-[10px] mt-2 font-bold uppercase tracking-widest">
-                    Always & Forever
-                  </p>
+                <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
+                  {renderMessagePage(0)}
+                  {!messageChunks[0] && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center opacity-[0.05] h-full">
+                      <Heart size={48} />
+                      <p className="text-[10px] mt-2 font-bold uppercase tracking-widest">
+                        Always & Forever
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
