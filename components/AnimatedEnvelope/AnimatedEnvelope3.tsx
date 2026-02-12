@@ -9,6 +9,13 @@ interface PagePhoto {
   url?: string;
 }
 
+interface SpecialMemory {
+  file: File | null;
+  url: string;
+  title: string;
+  date: string;
+}
+
 interface AnimatedEnvelopeProps {
   title?: string;
   message?: string;
@@ -24,6 +31,7 @@ interface AnimatedEnvelopeProps {
   textColor?: string;
   titleColor?: string;
   pagePhotos?: { [pageIndex: number]: PagePhoto };
+  specialMemories?: SpecialMemory[];
   music?: string;
 }
 
@@ -42,8 +50,9 @@ export function AnimatedEnvelope({
   flapBackColor = "#7a1325",
   cardColor = "#FDFBF7",
   textColor = "#57534e",
-  titleColor = "#1c1917",
+  titleColor = "#5D4037",
   pagePhotos = {},
+  specialMemories = [],
   music,
 }: AnimatedEnvelopeProps) {
   const [status, setStatus] = useState<EnvelopeStatus>("idle");
@@ -114,6 +123,44 @@ export function AnimatedEnvelope({
         <p className="font-serif text-sm leading-relaxed text-stone-600 italic">
           {chunk}
         </p>
+      </div>
+    );
+  };
+
+  const renderMemories = () => {
+    if (!specialMemories.length) return null;
+    return (
+      <div className="mt-8 space-y-6 pt-6 border-t border-stone-200">
+        <h3 className="text-center font-serif italic text-stone-400 text-xs tracking-widest uppercase">
+          Secret Memories
+        </h3>
+        <div className="grid grid-cols-1 gap-6">
+          {specialMemories.map((memory, i) => (
+            <div key={i} className="group flex flex-col items-center">
+              <div className="relative w-full aspect-square p-2 bg-stone-50 border border-stone-200 shadow-sm rotate-1 group-hover:rotate-0 transition-transform duration-500">
+                {memory.url ? (
+                  <img
+                    src={memory.url}
+                    alt={memory.title}
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-stone-100 opacity-20">
+                    <Heart size={32} />
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 text-center">
+                <p className="font-serif font-medium text-stone-800 text-sm">
+                  {memory.title || "A Beautiful Day"}
+                </p>
+                <p className="font-serif italic text-stone-400 text-[10px] uppercase tracking-tighter mt-1">
+                  {memory.date}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -250,6 +297,7 @@ export function AnimatedEnvelope({
               </div>
               <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
                 {renderMessagePage(1, true)}
+                {renderMemories()}
                 <p className="font-serif text-2xl mt-6 text-stone-800 font-medium">
                   With Love, <br /> {sender}
                 </p>

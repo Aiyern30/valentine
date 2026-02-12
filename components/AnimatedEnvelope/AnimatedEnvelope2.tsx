@@ -9,6 +9,13 @@ interface PagePhoto {
   url?: string;
 }
 
+interface SpecialMemory {
+  file: File | null;
+  url: string;
+  title: string;
+  date: string;
+}
+
 interface AnimatedEnvelopeProps {
   title?: string;
   message?: string;
@@ -24,6 +31,7 @@ interface AnimatedEnvelopeProps {
   textColor?: string;
   titleColor?: string;
   pagePhotos?: { [pageIndex: number]: PagePhoto };
+  specialMemories?: SpecialMemory[];
   music?: string;
 }
 
@@ -48,8 +56,9 @@ export function AnimatedEnvelope({
   flapBackColor = "#f5e6d0",
   cardColor = "#fffcf5",
   textColor = "#475569",
-  titleColor = "#1e293b",
+  titleColor = "#5D4037",
   pagePhotos = {},
+  specialMemories = [],
   music,
 }: AnimatedEnvelopeProps) {
   const [stage, setStage] = useState<AnimationStage>("idle");
@@ -124,6 +133,44 @@ export function AnimatedEnvelope({
         >
           {chunk}
         </p>
+      </div>
+    );
+  };
+
+  const renderMemories = () => {
+    if (!specialMemories.length) return null;
+    return (
+      <div className="mt-8 space-y-6 pt-6 border-t border-black/5">
+        <h3 className="text-center font-serif italic opacity-50 text-xs tracking-widest uppercase">
+          Special Memories
+        </h3>
+        <div className="grid grid-cols-1 gap-4">
+          {specialMemories.map((memory, i) => (
+            <div
+              key={i}
+              className="bg-white/50 dark:bg-black/20 rounded-xl p-3 border border-black/5 shadow-sm"
+            >
+              {memory.url && (
+                <img
+                  src={memory.url}
+                  alt={memory.title}
+                  className="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm"
+                />
+              )}
+              <div className="text-center">
+                <p
+                  className="font-serif font-bold text-sm"
+                  style={{ color: titleColor }}
+                >
+                  {memory.title}
+                </p>
+                <p className="font-serif italic text-[10px] opacity-40">
+                  {memory.date}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   };
@@ -249,6 +296,7 @@ export function AnimatedEnvelope({
             >
               <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
                 {renderMessagePage(1, true)}
+                {renderMemories()}
                 <p
                   className="font- serif text-2xl mt-8"
                   style={{ color: titleColor }}

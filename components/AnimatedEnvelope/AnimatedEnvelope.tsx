@@ -8,6 +8,13 @@ interface PagePhoto {
   url?: string;
 }
 
+interface SpecialMemory {
+  file: File | null;
+  url: string;
+  title: string;
+  date: string;
+}
+
 interface AnimatedEnvelopeProps {
   title?: string;
   message?: string;
@@ -24,6 +31,7 @@ interface AnimatedEnvelopeProps {
   titleColor?: string;
   music?: string;
   pagePhotos?: { [pageIndex: number]: PagePhoto };
+  specialMemories?: SpecialMemory[];
 }
 
 export function AnimatedEnvelope({
@@ -41,6 +49,7 @@ export function AnimatedEnvelope({
   textColor = "#8D6E63",
   titleColor = "#5D4037",
   pagePhotos = {},
+  specialMemories = [],
   music,
 }: AnimatedEnvelopeProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
@@ -109,26 +118,30 @@ export function AnimatedEnvelope({
         : { type: "empty" },
   });
 
-  // Data Leaves (starting from Page 2)
-  for (let i = 1; i < messageChunks.length; i += 2) {
+  // Data Chunks (Message + Memories)
+  const allContentChunks = [
+    ...messageChunks
+      .slice(1)
+      .map((text, i) => ({
+        type: "message",
+        text,
+        page: i + 2,
+        total: messageChunks.length,
+      })),
+    ...specialMemories.map((memory, i) => ({
+      type: "memory",
+      ...memory,
+      index: i,
+    })),
+  ];
+
+  // Data Leaves
+  for (let i = 0; i < allContentChunks.length; i += 2) {
     leaves.push({
       index: leaves.length,
       type: "message",
-      front: {
-        type: "message",
-        text: messageChunks[i],
-        page: i + 1,
-        total: messageChunks.length,
-      },
-      back:
-        i + 1 < messageChunks.length
-          ? {
-              type: "message",
-              text: messageChunks[i + 1],
-              page: i + 2,
-              total: messageChunks.length,
-            }
-          : null,
+      front: allContentChunks[i],
+      back: i + 1 < allContentChunks.length ? allContentChunks[i + 1] : null,
     });
   }
 
@@ -146,48 +159,92 @@ export function AnimatedEnvelope({
     });
   }
 
-  // Helper to render a message page content
-  const renderMessagePage = (data: any, isBack: boolean = false) => {
-    if (!data || data.type !== "message") return null;
+  // Helper to render a message or memory page content
+  const renderContentPage = (data: any, isBack: boolean = false) => {
+    if (!data) return null;
 
-    return (
-      <>
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="block">
-            {pagePhotos[data.page - 1] && pagePhotos[data.page - 1].url && (
-              <div
-                className={`w-1/3 mb-2 animate-in fade-in zoom-in duration-700 ${
-                  pagePhotos[data.page - 1].position === "right"
-                    ? "float-right ml-4"
-                    : "float-left mr-4"
-                }`}
+    if (data.type === "message") {
+      return (
+        <>
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="block">
+              {pagePhotos[data.page - 1] && pagePhotos[data.page - 1].url && (
+                <div
+                  className={`w-1/3 mb-2 animate-in fade-in zoom-in duration-700 ${
+                    pagePhotos[data.page - 1].position === "right"
+                      ? "float-right ml-4"
+                      : "float-left mr-4"
+                  }`}
+                >
+                  <img
+                    src={pagePhotos[data.page - 1].url}
+                    alt={`Page ${data.page}`}
+                    className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4"
+                  />
+                </div>
+              )}
+              <p
+                className="font-['Lora'] text-base leading-relaxed"
+                style={{ color: textColor }}
               >
+                {data.text}
+              </p>
+            </div>
+          </div>
+          <div
+            className="mt-4 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest"
+            style={{ color: titleColor }}
+          >
+            <span>
+              PAGE {data.page} / {data.total}
+            </span>
+            {!isBack ? <span>TAP TO FLIP ➔</span> : <span>← TAP TO BACK</span>}
+          </div>
+        </>
+      );
+    }
+
+    if (data.type === "memory") {
+      return (
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 bg-white/50 dark:bg-black/20 rounded-xl p-3 border border-black/5 shadow-inner flex flex-col">
+            <div className="flex-1 relative rounded-lg overflow-hidden border border-black/10">
+              {data.url ? (
                 <img
-                  src={pagePhotos[data.page - 1].url}
-                  alt={`Page ${data.page}`}
-                  className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4"
+                  src={data.url}
+                  alt={data.title}
+                  className="w-full h-full object-cover"
                 />
-              </div>
-            )}
-            <p
-              className="font-['Lora'] text-base leading-relaxed"
-              style={{ color: textColor }}
-            >
-              {data.text}
-            </p>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center opacity-20">
+                  <Heart size={48} />
+                </div>
+              )}
+            </div>
+            <div className="mt-4 text-center">
+              <h3
+                className="font-['Caveat'] text-2xl font-bold mb-1"
+                style={{ color: titleColor }}
+              >
+                {data.title || "Special Memory"}
+              </h3>
+              <p className="font-['Lora'] text-[10px] uppercase tracking-widest opacity-40 font-bold">
+                {data.date || "Secret Moment"}
+              </p>
+            </div>
+          </div>
+          <div
+            className="mt-4 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest"
+            style={{ color: titleColor }}
+          >
+            <span>MEMORY {data.index + 1}</span>
+            {!isBack ? <span>TAP TO FLIP ➔</span> : <span>← TAP TO BACK</span>}
           </div>
         </div>
-        <div
-          className="mt-4 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest"
-          style={{ color: titleColor }}
-        >
-          <span>
-            PAGE {data.page} / {data.total}
-          </span>
-          {!isBack ? <span>TAP TO FLIP ➔</span> : <span>← TAP TO BACK</span>}
-        </div>
-      </>
-    );
+      );
+    }
+
+    return null;
   };
   const handleOpen = () => {
     if (!isOpen) {
@@ -490,8 +547,9 @@ export function AnimatedEnvelope({
                             </p>
                           </div>
                         </>
-                      ) : leaf.front?.type === "message" ? (
-                        renderMessagePage(leaf.front)
+                      ) : leaf.front?.type === "message" ||
+                        leaf.front?.type === "memory" ? (
+                        renderContentPage(leaf.front)
                       ) : (
                         <div className="flex-1 flex items-center justify-center opacity-[0.03]">
                           <Heart size={120} />
@@ -509,8 +567,9 @@ export function AnimatedEnvelope({
                         borderRight: "none",
                       }}
                     >
-                      {leaf.back?.type === "message" ? (
-                        renderMessagePage(leaf.back, true)
+                      {leaf.back?.type === "message" ||
+                      leaf.back?.type === "memory" ? (
+                        renderContentPage(leaf.back, true)
                       ) : leaf.back?.type === "signature" ? (
                         // LAST PAGE BACK - SHOW SENDER/SIGNATURE
                         <div className="flex-1 flex flex-col items-center justify-center text-center">

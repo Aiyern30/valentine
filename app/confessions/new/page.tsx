@@ -19,6 +19,13 @@ interface PagePhoto {
   url?: string; // For preview
 }
 
+interface SpecialMemory {
+  file: File | null;
+  url: string;
+  title: string;
+  date: string;
+}
+
 interface FormData {
   title: string;
   lovedOneName: string;
@@ -27,6 +34,7 @@ interface FormData {
   relationshipStatus: RelationshipStatus;
   message: string;
   pagePhotos: { [pageIndex: number]: PagePhoto }; // Photos indexed by page number
+  specialMemories: SpecialMemory[];
   theme: Theme;
   envelopeStyle: EnvelopeStyle;
   animationVariant: AnimationVariant;
@@ -108,6 +116,7 @@ export default function CondolenceForm() {
     relationshipStatus: "",
     message: "",
     pagePhotos: {},
+    specialMemories: [],
     theme: "Life",
     envelopeStyle: "Romantic",
     animationVariant: "Classic",
@@ -888,45 +897,191 @@ export default function CondolenceForm() {
           </div>
         )}
 
-        {/* Step 3: Photos Choice */}
-        {currentStep === 3 && wantsPhotos === null && (
+        {/* Step 3: Photos Choice / Special Memories */}
+        {currentStep === 3 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
-            <div className="space-y-8 text-center">
-              <div className="mx-auto w-20 h-20 bg-linear-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center transform rotate-12">
-                <Upload className="text-white" size={40} />
-              </div>
+            {wantsPhotos === null ? (
+              <div className="space-y-8 text-center">
+                <div className="mx-auto w-20 h-20 bg-linear-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center transform rotate-12">
+                  <Upload className="text-white" size={40} />
+                </div>
 
-              <div>
-                <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">
-                  Would you like to add photos?
-                </h2>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Photos make the tribute more special, but they're optional.
-                </p>
-              </div>
+                <div>
+                  <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">
+                    Would you like to add photos?
+                  </h2>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Photos make the tribute more special, but they're optional.
+                  </p>
+                </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-                <button
-                  onClick={() => setWantsPhotos(true)}
-                  className="flex-1 px-8 py-4 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl transition-all shadow-lg font-medium"
-                >
-                  Yes, add photos
-                </button>
-                <button
-                  onClick={() => {
-                    setWantsPhotos(false);
-                    // Auto-proceed to next step after a brief moment
-                    setTimeout(() => {
+                <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+                  <button
+                    onClick={() => setWantsPhotos(true)}
+                    className="flex-1 px-8 py-4 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl transition-all shadow-lg font-medium"
+                  >
+                    Yes, add photos
+                  </button>
+                  <button
+                    onClick={() => {
+                      setWantsPhotos(false);
+                      setTimeout(() => {
+                        setCurrentStep(4);
+                        setWantsPhotos(null);
+                      }, 300);
+                    }}
+                    className="flex-1 px-8 py-4 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 rounded-2xl transition-all font-medium border border-gray-200 dark:border-gray-700"
+                  >
+                    No, continue without
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Heart className="text-rose-500" size={24} />
+                    Special Memories
+                  </h2>
+                  <button
+                    onClick={() => {
+                      const newMemories = [
+                        ...formData.specialMemories,
+                        { file: null, url: "", title: "", date: "" },
+                      ];
+                      updateFormData("specialMemories", newMemories);
+                    }}
+                    className="px-4 py-2 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-lg text-sm font-medium hover:bg-rose-100 transition-colors"
+                  >
+                    + Add New Memory
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                  {formData.specialMemories.map((memory, index) => (
+                    <div
+                      key={index}
+                      className="relative p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20 group"
+                    >
+                      <button
+                        onClick={() => {
+                          const newMemories = formData.specialMemories.filter(
+                            (_, i) => i !== index,
+                          );
+                          updateFormData("specialMemories", newMemories);
+                        }}
+                        className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+
+                      <div className="space-y-4">
+                        <label className="block">
+                          <div
+                            className={`aspect-square rounded-xl border-2 border-dashed border-rose-200 dark:border-rose-800 flex flex-col items-center justify-center cursor-pointer hover:border-rose-400 transition-colors relative overflow-hidden ${memory.url ? "border-none" : ""}`}
+                          >
+                            {memory.url ? (
+                              <>
+                                <img
+                                  src={memory.url}
+                                  alt="Memory"
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <Upload className="text-white" size={24} />
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <Upload
+                                  className="text-rose-300 mb-2"
+                                  size={24}
+                                />
+                                <span className="text-xs text-gray-400">
+                                  Click to upload photo
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const url = URL.createObjectURL(file);
+                                const newMemories = [
+                                  ...formData.specialMemories,
+                                ];
+                                newMemories[index] = {
+                                  ...newMemories[index],
+                                  file,
+                                  url,
+                                };
+                                updateFormData("specialMemories", newMemories);
+                              }
+                            }}
+                          />
+                        </label>
+
+                        <input
+                          type="text"
+                          placeholder="Memory Title"
+                          value={memory.title}
+                          onChange={(e) => {
+                            const newMemories = [...formData.specialMemories];
+                            newMemories[index] = {
+                              ...newMemories[index],
+                              title: e.target.value,
+                            };
+                            updateFormData("specialMemories", newMemories);
+                          }}
+                          className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                        />
+
+                        <input
+                          type="text"
+                          placeholder="Date (e.g., Summer 2023)"
+                          value={memory.date}
+                          onChange={(e) => {
+                            const newMemories = [...formData.specialMemories];
+                            newMemories[index] = {
+                              ...newMemories[index],
+                              date: e.target.value,
+                            };
+                            updateFormData("specialMemories", newMemories);
+                          }}
+                          className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                        />
+                      </div>
+                    </div>
+                  ))}
+
+                  {formData.specialMemories.length === 0 && (
+                    <div className="col-span-full py-12 text-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-zinc-800 rounded-2xl">
+                      <Upload className="mx-auto mb-3 opacity-20" size={32} />
+                      <p className="text-sm">
+                        Click "+ Add New Memory" to start sharing your special
+                        moments
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <button
+                    onClick={() => {
                       setCurrentStep(4);
                       setWantsPhotos(null);
-                    }, 300);
-                  }}
-                  className="flex-1 px-8 py-4 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 rounded-2xl transition-all font-medium border border-gray-200 dark:border-gray-700"
-                >
-                  No, continue without
-                </button>
+                    }}
+                    className="px-8 py-3 bg-linear-to-r from-rose-500 to-pink-500 text-white rounded-full font-medium shadow-lg hover:shadow-rose-300 dark:hover:shadow-rose-900/30 transition-all"
+                  >
+                    Save & Continue
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -1004,51 +1159,51 @@ export default function CondolenceForm() {
                   placeholder="Paste a URL from YouTube, Spotify, Apple Music..."
                   className="w-full bg-gray-50 dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm transition-all"
                 />
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateFormData("showOptional", !formData.showOptional)
+                  }
+                  className="mt-4 text-xs text-rose-500 hover:text-rose-600 font-medium flex items-center gap-1"
+                >
+                  {formData.showOptional
+                    ? "Hide music tips"
+                    : "See how to get links"}
+                  <ChevronRight
+                    size={14}
+                    className={formData.showOptional ? "rotate-90" : ""}
+                  />
+                </button>
 
-                {formData.musicUrl && detectMusicService(formData.musicUrl) && (
-                  <div className="mt-2 text-sm text-green-400 flex items-center gap-2">
-                    ✓ Detected: {detectMusicService(formData.musicUrl)}
-                  </div>
-                )}
-
-                <div className="mt-4 flex gap-3 overflow-x-auto pb-2">
-                  {musicServices.map((service: MusicService) => (
-                    <button
-                      key={service}
-                      className="shrink-0 bg-rose-50 dark:bg-rose-900/20 px-4 py-2 rounded-xl text-sm font-medium text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800/50 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
-                    >
-                      {service}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mt-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-2xl p-4 text-xs">
-                  <div className="flex items-start gap-3">
-                    <span className="text-lg">ℹ️</span>
-                    <div>
-                      <div className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                        Paste a music URL and we will detect it automatically.
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5 text-blue-800/70 dark:text-blue-300/70">
-                        <div>
-                          <strong>YouTube:</strong> youtube.com, youtu.be
+                {formData.showOptional && (
+                  <div className="mt-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-2xl p-4 text-xs">
+                    <div className="flex items-start gap-3">
+                      <span className="text-lg">ℹ️</span>
+                      <div>
+                        <div className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                          Paste a music URL and we will detect it automatically.
                         </div>
-                        <div>
-                          <strong>Spotify:</strong> open.spotify.com
-                        </div>
-                        <div>
-                          <strong>Apple Music:</strong> music.apple.com
-                        </div>
-                        <div>
-                          <strong>Deezer:</strong> deezer.com
-                        </div>
-                        <div className="md:col-span-2">
-                          <strong>Amazon Music:</strong> music.amazon.com
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5 text-blue-800/70 dark:text-blue-300/70">
+                          <div>
+                            <strong>YouTube:</strong> youtube.com, youtu.be
+                          </div>
+                          <div>
+                            <strong>Spotify:</strong> open.spotify.com
+                          </div>
+                          <div>
+                            <strong>Apple Music:</strong> music.apple.com
+                          </div>
+                          <div>
+                            <strong>Deezer:</strong> deezer.com
+                          </div>
+                          <div className="md:col-span-2">
+                            <strong>Amazon Music:</strong> music.amazon.com
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -1092,6 +1247,7 @@ export default function CondolenceForm() {
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
                     pagePhotos={formData.pagePhotos}
+                    specialMemories={formData.specialMemories}
                     music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {
@@ -1143,6 +1299,7 @@ export default function CondolenceForm() {
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
                     pagePhotos={formData.pagePhotos}
+                    specialMemories={formData.specialMemories}
                     music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {
@@ -1194,6 +1351,7 @@ export default function CondolenceForm() {
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
                     pagePhotos={formData.pagePhotos}
+                    specialMemories={formData.specialMemories}
                     music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {
