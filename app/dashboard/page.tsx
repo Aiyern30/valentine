@@ -8,20 +8,18 @@ import {
   getMilestones,
   getRecentPhotos,
 } from "@/lib/data";
-import {
-  LogOut,
-  Bell,
-  Settings,
-  Heart,
-  Plus,
-  CalendarHeart,
-  Image as ImageIcon,
-} from "lucide-react";
+import { Bell, CalendarHeart, Image as ImageIcon, Plus } from "lucide-react";
 import Image from "next/image";
+import { redirect } from "next/navigation";
+import { ProfileDropdown } from "@/components/ProfileDropdown";
 
 export default async function DashboardPage() {
   const user = await getUser();
-  if (!user) return null;
+
+  // Redirect to home if not authenticated
+  if (!user) {
+    redirect("/");
+  }
 
   // Fetch real data
   const relationship = await getRelationship(user.id);
@@ -57,18 +55,7 @@ export default async function DashboardPage() {
           <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
             <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 overflow-hidden">
-            {user.user_metadata?.avatar_url ? (
-              <Image
-                src={user.user_metadata.avatar_url}
-                alt="Profile"
-                width={40}
-                height={40}
-              />
-            ) : (
-              user.email?.[0].toUpperCase()
-            )}
-          </div>
+          <ProfileDropdown user={user} />
         </div>
       </header>
 
