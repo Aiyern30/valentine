@@ -1021,8 +1021,11 @@ export default function CondolenceForm() {
                 {formData.animationVariant === "Classic" && (
                   <AnimatedEnvelope1
                     title={
-                      formData.message.split(" ").slice(0, 3).join(" ") ||
-                      "Love Letter"
+                      formData.message
+                        .split("<<<PAGE_BREAK>>>")[0]
+                        .split(" ")
+                        .slice(0, 3)
+                        .join(" ") || "Love Letter"
                     }
                     recipient={formData.lovedOneName}
                     sender={formData.yourName || "Someone special"}
@@ -1030,6 +1033,7 @@ export default function CondolenceForm() {
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
                     photos={formData.photos.map((p) => URL.createObjectURL(p))}
+                    music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {
                           envelopeColor: "#FFB6C1",
@@ -1074,8 +1078,11 @@ export default function CondolenceForm() {
                 {formData.animationVariant === "Elegant" && (
                   <AnimatedEnvelope2
                     title={
-                      formData.message.split(" ").slice(0, 3).join(" ") ||
-                      "Love Letter"
+                      formData.message
+                        .split("<<<PAGE_BREAK>>>")[0]
+                        .split(" ")
+                        .slice(0, 3)
+                        .join(" ") || "Love Letter"
                     }
                     recipient={formData.lovedOneName}
                     sender={formData.yourName || "Someone special"}
@@ -1083,6 +1090,7 @@ export default function CondolenceForm() {
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
                     photos={formData.photos.map((p) => URL.createObjectURL(p))}
+                    music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {
                           envelopeColor: "#FFB6C1",
@@ -1127,8 +1135,11 @@ export default function CondolenceForm() {
                 {formData.animationVariant === "Dramatic" && (
                   <AnimatedEnvelope3
                     title={
-                      formData.message.split(" ").slice(0, 3).join(" ") ||
-                      "Love Letter"
+                      formData.message
+                        .split("<<<PAGE_BREAK>>>")[0]
+                        .split(" ")
+                        .slice(0, 3)
+                        .join(" ") || "Love Letter"
                     }
                     recipient={formData.lovedOneName}
                     sender={formData.yourName || "Someone special"}
@@ -1136,6 +1147,7 @@ export default function CondolenceForm() {
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
                     photos={formData.photos.map((p) => URL.createObjectURL(p))}
+                    music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {
                           envelopeColor: "#FFB6C1",

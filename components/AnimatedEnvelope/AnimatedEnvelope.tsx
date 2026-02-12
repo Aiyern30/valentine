@@ -15,6 +15,7 @@ interface AnimatedEnvelopeProps {
   cardColor?: string;
   textColor?: string;
   titleColor?: string;
+  music?: string;
 }
 
 export function AnimatedEnvelope({
@@ -32,12 +33,48 @@ export function AnimatedEnvelope({
   textColor = "#8D6E63",
   titleColor = "#5D4037",
   photos = [],
+  music,
 }: AnimatedEnvelopeProps & { photos?: string[] }) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [isCardFoldOpen, setIsCardFoldOpen] = useState(false);
   const [lastOpenPageIndex, setLastOpenPageIndex] = useState(0);
   const isOpen =
     controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+
+  // Helper to extract embed URL
+  const getEmbedUrl = (url: string) => {
+    if (!url) return null;
+
+    // Spotify
+    if (url.includes("spotify.com")) {
+      const match = url.match(/track\/([a-zA-Z0-9]+)/);
+      if (match && match[1]) {
+        return `https://open.spotify.com/embed/track/${match[1]}?utm_source=generator&theme=0&autoplay=1`;
+      }
+    }
+
+    // YouTube
+    if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      let videoId = null;
+      if (url.includes("v=")) {
+        videoId = url.split("v=")[1].split("&")[0];
+      } else if (url.includes("youtu.be/")) {
+        videoId = url.split("youtu.be/")[1].split("?")[0];
+      }
+
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&showinfo=0`;
+      }
+    }
+
+    return null;
+  };
+
+  const embedUrl = React.useMemo(
+    () => (music ? getEmbedUrl(music) : null),
+    [music],
+  );
+
   // 1. Prepare Content (Hoisted for State/Animation Access)
   const delimiter = "<<<PAGE_BREAK>>>";
   let messageChunks = message ? message.split(delimiter) : [""];
@@ -583,6 +620,20 @@ export function AnimatedEnvelope({
           Click to open
         </motion.p>
       </motion.div>
+
+      {/* Background Music Player */}
+      {isOpen && embedUrl && (
+        <div className="absolute opacity-0 w-1 h-1 overflow-hidden pointer-events-none">
+          <iframe
+            src={embedUrl}
+            width="100%"
+            height="100"
+            frameBorder="0"
+            allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      )}
     </div>
   );
 }
