@@ -403,7 +403,10 @@ export default function CondolenceForm() {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Loved One's Name <span className="text-pink-400">*</span>
+                  Loved One's Name <span className="text-pink-400">*</span>{" "}
+                  <span className="text-xs font-normal text-gray-500 ml-1">
+                    (Appears on Front Cover)
+                  </span>
                 </label>
                 <input
                   type="text"
@@ -565,38 +568,70 @@ export default function CondolenceForm() {
                 <label className="block text-sm font-medium mb-2">
                   Your Message <span className="text-pink-400">*</span>
                 </label>
-                <div className="relative">
-                  <textarea
-                    value={formData.message}
-                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                      updateFormData("message", e.target.value)
-                    }
-                    placeholder="Write your special message here..."
-                    className={`w-full bg-gray-50 dark:bg-zinc-900 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 min-h-[200px] resize-none transition-all ${
-                      errors.message
-                        ? "border-red-500"
-                        : "border-rose-100 dark:border-rose-900/30"
-                    }`}
-                    maxLength={2000}
-                  />
+                <div className="space-y-4">
+                  {(() => {
+                    const delimiter = "<<<PAGE_BREAK>>>";
+                    const pages = formData.message
+                      ? formData.message.split(delimiter)
+                      : [""];
+
+                    return pages.map((pageText, index) => (
+                      <div key={index} className="relative group">
+                        <label className="text-xs text-gray-400 mb-1 block">
+                          Page {index + 1}
+                        </label>
+                        <textarea
+                          value={pageText}
+                          onChange={(e) => {
+                            const newPages = [...pages];
+                            newPages[index] = e.target.value;
+                            updateFormData("message", newPages.join(delimiter));
+                          }}
+                          placeholder={`Write page ${index + 1} content...`}
+                          className={`w-full bg-gray-50 dark:bg-zinc-900 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 min-h-[150px] resize-none transition-all ${
+                            errors.message && index === 0
+                              ? "border-red-500"
+                              : "border-rose-100 dark:border-rose-900/30"
+                          }`}
+                          maxLength={500}
+                        />
+                        <div className="flex justify-between items-center mt-1">
+                          <span
+                            className={`text-xs ${pageText.length >= 450 ? "text-yellow-400" : "text-gray-400"}`}
+                          >
+                            {pageText.length}/500
+                          </span>
+                          {pages.length > 1 && (
+                            <button
+                              onClick={() => {
+                                const newPages = pages.filter(
+                                  (_, i) => i !== index,
+                                );
+                                updateFormData(
+                                  "message",
+                                  newPages.join(delimiter),
+                                );
+                              }}
+                              className="text-xs text-red-400 hover:text-red-500 hover:underline"
+                            >
+                              Remove Page
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+
                   <button
-                    onClick={() => setIsFullscreenMessage(true)}
-                    className="absolute top-3 right-3 text-gray-400 hover:text-white text-xs hover:bg-gray-700/50 px-2 py-1 rounded transition"
+                    onClick={() => {
+                      const delimiter = "<<<PAGE_BREAK>>>";
+                      const current = formData.message ? formData.message : "";
+                      updateFormData("message", current + delimiter + "");
+                    }}
+                    className="w-full py-3 border-2 border-dashed border-rose-200 dark:border-rose-800 rounded-xl text-rose-400 hover:border-rose-400 hover:text-rose-500 transition flex items-center justify-center gap-2 font-medium"
                   >
-                    Fullscreen
+                    <span>+ Add Another Page</span>
                   </button>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  {errors.message && (
-                    <span className="text-xs text-red-400">
-                      {errors.message}
-                    </span>
-                  )}
-                  <span
-                    className={`text-xs ml-auto ${getCharCountColor(formData.message.length, 2000)}`}
-                  >
-                    {formData.message.length}/2000
-                  </span>
                 </div>
               </div>
 

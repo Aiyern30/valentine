@@ -35,6 +35,7 @@ export function AnimatedEnvelope({
 }: AnimatedEnvelopeProps & { photos?: string[] }) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [isCardFoldOpen, setIsCardFoldOpen] = useState(false);
+  const [lastOpenPageIndex, setLastOpenPageIndex] = useState(0);
   const isOpen =
     controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
 
@@ -224,148 +225,257 @@ export function AnimatedEnvelope({
             </p>
           </motion.div>
 
-          {/* 3D FOLDING CARD - Made bigger */}
+          {/* 3D FOLDING CARD - MULTI-PAGE BOOKLET */}
           <motion.div
             variants={cardVariants}
             initial="closed"
-            animate={isOpen ? (isCardFoldOpen ? "centered" : "open") : "closed"}
+            animate={
+              isOpen ? (lastOpenPageIndex > 0 ? "centered" : "open") : "closed"
+            }
             className="absolute left-0 top-5 w-[360px] h-[460px] origin-bottom perspective-1000"
             style={{ left: "50%", x: "-50%" }}
-            onClick={(e) => {
-              if (isOpen) {
-                e.stopPropagation();
-                setIsCardFoldOpen(!isCardFoldOpen);
-              }
-            }}
           >
             <div
               className="relative w-full h-full preserve-3d transition-transform duration-700"
               style={{ transformStyle: "preserve-3d" }}
             >
-              {/* BACK OF CARD (Right Page when open) - The Base */}
-              <div
-                className="absolute inset-0 rounded-r-lg rounded-l-none p-8 flex flex-col shadow-inner border border-black/10"
-                style={{
-                  backgroundColor: cardColor,
-                  borderLeft: "none", // No border on the crease
-                }}
-              >
-                <div className="mt-6 flex-1 overflow-y-auto custom-scrollbar">
-                  <p
-                    className="font-['Lora'] text-base leading-relaxed"
-                    style={{ color: textColor }}
-                  >
-                    {message}
-                  </p>
-                  <p
-                    className="font-['Caveat'] text-3xl mt-10"
-                    style={{ color: titleColor }}
-                  >
-                    With love, <br /> {sender}
-                  </p>
-                </div>
-              </div>
+              {(() => {
+                // 1. Prepare Content
+                const delimiter = "<<<PAGE_BREAK>>>";
+                let messageChunks = message ? message.split(delimiter) : [""];
+                // Fallback to auto-chunking if single huge chunk
+                if (
+                  messageChunks.length === 1 &&
+                  messageChunks[0].length > 600
+                ) {
+                  messageChunks = message.match(/[\s\S]{1,500}/g) || [message];
+                }
 
-              {/* FOLDING PART (Left Page when open / Front Cover when closed) */}
-              <motion.div
-                className="absolute inset-0 origin-left preserve-3d"
-                style={{
-                  transformStyle: "preserve-3d",
-                }}
-                animate={{ rotateY: isCardFoldOpen ? -175 : 0 }} // Open like a book (to left)
-                transition={{ duration: 0.8, ease: easeInOut }}
-              >
-                {/* CARD FRONT (Cover) */}
-                <div
-                  className="absolute inset-0 rounded-r-lg rounded-l-none p-10 flex flex-col items-center justify-center text-center shadow-md border border-black/10"
-                  style={{
-                    backgroundColor: cardColor,
-                    backfaceVisibility: "hidden",
-                    zIndex: 2,
-                  }}
-                >
-                  <div className="absolute inset-0 bg-noise opacity-30 rounded-lg pointer-events-none" />
-                  <div
-                    className="w-20 h-20 rounded-full mb-8 flex items-center justify-center"
-                    style={{
-                      backgroundColor: "rgba(0,0,0,0.03)",
-                      color: titleColor,
-                    }}
-                  >
-                    <Heart size={40} fill="currentColor" />
-                  </div>
-                  <h2
-                    className="font-['Caveat'] text-5xl mb-3 font-bold"
-                    style={{ color: titleColor }}
-                  >
-                    {title}
-                  </h2>
-                  <p
-                    className="font-['Caveat'] text-2xl opacity-60"
-                    style={{ color: titleColor }}
-                  >
-                    For: {recipient || "Someone special"}
-                  </p>
+                // Leaves Definition
+                const leaves = [];
 
-                  <div className="mt-16 flex flex-col items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-full border-2 border-dashed flex items-center justify-center animate-pulse"
-                      style={{ borderColor: titleColor }}
+                // Leaf 0: Front=Cover, Back=Photos
+                leaves.push({
+                  index: 0,
+                  type: "cover",
+                  front: null,
+                  back: { type: "photos", data: photos },
+                });
+
+                // Message Leaves
+                // If message chunks = 3:
+                // Leaf 1: Front=Msg1, Back=Msg2
+                // Leaf 2: Front=Msg3, Back=Msg4 (Empty)
+                for (let i = 0; i < messageChunks.length; i += 2) {
+                  leaves.push({
+                    index: leaves.length,
+                    type: "message",
+                    front: {
+                      text: messageChunks[i],
+                      page: i + 1,
+                      total: messageChunks.length,
+                    },
+                    back: messageChunks[i + 1]
+                      ? {
+                          text: messageChunks[i + 1],
+                          page: i + 2,
+                          total: messageChunks.length,
+                        }
+                      : null,
+                  });
+                }
+
+                return leaves.map((leaf, i) => {
+                  const isFlipped = i < lastOpenPageIndex;
+                  // Z-Index Logic:
+                  // Right Stack (Not Flipped): Higher index = Lower Z. (Leaf 0 on top of Leaf 1)
+                  // Left Stack (Flipped): Higher index = Higher Z. (Leaf 1 on top of Leaf 0)
+                  const zIndex = isFlipped ? i : 50 - i;
+
+                  return (
+                    <motion.div
+                      key={i}
+                      className="absolute inset-0 origin-left preserve-3d"
+                      style={{
+                        transformStyle: "preserve-3d",
+                        zIndex,
+                      }}
+                      animate={{ rotateY: isFlipped ? -175 : 0 }}
+                      transition={{ duration: 0.8, ease: easeInOut }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isOpen) {
+                          // If closed and is top-most right leaf -> Flip Open
+                          if (!isFlipped && i === lastOpenPageIndex) {
+                            setLastOpenPageIndex(i + 1);
+                          }
+                          // If open and is top-most left leaf -> Flip Close
+                          else if (isFlipped && i === lastOpenPageIndex - 1) {
+                            setLastOpenPageIndex(i);
+                          }
+                        }
+                      }}
                     >
-                      <span className="text-xs" style={{ color: titleColor }}>
-                        TAP
-                      </span>
-                    </div>
-                    <p
-                      className="text-xs uppercase tracking-[0.2em] font-bold"
-                      style={{ color: titleColor, opacity: 0.4 }}
-                    >
-                      Open Card
-                    </p>
-                  </div>
-                </div>
-
-                {/* CARD INSIDE LEFT (Behind Cover) */}
-                <div
-                  className="absolute inset-0 rounded-l-lg rounded-r-none p-8 bg-white backface-hidden flex flex-col border border-black/10 shadow-inner"
-                  style={{
-                    backgroundColor: cardColor,
-                    transform: "rotateY(180deg)",
-                    backfaceVisibility: "hidden",
-                    borderRight: "none", // No border on the crease
-                  }}
-                >
-                  <h3
-                    className="font-['Caveat'] text-2xl mb-5 opacity-70"
-                    style={{ color: titleColor }}
-                  >
-                    Special Memories
-                  </h3>
-                  <div className="flex-1 grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar pr-1">
-                    {photos.length > 0 ? (
-                      photos.map((photo, i) => (
-                        <div
-                          key={i}
-                          className="aspect-square rounded-md overflow-hidden bg-black/5 transition-transform hover:scale-105 shadow-sm"
-                        >
-                          <img
-                            src={photo}
-                            className="w-full h-full object-cover"
-                            alt=""
-                          />
-                        </div>
-                      ))
-                    ) : (
-                      <div className="col-span-2 flex flex-col items-center justify-center h-full opacity-20">
-                        <Heart size={56} />
-                        <p className="text-xs mt-3 font-bold uppercase tracking-widest">
-                          Always & Forever
-                        </p>
+                      {/* FRONT FACE */}
+                      <div
+                        className={`absolute inset-0 rounded-r-lg rounded-l-none bg-white backface-hidden shadow-md border border-black/10 overflow-hidden ${leaf.type === "cover" ? "flex flex-col items-center justify-center text-center" : "p-8 flex flex-col"}`}
+                        style={{
+                          backgroundColor: cardColor,
+                          backfaceVisibility: "hidden",
+                        }}
+                      >
+                        {leaf.type === "cover" ? (
+                          <>
+                            <div className="absolute inset-0 bg-noise opacity-30 pointer-events-none" />
+                            <div
+                              className="w-20 h-20 rounded-full mb-8 flex items-center justify-center"
+                              style={{
+                                backgroundColor: "rgba(0,0,0,0.03)",
+                                color: titleColor,
+                              }}
+                            >
+                              <Heart size={40} fill="currentColor" />
+                            </div>
+                            <h2
+                              className="font-['Caveat'] text-5xl mb-3 font-bold"
+                              style={{ color: titleColor }}
+                            >
+                              {title}
+                            </h2>
+                            <p
+                              className="font-['Caveat'] text-2xl opacity-60"
+                              style={{ color: titleColor }}
+                            >
+                              For: {recipient || "Someone special"}
+                            </p>
+                            <div className="mt-16 flex flex-col items-center gap-3">
+                              <div
+                                className="w-10 h-10 rounded-full border-2 border-dashed flex items-center justify-center animate-pulse"
+                                style={{ borderColor: titleColor }}
+                              >
+                                <span
+                                  className="text-xs"
+                                  style={{ color: titleColor }}
+                                >
+                                  TAP
+                                </span>
+                              </div>
+                              <p
+                                className="text-xs uppercase tracking-[0.2em] font-bold"
+                                style={{ color: titleColor, opacity: 0.4 }}
+                              >
+                                Open Card
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* Message Page Front */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                              <p
+                                className="font-['Lora'] text-base leading-relaxed"
+                                style={{ color: textColor }}
+                              >
+                                {leaf.front?.text}
+                              </p>
+                              {/* Only show sender on very last page overall? Or stick to footer */}
+                            </div>
+                            <div
+                              className="mt-4 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest"
+                              style={{ color: titleColor }}
+                            >
+                              <span>
+                                PAGE {leaf.front?.page} / {leaf.front?.total}
+                              </span>
+                              <span>TAP TO FLIP ➔</span>
+                            </div>
+                          </>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
+
+                      {/* BACK FACE */}
+                      <div
+                        className="absolute inset-0 rounded-l-lg rounded-r-none bg-white backface-hidden shadow-inner border border-black/10 overflow-hidden p-8 flex flex-col"
+                        style={{
+                          backgroundColor: cardColor,
+                          transform: "rotateY(180deg)",
+                          backfaceVisibility: "hidden",
+                          borderRight: "none",
+                        }}
+                      >
+                        {leaf.index === 0 ? (
+                          // Photos Page (Leaf 0 Back)
+                          <>
+                            <h3
+                              className="font-['Caveat'] text-2xl mb-5 opacity-70"
+                              style={{ color: titleColor }}
+                            >
+                              Special Memories
+                            </h3>
+                            <div className="flex-1 grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar pr-1">
+                              {photos.length > 0 ? (
+                                photos.map((photo, j) => (
+                                  <div
+                                    key={j}
+                                    className="aspect-square rounded-md overflow-hidden bg-black/5 shadow-sm"
+                                  >
+                                    <img
+                                      src={photo}
+                                      className="w-full h-full object-cover"
+                                      alt=""
+                                    />
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="col-span-2 flex flex-col items-center justify-center h-full opacity-20">
+                                  <Heart size={56} />
+                                  <p className="text-xs mt-3 font-bold uppercase tracking-widest">
+                                    Always & Forever
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        ) : // Message Page Back (Leaf > 0 Back)
+                        leaf.back ? (
+                          <>
+                            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                              <p
+                                className="font-['Lora'] text-base leading-relaxed"
+                                style={{ color: textColor }}
+                              >
+                                {leaf.back.text}
+                              </p>
+                              {leaf.back.page === leaf.back.total && (
+                                <p
+                                  className="font-['Caveat'] text-3xl mt-10"
+                                  style={{ color: titleColor }}
+                                >
+                                  With love, <br /> {sender}
+                                </p>
+                              )}
+                            </div>
+                            <div
+                              className="mt-4 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest"
+                              style={{ color: titleColor }}
+                            >
+                              <span>← TAP TO BACK</span>
+                              <span>
+                                PAGE {leaf.back.page} / {leaf.back.total}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          // Empty Back (End of book)
+                          <div className="flex-1 flex items-center justify-center opacity-10">
+                            <Heart size={48} />
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                });
+              })()}
             </div>
           </motion.div>
 
