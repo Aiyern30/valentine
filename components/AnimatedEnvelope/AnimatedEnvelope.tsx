@@ -425,45 +425,30 @@ export function AnimatedEnvelope({
                         <>
                           {/* Message Page Front */}
                           <div className="flex-1 overflow-y-auto custom-scrollbar">
-                            <div className={`flex flex-col gap-6`}>
-                              {pagePhotos[leaf.front.page - 1] && (
-                                <div
-                                  className={`w-full flex ${
-                                    pagePhotos[leaf.front.page - 1].position ===
-                                    "right"
-                                      ? "flex-row-reverse"
-                                      : "flex-row"
-                                  } gap-4 items-start`}
-                                >
-                                  {pagePhotos[leaf.front.page - 1].url && (
-                                    <div className="w-1/3 flex-shrink-0 animate-in fade-in zoom-in duration-700">
-                                      <img
-                                        src={
-                                          pagePhotos[leaf.front.page - 1].url
-                                        }
-                                        alt={`Page ${leaf.front.page}`}
-                                        className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-[3/4]"
-                                      />
-                                    </div>
-                                  )}
-                                  <div className="flex-1">
-                                    <p
-                                      className="font-['Lora'] text-base leading-relaxed"
-                                      style={{ color: textColor }}
-                                    >
-                                      {leaf.front.text}
-                                    </p>
+                            <div className="block">
+                              {pagePhotos[leaf.front.page - 1] &&
+                                pagePhotos[leaf.front.page - 1].url && (
+                                  <div
+                                    className={`w-1/3 mb-2 animate-in fade-in zoom-in duration-700 ${
+                                      pagePhotos[leaf.front.page - 1]
+                                        .position === "right"
+                                        ? "float-right ml-4"
+                                        : "float-left mr-4"
+                                    }`}
+                                  >
+                                    <img
+                                      src={pagePhotos[leaf.front.page - 1].url}
+                                      alt={`Page ${leaf.front.page}`}
+                                      className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4"
+                                    />
                                   </div>
-                                </div>
-                              )}
-                              {!pagePhotos[leaf.front.page - 1] && (
-                                <p
-                                  className="font-['Lora'] text-base leading-relaxed"
-                                  style={{ color: textColor }}
-                                >
-                                  {leaf.front.text}
-                                </p>
-                              )}
+                                )}
+                              <p
+                                className="font-['Lora'] text-base leading-relaxed"
+                                style={{ color: textColor }}
+                              >
+                                {leaf.front.text}
+                              </p>
                             </div>
                           </div>
                           <div
