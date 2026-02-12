@@ -89,6 +89,8 @@ interface ValidationErrors {
 export default function CondolenceForm() {
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isFullscreenMessage, setIsFullscreenMessage] = useState(false);
+  const [wantsPhotos, setWantsPhotos] = useState<boolean | null>(null);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [formData, setFormData] = useState<FormData>({
     lovedOneName: "",
@@ -333,7 +335,8 @@ export default function CondolenceForm() {
           formData.message.trim() !== "" && formData.message.length <= 2000
         );
       case 3:
-        return true; // Photos are optional
+        // User must either choose "no photos" or have made a choice to add photos
+        return wantsPhotos !== null;
       case 4:
         return true; // All fields on this step are optional
       case 5:
@@ -576,7 +579,10 @@ export default function CondolenceForm() {
                     }`}
                     maxLength={2000}
                   />
-                  <button className="absolute top-3 right-3 text-gray-400 hover:text-white text-xs">
+                  <button
+                    onClick={() => setIsFullscreenMessage(true)}
+                    className="absolute top-3 right-3 text-gray-400 hover:text-white text-xs hover:bg-gray-700/50 px-2 py-1 rounded transition"
+                  >
                     Fullscreen
                   </button>
                 </div>
@@ -648,8 +654,99 @@ export default function CondolenceForm() {
           </div>
         )}
 
-        {/* Step 3: Photos */}
-        {currentStep === 3 && (
+        {/* Fullscreen Message Dialog */}
+        {isFullscreenMessage && (
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-4xl h-[90vh] bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Write Your Message
+                </h2>
+                <button
+                  onClick={() => setIsFullscreenMessage(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
+                >
+                  <X size={24} className="text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Textarea */}
+              <div className="flex-1 p-6 overflow-hidden">
+                <textarea
+                  value={formData.message}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                    updateFormData("message", e.target.value)
+                  }
+                  placeholder="Write your special message here..."
+                  className="w-full h-full bg-gray-50 dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/30 rounded-xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none text-base"
+                  maxLength={2000}
+                  autoFocus
+                />
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <span
+                  className={`text-sm ${getCharCountColor(formData.message.length, 2000)}`}
+                >
+                  {formData.message.length}/2000 characters
+                </span>
+                <button
+                  onClick={() => setIsFullscreenMessage(false)}
+                  className="px-6 py-2.5 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-full transition-all shadow-lg"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Photos Choice */}
+        {currentStep === 3 && wantsPhotos === null && (
+          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
+            <div className="space-y-8 text-center">
+              <div className="mx-auto w-20 h-20 bg-linear-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center transform rotate-12">
+                <Upload className="text-white" size={40} />
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">
+                  Would you like to add photos?
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Photos make the tribute more special, but they're optional.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+                <button
+                  onClick={() => setWantsPhotos(true)}
+                  className="flex-1 px-8 py-4 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl transition-all shadow-lg font-medium"
+                >
+                  Yes, add photos
+                </button>
+                <button
+                  onClick={() => {
+                    setWantsPhotos(false);
+                    // Auto-proceed to next step after a brief moment
+                    setTimeout(() => {
+                      setCurrentStep(4);
+                      setWantsPhotos(null);
+                    }, 300);
+                  }}
+                  className="flex-1 px-8 py-4 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 rounded-2xl transition-all font-medium border border-gray-200 dark:border-gray-700"
+                >
+                  No, continue without
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Photos Upload (if user wants photos) */}
+        {currentStep === 3 && wantsPhotos === true && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -691,7 +788,10 @@ export default function CondolenceForm() {
               {formData.photos.length > 0 && (
                 <div className="grid grid-cols-5 gap-3">
                   {formData.photos.map((photo: File, idx: number) => (
-                    <div className="relative aspect-square bg-gray-100 dark:bg-zinc-900 rounded-xl overflow-hidden group">
+                    <div
+                      key={idx}
+                      className="relative aspect-square bg-gray-100 dark:bg-zinc-900 rounded-xl overflow-hidden group"
+                    >
                       <img
                         src={URL.createObjectURL(photo)}
                         alt={`Upload ${idx + 1}`}
@@ -730,7 +830,7 @@ export default function CondolenceForm() {
           </div>
         )}
 
-        {/* Step 4: Personalization */}
+        {/* Step 4: Personalization (was Step 5) */}
         {currentStep === 4 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
             <div className="space-y-8">
