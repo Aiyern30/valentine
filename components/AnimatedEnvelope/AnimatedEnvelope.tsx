@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { easeInOut, easeOut, motion, spring } from "framer-motion";
 import { Heart } from "lucide-react";
+
+interface PagePhoto {
+  file: File | null;
+  position: "left" | "right" | null;
+  url?: string;
+}
+
 interface AnimatedEnvelopeProps {
   title?: string;
   message?: string;
@@ -16,6 +23,7 @@ interface AnimatedEnvelopeProps {
   textColor?: string;
   titleColor?: string;
   music?: string;
+  pagePhotos?: { [pageIndex: number]: PagePhoto };
 }
 
 export function AnimatedEnvelope({
@@ -32,9 +40,9 @@ export function AnimatedEnvelope({
   cardColor = "#FEFCF3",
   textColor = "#8D6E63",
   titleColor = "#5D4037",
-  photos = [],
+  pagePhotos = {},
   music,
-}: AnimatedEnvelopeProps & { photos?: string[] }) {
+}: AnimatedEnvelopeProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [isCardFoldOpen, setIsCardFoldOpen] = useState(false);
   const [lastOpenPageIndex, setLastOpenPageIndex] = useState(0);
@@ -90,12 +98,12 @@ export function AnimatedEnvelope({
     back: any;
   }[] = [];
 
-  // Leaf 0: Front=Cover, Back=Photos
+  // Leaf 0: Front=Cover, Back=Blank/Message
   leaves.push({
     index: 0,
     type: "cover",
     front: null,
-    back: { type: "photos", data: photos },
+    back: null,
   });
 
   // Message Leaves
@@ -417,13 +425,46 @@ export function AnimatedEnvelope({
                         <>
                           {/* Message Page Front */}
                           <div className="flex-1 overflow-y-auto custom-scrollbar">
-                            <p
-                              className="font-['Lora'] text-base leading-relaxed"
-                              style={{ color: textColor }}
-                            >
-                              {leaf.front.text}
-                            </p>
-                            {/* SENDER REMOVED FROM HERE */}
+                            <div className={`flex flex-col gap-6`}>
+                              {pagePhotos[leaf.front.page - 1] && (
+                                <div
+                                  className={`w-full flex ${
+                                    pagePhotos[leaf.front.page - 1].position ===
+                                    "right"
+                                      ? "flex-row-reverse"
+                                      : "flex-row"
+                                  } gap-4 items-start`}
+                                >
+                                  {pagePhotos[leaf.front.page - 1].url && (
+                                    <div className="w-1/3 flex-shrink-0 animate-in fade-in zoom-in duration-700">
+                                      <img
+                                        src={
+                                          pagePhotos[leaf.front.page - 1].url
+                                        }
+                                        alt={`Page ${leaf.front.page}`}
+                                        className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-[3/4]"
+                                      />
+                                    </div>
+                                  )}
+                                  <div className="flex-1">
+                                    <p
+                                      className="font-['Lora'] text-base leading-relaxed"
+                                      style={{ color: textColor }}
+                                    >
+                                      {leaf.front.text}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                              {!pagePhotos[leaf.front.page - 1] && (
+                                <p
+                                  className="font-['Lora'] text-base leading-relaxed"
+                                  style={{ color: textColor }}
+                                >
+                                  {leaf.front.text}
+                                </p>
+                              )}
+                            </div>
                           </div>
                           <div
                             className="mt-4 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest"
@@ -449,38 +490,20 @@ export function AnimatedEnvelope({
                       }}
                     >
                       {leaf.index === 0 ? (
-                        // Photos Page (Leaf 0 Back)
-                        <>
-                          <h3
-                            className="font-['Caveat'] text-2xl mb-5 opacity-70"
+                        // Blank back of cover or instructions
+                        <div className="flex-1 flex flex-col items-center justify-center text-center opacity-30">
+                          <Heart
+                            size={48}
+                            style={{ color: titleColor }}
+                            className="mb-4"
+                          />
+                          <p
+                            className="font-['Caveat'] text-2xl"
                             style={{ color: titleColor }}
                           >
-                            Special Memories
-                          </h3>
-                          <div className="flex-1 grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar pr-1">
-                            {photos.length > 0 ? (
-                              photos.map((photo, j) => (
-                                <div
-                                  key={j}
-                                  className="aspect-square rounded-md overflow-hidden bg-black/5 shadow-sm"
-                                >
-                                  <img
-                                    src={photo}
-                                    className="w-full h-full object-cover"
-                                    alt=""
-                                  />
-                                </div>
-                              ))
-                            ) : (
-                              <div className="col-span-2 flex flex-col items-center justify-center h-full opacity-20">
-                                <Heart size={56} />
-                                <p className="text-xs mt-3 font-bold uppercase tracking-widest">
-                                  Always & Forever
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </>
+                            Always & Forever
+                          </p>
+                        </div>
                       ) : leaf.index === leaves.length - 1 ? (
                         // LAST PAGE BACK - SHOW SENDER/SIGNATURE
                         <div className="flex-1 flex flex-col items-center justify-center text-center">

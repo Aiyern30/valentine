@@ -1,7 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Sparkles } from "lucide-react";
 import { easeInOut } from "framer-motion";
+
+interface PagePhoto {
+  file: File | null;
+  position: "left" | "right" | null;
+  url?: string;
+}
 
 interface AnimatedEnvelopeProps {
   title?: string;
@@ -17,7 +23,7 @@ interface AnimatedEnvelopeProps {
   cardColor?: string;
   textColor?: string;
   titleColor?: string;
-  photos?: string[];
+  pagePhotos?: { [pageIndex: number]: PagePhoto };
   music?: string;
 }
 
@@ -37,7 +43,7 @@ export function AnimatedEnvelope({
   cardColor = "#FDFBF7",
   textColor = "#57534e",
   titleColor = "#1c1917",
-  photos = [],
+  pagePhotos = {},
   music,
 }: AnimatedEnvelopeProps) {
   const [status, setStatus] = useState<EnvelopeStatus>("idle");
@@ -211,9 +217,31 @@ export function AnimatedEnvelope({
                 <Sparkles size={16} />
               </div>
               <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
-                <p className="font-serif text-sm leading-relaxed text-stone-600 italic">
-                  {message}
-                </p>
+                <div className="flex flex-col gap-4">
+                  {pagePhotos[0] && (
+                    <div
+                      className={`flex gap-4 ${pagePhotos[0].position === "right" ? "flex-row-reverse" : "flex-row"}`}
+                    >
+                      {pagePhotos[0].url && (
+                        <div className="w-1/3 flex-shrink-0 animate-in fade-in zoom-in duration-700">
+                          <img
+                            src={pagePhotos[0].url}
+                            alt="Message photo"
+                            className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-[3/4] grayscale hover:grayscale-0 transition-all duration-500"
+                          />
+                        </div>
+                      )}
+                      <p className="font-serif text-sm leading-relaxed text-stone-600 italic flex-1">
+                        {message}
+                      </p>
+                    </div>
+                  )}
+                  {!pagePhotos[0] && (
+                    <p className="font-serif text-sm leading-relaxed text-stone-600 italic">
+                      {message}
+                    </p>
+                  )}
+                </div>
                 <p className="font-serif text-2xl mt-6 text-stone-800 font-medium">
                   With Love, <br /> {sender}
                 </p>
@@ -263,28 +291,11 @@ export function AnimatedEnvelope({
                   borderRight: "none",
                 }}
               >
-                <h3 className="font-serif text-[9px] uppercase tracking-[0.2em] mb-3 text-stone-400 font-bold">
-                  Captured Moments
-                </h3>
-                <div className="flex-1 grid grid-cols-2 gap-2 overflow-y-auto custom-scrollbar pr-1">
-                  {photos.length > 0 ? (
-                    photos.map((photo, i) => (
-                      <div
-                        key={i}
-                        className="aspect-square rounded-sm overflow-hidden bg-stone-100 shadow-sm"
-                      >
-                        <img
-                          src={photo}
-                          className="w-full h-full object-cover grayscale"
-                          alt=""
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 flex flex-col items-center justify-center h-full opacity-[0.05]">
-                      <Heart size={40} />
-                    </div>
-                  )}
+                <div className="flex-1 flex flex-col items-center justify-center text-center opacity-[0.05]">
+                  <Heart size={48} />
+                  <p className="text-[10px] mt-2 font-bold uppercase tracking-widest">
+                    Always & Forever
+                  </p>
                 </div>
               </div>
             </motion.div>

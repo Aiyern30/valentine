@@ -13,6 +13,12 @@ import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnve
 import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
 
 // Type Definitions
+interface PagePhoto {
+  file: File | null;
+  position: "left" | "right" | null;
+  url?: string; // For preview
+}
+
 interface FormData {
   title: string;
   lovedOneName: string;
@@ -20,7 +26,7 @@ interface FormData {
   yourName: string;
   relationshipStatus: RelationshipStatus;
   message: string;
-  photos: File[];
+  pagePhotos: { [pageIndex: number]: PagePhoto }; // Photos indexed by page number
   theme: Theme;
   envelopeStyle: EnvelopeStyle;
   animationVariant: AnimationVariant;
@@ -101,7 +107,7 @@ export default function CondolenceForm() {
     yourName: "",
     relationshipStatus: "",
     message: "",
-    photos: [],
+    pagePhotos: {},
     theme: "Life",
     envelopeStyle: "Romantic",
     animationVariant: "Classic",
@@ -278,31 +284,6 @@ export default function CondolenceForm() {
   };
 
   // Handle photo upload
-  const handlePhotoUpload = (e: ChangeEvent<HTMLInputElement>): void => {
-    const files = e.target.files;
-    if (!files) return;
-
-    const fileArray = Array.from(files);
-    const validFiles = fileArray.filter((file) => {
-      const isImage = file.type.startsWith("image/");
-      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB max
-      return isImage && isValidSize;
-    });
-
-    if (formData.photos.length + validFiles.length <= 10) {
-      updateFormData("photos", [...formData.photos, ...validFiles]);
-    } else {
-      alert("You can only upload up to 10 photos");
-    }
-  };
-
-  // Remove photo
-  const removePhoto = (index: number): void => {
-    updateFormData(
-      "photos",
-      formData.photos.filter((_, i) => i !== index),
-    );
-  };
 
   // Navigation
   const nextStep = (): void => {
@@ -626,6 +607,114 @@ export default function CondolenceForm() {
                         <label className="text-xs text-gray-400 mb-1 block">
                           Page {index + 1}
                         </label>
+
+                        {/* Photo Upload Section */}
+                        <div className="mb-3 p-3 bg-gray-50/50 dark:bg-zinc-900/50 rounded-lg border border-rose-100/50 dark:border-rose-900/20">
+                          <div className="flex items-center gap-3">
+                            {formData.pagePhotos[index]?.file ? (
+                              <>
+                                <div className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-rose-300">
+                                  <img
+                                    src={formData.pagePhotos[index]?.url || ""}
+                                    alt={`Page ${index + 1} photo`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const newPhotos = {
+                                        ...formData.pagePhotos,
+                                      };
+                                      delete newPhotos[index];
+                                      updateFormData("pagePhotos", newPhotos);
+                                    }}
+                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-bl-lg px-1.5 py-0.5 text-xs hover:bg-red-600"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-xs text-gray-500 mb-2">
+                                    Photo Position:
+                                  </p>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => {
+                                        const newPhotos = {
+                                          ...formData.pagePhotos,
+                                        };
+                                        newPhotos[index] = {
+                                          ...newPhotos[index],
+                                          position: "left",
+                                        };
+                                        updateFormData("pagePhotos", newPhotos);
+                                      }}
+                                      className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
+                                        formData.pagePhotos[index]?.position ===
+                                        "left"
+                                          ? "bg-rose-500 text-white"
+                                          : "bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-zinc-700"
+                                      }`}
+                                    >
+                                      ← Left
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        const newPhotos = {
+                                          ...formData.pagePhotos,
+                                        };
+                                        newPhotos[index] = {
+                                          ...newPhotos[index],
+                                          position: "right",
+                                        };
+                                        updateFormData("pagePhotos", newPhotos);
+                                      }}
+                                      className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
+                                        formData.pagePhotos[index]?.position ===
+                                        "right"
+                                          ? "bg-rose-500 text-white"
+                                          : "bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-zinc-700"
+                                      }`}
+                                    >
+                                      Right →
+                                    </button>
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <label className="flex-1 cursor-pointer">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const url = URL.createObjectURL(file);
+                                      const newPhotos = {
+                                        ...formData.pagePhotos,
+                                      };
+                                      newPhotos[index] = {
+                                        file,
+                                        position: "left",
+                                        url,
+                                      };
+                                      updateFormData("pagePhotos", newPhotos);
+                                    }
+                                  }}
+                                />
+                                <div className="flex items-center gap-2 px-3 py-2 border-2 border-dashed border-rose-300 dark:border-rose-700 rounded-lg hover:border-rose-400 dark:hover:border-rose-600 transition">
+                                  <span className="text-rose-400 text-xl">
+                                    📷
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    Add photo to this page (optional)
+                                  </span>
+                                </div>
+                              </label>
+                            )}
+                          </div>
+                        </div>
+
                         <textarea
                           value={pageText}
                           onChange={(e) => {
@@ -651,12 +740,27 @@ export default function CondolenceForm() {
                             <button
                               onClick={() => {
                                 const newPages = pages.filter(
-                                  (_, i) => i !== index,
+                                  (_: string, i: number) => i !== index,
                                 );
+                                // Also remove the photo for this page
+                                const newPhotos = { ...formData.pagePhotos };
+                                delete newPhotos[index];
+                                // Reindex photos for remaining pages
+                                const reindexedPhotos: {
+                                  [key: number]: PagePhoto;
+                                } = {};
+                                Object.keys(newPhotos).forEach((key) => {
+                                  const oldIndex = parseInt(key);
+                                  const newIndex =
+                                    oldIndex > index ? oldIndex - 1 : oldIndex;
+                                  reindexedPhotos[newIndex] =
+                                    newPhotos[oldIndex];
+                                });
                                 updateFormData(
                                   "message",
                                   newPages.join(delimiter),
                                 );
+                                updateFormData("pagePhotos", reindexedPhotos);
                               }}
                               className="text-xs text-red-400 hover:text-red-500 hover:underline"
                             >
@@ -826,91 +930,6 @@ export default function CondolenceForm() {
           </div>
         )}
 
-        {/* Step 3: Photos Upload (if user wants photos) */}
-        {currentStep === 3 && wantsPhotos === true && (
-          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">
-                  Add Photos{" "}
-                  <span className="text-gray-400 text-sm font-normal">
-                    (optional)
-                  </span>
-                </h2>
-                <span
-                  className={`text-sm ${formData.photos.length === 10 ? "text-yellow-400" : "text-gray-400"}`}
-                >
-                  {formData.photos.length}/10 images
-                </span>
-              </div>
-
-              {formData.photos.length < 10 && (
-                <div className="border-2 border-dashed border-rose-100 dark:border-rose-900/30 bg-gray-50 dark:bg-zinc-900/50 rounded-2xl p-12 text-center hover:border-rose-500 transition cursor-pointer group">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handlePhotoUpload}
-                    className="hidden"
-                    id="photo-upload"
-                  />
-                  <label htmlFor="photo-upload" className="cursor-pointer">
-                    <Upload className="mx-auto mb-4 text-gray-400" size={48} />
-                    <div className="text-gray-300 mb-2">
-                      Click or drag photos here
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      ({formData.photos.length} / 10 files) • Max 10MB per file
-                    </div>
-                  </label>
-                </div>
-              )}
-
-              {formData.photos.length > 0 && (
-                <div className="grid grid-cols-5 gap-3">
-                  {formData.photos.map((photo: File, idx: number) => (
-                    <div
-                      key={idx}
-                      className="relative aspect-square bg-gray-100 dark:bg-zinc-900 rounded-xl overflow-hidden group"
-                    >
-                      <img
-                        src={URL.createObjectURL(photo)}
-                        alt={`Upload ${idx + 1}`}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                      />
-                      <button
-                        onClick={() => removePhoto(idx)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition shadow-lg hover:bg-red-600"
-                        title="Remove photo"
-                      >
-                        <X size={14} />
-                      </button>
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-sm text-[10px] text-white p-1.5 text-center opacity-0 group-hover:opacity-100 transition">
-                        {photo.name}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl p-4 text-sm">
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">ℹ️</span>
-                  <div>
-                    <div className="font-semibold text-rose-900 dark:text-rose-100 mb-1">
-                      Photos are optional
-                    </div>
-                    <div className="text-rose-700/80 dark:text-rose-300/80">
-                      Your photos will make the tribute even more special, but
-                      you can proceed with just a message.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Step 4: Personalization (was Step 5) */}
         {currentStep === 4 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
@@ -1072,7 +1091,7 @@ export default function CondolenceForm() {
                     message={formData.message}
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
-                    photos={formData.photos.map((p) => URL.createObjectURL(p))}
+                    pagePhotos={formData.pagePhotos}
                     music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {
@@ -1123,7 +1142,7 @@ export default function CondolenceForm() {
                     message={formData.message}
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
-                    photos={formData.photos.map((p) => URL.createObjectURL(p))}
+                    pagePhotos={formData.pagePhotos}
                     music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {
@@ -1174,7 +1193,7 @@ export default function CondolenceForm() {
                     message={formData.message}
                     isOpen={isPreviewOpen}
                     onOpenChange={setIsPreviewOpen}
-                    photos={formData.photos.map((p) => URL.createObjectURL(p))}
+                    pagePhotos={formData.pagePhotos}
                     music={formData.musicUrl}
                     {...(formData.envelopeStyle === "Romantic"
                       ? {

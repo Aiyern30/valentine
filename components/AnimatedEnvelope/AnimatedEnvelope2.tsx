@@ -1,7 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence, easeInOut } from "framer-motion";
 import { Heart } from "lucide-react";
 import { SparkleParticles } from "./SparkleParticles";
+
+interface PagePhoto {
+  file: File | null;
+  position: "left" | "right" | null;
+  url?: string;
+}
 
 interface AnimatedEnvelopeProps {
   title?: string;
@@ -17,7 +23,7 @@ interface AnimatedEnvelopeProps {
   cardColor?: string;
   textColor?: string;
   titleColor?: string;
-  photos?: string[];
+  pagePhotos?: { [pageIndex: number]: PagePhoto };
   music?: string;
 }
 
@@ -43,7 +49,7 @@ export function AnimatedEnvelope({
   cardColor = "#fffcf5",
   textColor = "#475569",
   titleColor = "#1e293b",
-  photos = [],
+  pagePhotos = {},
   music,
 }: AnimatedEnvelopeProps) {
   const [stage, setStage] = useState<AnimationStage>("idle");
@@ -207,14 +213,39 @@ export function AnimatedEnvelope({
               }}
             >
               <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
+                <div className="flex flex-col gap-4">
+                  {pagePhotos[0] && (
+                    <div
+                      className={`flex gap-4 ${pagePhotos[0].position === "right" ? "flex-row-reverse" : "flex-row"}`}
+                    >
+                      {pagePhotos[0].url && (
+                        <div className="w-1/3 flex-shrink-0 animate-in fade-in zoom-in duration-700">
+                          <img
+                            src={pagePhotos[0].url}
+                            alt="Message photo"
+                            className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-[3/4]"
+                          />
+                        </div>
+                      )}
+                      <p
+                        className="font-serif text-sm leading-relaxed flex-1"
+                        style={{ color: textColor }}
+                      >
+                        {message}
+                      </p>
+                    </div>
+                  )}
+                  {!pagePhotos[0] && (
+                    <p
+                      className="font-serif text-sm leading-relaxed"
+                      style={{ color: textColor }}
+                    >
+                      {message}
+                    </p>
+                  )}
+                </div>
                 <p
-                  className="font-serif text-sm leading-relaxed"
-                  style={{ color: textColor }}
-                >
-                  {message}
-                </p>
-                <p
-                  className="font-serif text-2xl mt-8"
+                  className="font- serif text-2xl mt-8"
                   style={{ color: titleColor }}
                 >
                   With love, <br /> {sender}
@@ -289,34 +320,14 @@ export function AnimatedEnvelope({
                   borderRight: "none",
                 }}
               >
-                <h3
-                  className="font-['Caveat'] text-xl mb-4 opacity-70"
-                  style={{ color: titleColor }}
-                >
-                  Special Memories
-                </h3>
-                <div className="flex-1 grid grid-cols-2 gap-2 overflow-y-auto custom-scrollbar pr-1">
-                  {photos.length > 0 ? (
-                    photos.map((photo, i) => (
-                      <div
-                        key={i}
-                        className="aspect-square rounded-md overflow-hidden bg-black/5 transition-transform hover:scale-105 shadow-sm"
-                      >
-                        <img
-                          src={photo}
-                          className="w-full h-full object-cover"
-                          alt=""
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 flex flex-col items-center justify-center h-full opacity-20">
-                      <Heart size={48} />
-                      <p className="text-[10px] mt-2 font-bold uppercase tracking-widest">
-                        Always & Forever
-                      </p>
-                    </div>
-                  )}
+                <div className="flex-1 flex flex-col items-center justify-center text-center opacity-20">
+                  <Heart size={48} style={{ color: titleColor }} />
+                  <p
+                    className="text-[10px] mt-2 font-bold uppercase tracking-widest"
+                    style={{ color: titleColor }}
+                  >
+                    Always & Forever
+                  </p>
                 </div>
               </div>
             </motion.div>
