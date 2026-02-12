@@ -83,6 +83,7 @@ export function AnimatedEnvelope({
       opacity: 0,
       scale: 0.9,
       zIndex: 10,
+      x: "-50%",
       transition: {
         duration: 0.5,
         ease: easeOut,
@@ -93,6 +94,7 @@ export function AnimatedEnvelope({
       opacity: 1,
       scale: 1,
       zIndex: 40,
+      x: "-50%",
       transition: {
         delay: 0.6,
         duration: 0.8,
@@ -106,6 +108,7 @@ export function AnimatedEnvelope({
       opacity: 1,
       scale: 1,
       zIndex: 40,
+      x: 0,
       transition: {
         delay: 0,
         duration: 0.8,
@@ -239,7 +242,7 @@ export function AnimatedEnvelope({
               className="relative w-full h-full preserve-3d transition-transform duration-700"
               style={{ transformStyle: "preserve-3d" }}
             >
-              {/* BACK OF CARD (Right Page when open) */}
+              {/* BACK OF CARD (Right Page when open) - The Base */}
               <div
                 className="absolute inset-0 rounded-r-lg rounded-l-none p-8 flex flex-col shadow-inner border border-black/10"
                 style={{
@@ -269,12 +272,12 @@ export function AnimatedEnvelope({
                 style={{
                   transformStyle: "preserve-3d",
                 }}
-                animate={{ rotateY: isCardFoldOpen ? -175 : 0 }} // Open slightly less than 180 for better 3D look
+                animate={{ rotateY: isCardFoldOpen ? -175 : 0 }} // Open like a book (to left)
                 transition={{ duration: 0.8, ease: easeInOut }}
               >
                 {/* CARD FRONT (Cover) */}
                 <div
-                  className="absolute inset-0 rounded-l-lg rounded-r-none p-10 flex flex-col items-center justify-center text-center shadow-md border border-black/10"
+                  className="absolute inset-0 rounded-r-lg rounded-l-none p-10 flex flex-col items-center justify-center text-center shadow-md border border-black/10"
                   style={{
                     backgroundColor: cardColor,
                     backfaceVisibility: "hidden",
