@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isProtectedRoute, isAuthRoute } from "./lib/route";
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -33,19 +34,18 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protect dashboard routes
-  if (request.nextUrl.pathname.startsWith("/dashboard") && !user) {
+  const pathname = request.nextUrl.pathname;
+
+  // Protect routes - redirect to home if not authenticated
+  if (isProtectedRoute(pathname) && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
   }
 
   // Redirect to dashboard if already logged in and trying to access login/signup
-  if (
-    (request.nextUrl.pathname === "/" ||
-      request.nextUrl.pathname === "/login") &&
-    user
-  ) {
+  // ONLY applies to auth routes like /login, /signup
+  if (isAuthRoute(pathname) && user) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
