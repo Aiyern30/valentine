@@ -14,6 +14,7 @@ import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnve
 
 // Type Definitions
 interface FormData {
+  title: string;
   lovedOneName: string;
   petName: string;
   yourName: string;
@@ -77,6 +78,7 @@ type MusicService =
   | "Amazon Music";
 
 interface ValidationErrors {
+  title?: string;
   lovedOneName?: string;
   relationshipStatus?: string;
   message?: string;
@@ -93,6 +95,7 @@ export default function CondolenceForm() {
   const [wantsPhotos, setWantsPhotos] = useState<boolean | null>(null);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [formData, setFormData] = useState<FormData>({
+    title: "",
     lovedOneName: "",
     petName: "",
     yourName: "",
@@ -215,6 +218,11 @@ export default function CondolenceForm() {
 
     switch (step) {
       case 0:
+        if (!formData.title.trim()) {
+          newErrors.title = "Front page title is required";
+        } else if (formData.title.length > 50) {
+          newErrors.title = "Title cannot exceed 50 characters";
+        }
         if (!formData.lovedOneName.trim()) {
           newErrors.lovedOneName = "Loved one's name is required";
         } else if (formData.lovedOneName.length > 150) {
@@ -325,6 +333,8 @@ export default function CondolenceForm() {
     switch (currentStep) {
       case 0:
         return (
+          formData.title.trim() !== "" &&
+          formData.title.length <= 50 &&
           formData.lovedOneName.trim() !== "" &&
           formData.lovedOneName.length <= 150
         );
@@ -403,6 +413,39 @@ export default function CondolenceForm() {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium mb-2">
+                  Front Page Title <span className="text-pink-400">*</span>{" "}
+                  <span className="text-xs font-normal text-gray-500 ml-1">
+                    (Appears on Front Cover)
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    updateFormData("title", e.target.value)
+                  }
+                  className={`w-full bg-gray-50 dark:bg-zinc-900 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all ${
+                    errors.title
+                      ? "border-red-500"
+                      : "border-rose-100 dark:border-rose-900/30"
+                  }`}
+                  placeholder="e.g. A Love Letter, For You, etc."
+                  maxLength={50}
+                />
+                <div className="flex justify-between items-center mt-1">
+                  {errors.title && (
+                    <span className="text-xs text-red-400">{errors.title}</span>
+                  )}
+                  <span
+                    className={`text-xs ml-auto ${getCharCountColor(formData.title.length, 50)}`}
+                  >
+                    {formData.title.length}/50
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
                   Loved One's Name <span className="text-pink-400">*</span>{" "}
                   <span className="text-xs font-normal text-gray-500 ml-1">
                     (Appears on Front Cover)
@@ -476,7 +519,10 @@ export default function CondolenceForm() {
 
                     <div>
                       <label className="block text-sm font-medium mb-2">
-                        Your Name
+                        Your Name{" "}
+                        <span className="text-xs font-normal text-gray-500 ml-1">
+                          (Appears on Back Cover)
+                        </span>
                       </label>
                       <input
                         type="text"
@@ -1020,13 +1066,7 @@ export default function CondolenceForm() {
               <div className="scale-75 md:scale-100 origin-center transition-transform duration-500">
                 {formData.animationVariant === "Classic" && (
                   <AnimatedEnvelope1
-                    title={
-                      formData.message
-                        .split("<<<PAGE_BREAK>>>")[0]
-                        .split(" ")
-                        .slice(0, 3)
-                        .join(" ") || "Love Letter"
-                    }
+                    title={formData.title}
                     recipient={formData.lovedOneName}
                     sender={formData.yourName || "Someone special"}
                     message={formData.message}
@@ -1077,13 +1117,7 @@ export default function CondolenceForm() {
                 )}
                 {formData.animationVariant === "Elegant" && (
                   <AnimatedEnvelope2
-                    title={
-                      formData.message
-                        .split("<<<PAGE_BREAK>>>")[0]
-                        .split(" ")
-                        .slice(0, 3)
-                        .join(" ") || "Love Letter"
-                    }
+                    title={formData.title}
                     recipient={formData.lovedOneName}
                     sender={formData.yourName || "Someone special"}
                     message={formData.message}
@@ -1134,13 +1168,7 @@ export default function CondolenceForm() {
                 )}
                 {formData.animationVariant === "Dramatic" && (
                   <AnimatedEnvelope3
-                    title={
-                      formData.message
-                        .split("<<<PAGE_BREAK>>>")[0]
-                        .split(" ")
-                        .slice(0, 3)
-                        .join(" ") || "Love Letter"
-                    }
+                    title={formData.title}
                     recipient={formData.lovedOneName}
                     sender={formData.yourName || "Someone special"}
                     message={formData.message}

@@ -19,6 +19,7 @@ CREATE TABLE public.confessions (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   sender_id uuid,
   recipient_email text,
+  title text,
   theme text NOT NULL,
   message text NOT NULL,
   custom_text jsonb,
