@@ -83,3 +83,49 @@ export async function createMilestone(formData: FormData) {
   revalidatePath("/milestones");
   return { success: true };
 }
+
+export async function setAnniversary(formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { error: "You must be logged in" };
+  }
+
+  const anniversaryDate = formData.get("anniversaryDate") as string;
+
+  if (!anniversaryDate) {
+    return { error: "Anniversary date is required" };
+  }
+
+  // Check if user already has a relationship
+  const { data: existingRel } = await supabase
+    .from("relationships")
+    .select("id")
+    .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
+    .maybeSingle();
+
+  if (existingRel) {
+    return { error: "You already have a relationship set up" };
+  }
+
+  // Create a new relationship with only the current user (partner2_id will be null)
+  const { error } = await supabase.from("relationships").insert({
+    partner1_id: user.id,
+    partner2_id: null, // No partner yet
+    relationship_start_date: anniversaryDate,
+    status: "active",
+  });
+
+  if (error) {
+    console.error("Error setting anniversary:", error);
+    return { error: "Failed to set anniversary. Please try again." };
+  }
+
+  revalidatePath("/dashboard");
+  return { success: true };
+}

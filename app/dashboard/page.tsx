@@ -3,6 +3,7 @@
 import { RelationshipTimer } from "@/components/dashboard/relationship-timer";
 import { DashboardActions } from "@/components/dashboard/dashboard-actions";
 import { UpcomingEvents } from "@/components/dashboard/upcoming-events";
+import { AnniversarySetup } from "@/components/dashboard/anniversary-setup";
 import {
   getUser,
   getRelationship,
@@ -10,7 +11,7 @@ import {
   getRecentPhotos,
   isProfileComplete,
 } from "@/lib/data";
-import { Bell, CalendarHeart, Image as ImageIcon, Plus } from "lucide-react";
+import { Bell, Image as ImageIcon, Plus } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
@@ -84,21 +85,7 @@ export default async function DashboardPage() {
         {relationship ? (
           <RelationshipTimer startDate={relationship.relationship_start_date} />
         ) : (
-          <div className="w-full bg-linear-to-r from-rose-400 to-pink-500 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden flex flex-col items-center text-center justify-center min-h-50">
-            <div className="relative z-10 space-y-4">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-2">
-                <CalendarHeart className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold">When did your story begin?</h2>
-              <p className="text-rose-100 max-w-md mx-auto">
-                Set your anniversary date to start tracking your time together
-                and unlock all features.
-              </p>
-              <button className="bg-white text-rose-500 hover:bg-rose-50 px-6 py-2.5 rounded-full font-semibold shadow-sm transition-all hover:scale-105 active:scale-95">
-                Set Anniversary Date
-              </button>
-            </div>
-          </div>
+          <AnniversarySetup />
         )}
       </section>
 

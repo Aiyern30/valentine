@@ -51,7 +51,7 @@ export function CreateEventDialog({ isOpen, onClose }: CreateEventDialogProps) {
         onClose();
         router.refresh();
       }
-    } catch (e) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
