@@ -188,20 +188,17 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
                                 addSuffix: true,
                               })}
                             </p>
+                            {/* Caption Preview - Always Show if Exists */}
+                            {photo.caption && (
+                              <p className="text-xs text-white/80">
+                                {photo.caption}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-
-                  {/* Caption Preview - Always Show if Exists */}
-                  {photo.caption && (
-                    <div className="p-4">
-                      <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
-                        {photo.caption}
-                      </p>
-                    </div>
-                  )}
                 </div>
               );
             })}
