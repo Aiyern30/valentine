@@ -14,8 +14,13 @@ export function UpcomingEvents({ milestones }: { milestones: Milestone[] }) {
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Calendar className="w-5 h-5 text-rose-500" />
           Upcoming Milestones
+          {milestones.length > 0 && (
+            <span className="text-sm font-normal text-gray-400">
+              (Next {milestones.length})
+            </span>
+          )}
         </h3>
-        {milestones.length > 0 && (
+        {milestones.length >= 5 && (
           <button className="text-sm text-rose-500 font-medium hover:underline">
             View All
           </button>
@@ -25,8 +30,11 @@ export function UpcomingEvents({ milestones }: { milestones: Milestone[] }) {
       <div className="space-y-4">
         {milestones.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <p>No upcoming events.</p>
-            <p className="text-sm">Time to plan something special!</p>
+            <div className="w-12 h-12 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Calendar className="w-5 h-5 text-gray-400" />
+            </div>
+            <p className="font-medium">No upcoming milestones</p>
+            <p className="text-sm mt-1">Create your first milestone below!</p>
           </div>
         ) : (
           milestones.map((milestone) => (
@@ -45,13 +53,15 @@ export function UpcomingEvents({ milestones }: { milestones: Milestone[] }) {
                 </span>
               </div>
 
-              <div>
+              <div className="flex-1">
                 <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                   {milestone.title}
                 </h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
-                  {milestone.description}
-                </p>
+                {milestone.description && (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mt-1">
+                    {milestone.description}
+                  </p>
+                )}
                 {milestone.milestone_type && (
                   <div className="flex items-center gap-2 mt-2">
                     <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300 text-[10px] font-medium uppercase tracking-wide">

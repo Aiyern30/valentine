@@ -41,7 +41,7 @@ export default async function DashboardPage() {
 
   // Fetch real data (only if profile is complete)
   const relationship = await getRelationship(user.id);
-  const milestones = relationship ? await getMilestones(relationship.id) : [];
+  const milestones = relationship ? await getMilestones(relationship.id, 5) : []; // Limit to 5
   const recentPhotos = relationship
     ? await getRecentPhotos(relationship.id)
     : [];

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { Milestone } from "@/types";
 import { cache } from "react";
 
 export const getUser = cache(async () => {
@@ -63,18 +64,32 @@ export const getRelationship = cache(async (userId: string) => {
   return data;
 });
 
-export const getMilestones = cache(async (relationshipId: string) => {
+export async function getMilestones(
+  relationshipId: string,
+  limit?: number,
+): Promise<Milestone[]> {
   const supabase = await createClient();
-  const { data } = await supabase
+
+  const today = new Date().toISOString().split("T")[0];
+  let query = supabase
     .from("milestones")
     .select("*")
     .eq("relationship_id", relationshipId)
-    .order("milestone_date", { ascending: true })
-    .gte("milestone_date", new Date().toISOString())
-    .limit(5);
+    .gte("milestone_date", today)
+    .order("milestone_date", { ascending: true });
+  if (limit) {
+    query = query.limit(limit);
+  }
 
-  return data || [];
-});
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Error fetching milestones:", error);
+    return [];
+  }
+
+  return (data as Milestone[]) || [];
+}
 
 export async function getUserMilestones(userId: string) {
   const supabase = await createClient();
