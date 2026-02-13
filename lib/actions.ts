@@ -129,3 +129,212 @@ export async function setAnniversary(formData: FormData) {
   revalidatePath("/dashboard");
   return { success: true };
 }
+
+// Upload photo to Supabase Storage and create database record
+export async function uploadPhoto(formData: FormData) {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return { error: "You must be logged in to upload photos" };
+    }
+
+    const file = formData.get("file") as File;
+    const caption = formData.get("caption") as string;
+    const takenDate = formData.get("takenDate") as string;
+
+    if (!file) {
+      return { error: "No file provided" };
+    }
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      return { error: "File must be an image" };
+    }
+
+    // Validate file size (max 10MB before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      return { error: "File size must be less than 10MB" };
+    }
+
+    // Get user's relationship
+    const { data: relationship } = await supabase
+      .from("relationships")
+      .select("id")
+      .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
+      .single();
+
+    // Generate unique filename
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from("photos")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (uploadError) {
+      console.error("Error uploading file:", uploadError);
+      return { error: "Failed to upload photo. Please try again." };
+    }
+
+    // Get public URL
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("photos").getPublicUrl(fileName);
+
+    // Create database record
+    const { data, error } = await supabase
+      .from("photos")
+      .insert({
+        relationship_id: relationship?.id || null,
+        uploaded_by: user.id,
+        photo_url: publicUrl,
+        caption: caption || null,
+        taken_date: takenDate || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      // Clean up uploaded file if database insert fails
+      await supabase.storage.from("photos").remove([fileName]);
+      console.error("Error creating photo record:", error);
+      return { error: "Failed to save photo. Please try again." };
+    }
+
+    revalidatePath("/gallery");
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
+}
+
+// Update photo details
+export async function updatePhoto(formData: FormData) {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return { error: "You must be logged in" };
+    }
+
+    const photoId = formData.get("photoId") as string;
+    const caption = formData.get("caption") as string;
+    const takenDate = formData.get("takenDate") as string;
+
+    if (!photoId) {
+      return { error: "Photo ID is required" };
+    }
+
+    // Update photo
+    const { data, error } = await supabase
+      .from("photos")
+      .update({
+        caption: caption || null,
+        taken_date: takenDate || null,
+      })
+      .eq("id", photoId)
+      .eq("uploaded_by", user.id) // Ensure user owns the photo
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating photo:", error);
+      return { error: "Failed to update photo. Please try again." };
+    }
+
+    revalidatePath("/gallery");
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
+}
+
+// Delete photo
+export async function deletePhoto(photoId: string) {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return { error: "You must be logged in" };
+    }
+
+    if (!photoId) {
+      return { error: "Photo ID is required" };
+    }
+
+    // Get photo to extract file path
+    const { data: photo, error: fetchError } = await supabase
+      .from("photos")
+      .select("photo_url, uploaded_by")
+      .eq("id", photoId)
+      .single();
+
+    if (fetchError || !photo) {
+      return { error: "Photo not found" };
+    }
+
+    // Verify user owns the photo
+    if (photo.uploaded_by !== user.id) {
+      return { error: "Unauthorized" };
+    }
+
+    // Extract file path from URL
+    const urlParts = photo.photo_url.split("/photos/");
+    const filePath = urlParts[1];
+
+    // Delete from database
+    const { error: deleteError } = await supabase
+      .from("photos")
+      .delete()
+      .eq("id", photoId)
+      .eq("uploaded_by", user.id);
+
+    if (deleteError) {
+      console.error("Error deleting photo record:", deleteError);
+      return { error: "Failed to delete photo. Please try again." };
+    }
+
+    // Delete from storage
+    if (filePath) {
+      const { error: storageError } = await supabase.storage
+        .from("photos")
+        .remove([filePath]);
+
+      if (storageError) {
+        console.error("Error deleting file from storage:", storageError);
+        // Don't return error as database record is already deleted
+      }
+    }
+
+    revalidatePath("/gallery");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
+}

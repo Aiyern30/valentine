@@ -154,3 +154,69 @@ export const getRecentPhotos = cache(async (relationshipId: string) => {
 
   return data || [];
 });
+
+// Add these to your /lib/data.ts file
+
+export async function getPhotos(userId: string) {
+  const supabase = await createClient();
+
+  // Get user's relationship
+  const { data: relationship } = await supabase
+    .from("relationships")
+    .select("id")
+    .or(`partner1_id.eq.${userId},partner2_id.eq.${userId}`)
+    .single();
+
+  if (!relationship) {
+    return [];
+  }
+
+  // Get all photos for the relationship
+  const { data, error } = await supabase
+    .from("photos")
+    .select(
+      `
+      *,
+      uploader:uploaded_by (
+        id,
+        display_name,
+        avatar_url
+      )
+    `,
+    )
+    .eq("relationship_id", relationship.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching photos:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function getPhoto(photoId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("photos")
+    .select(
+      `
+      *,
+      uploader:uploaded_by (
+        id,
+        display_name,
+        avatar_url
+      )
+    `,
+    )
+    .eq("id", photoId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching photo:", error);
+    return null;
+  }
+
+  return data;
+}
