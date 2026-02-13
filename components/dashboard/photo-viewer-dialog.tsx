@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { X, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 
@@ -26,6 +26,12 @@ export function PhotoViewerDialog({
   onClose,
 }: PhotoViewerDialogProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentIndex(initialIndex);
+    }
+  }, [initialIndex, isOpen]);
 
   if (!isOpen) return null;
 

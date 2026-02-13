@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   X,
@@ -51,6 +51,12 @@ export function PhotoViewer({
   currentUserId,
 }: PhotoViewerProps) {
   const [index, setIndex] = useState(currentIndex);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIndex(currentIndex);
+    }
+  }, [currentIndex, isOpen]);
 
   if (!isOpen || photos.length === 0) return null;
 
