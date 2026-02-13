@@ -37,11 +37,11 @@ export function DashboardActions() {
       type: "upload",
     },
     {
-      title: "Write Diary",
-      description: "Our special story",
+      title: "Our Diary",
+      description: "Relive our stories",
       icon: <BookOpen className="w-6 h-6 text-emerald-500" />,
       color: "bg-emerald-50 dark:bg-emerald-900/20",
-      href: "/diaries/new",
+      href: "/diaries",
     },
   ];
 

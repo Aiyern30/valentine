@@ -105,3 +105,63 @@ export async function uploadDiaryPhoto(formData: FormData) {
     return { error: "An unexpected error occurred. Please try again." };
   }
 }
+
+export async function updateDiaryEntry(
+  id: string,
+  formData: {
+    title: string;
+    content: string;
+    diary_date: string;
+    photos?: string[];
+  },
+) {
+  try {
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from("diaries")
+      .update({
+        title: formData.title,
+        content: formData.content,
+        diary_date: formData.diary_date,
+        photos: formData.photos,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error updating diary:", error);
+      return { error: "Failed to update diary entry." };
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/diaries");
+    revalidatePath(`/diaries/${id}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected error in updateDiaryEntry:", error);
+    return { error: "An unexpected error occurred." };
+  }
+}
+
+export async function deleteDiaryEntry(id: string) {
+  try {
+    const supabase = await createClient();
+
+    const { error } = await supabase.from("diaries").delete().eq("id", id);
+
+    if (error) {
+      console.error("Error deleting diary:", error);
+      return { error: "Failed to delete diary entry." };
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/diaries");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected error in deleteDiaryEntry:", error);
+    return { error: "An unexpected error occurred." };
+  }
+}

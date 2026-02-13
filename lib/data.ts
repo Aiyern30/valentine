@@ -220,3 +220,63 @@ export async function getPhoto(photoId: string) {
 
   return data;
 }
+
+export async function getDiaries(userId: string) {
+  const supabase = await createClient();
+
+  const { data: relationship } = await supabase
+    .from("relationships")
+    .select("id")
+    .or(`partner1_id.eq.${userId},partner2_id.eq.${userId}`)
+    .single();
+
+  if (!relationship) return [];
+
+  const { data, error } = await supabase
+    .from("diaries")
+    .select(
+      `
+      *,
+      author:user_id (
+        id,
+        display_name,
+        avatar_url
+      )
+    `,
+    )
+    .eq("relationship_id", relationship.id)
+    .order("diary_date", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching diaries:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function getDiaryById(diaryId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("diaries")
+    .select(
+      `
+      *,
+      author:user_id (
+        id,
+        display_name,
+        avatar_url
+      )
+    `,
+    )
+    .eq("id", diaryId)
+    .single();
+
+  if (error) {
+    console.error("Error fetching diary:", error);
+    return null;
+  }
+
+  return data;
+}
