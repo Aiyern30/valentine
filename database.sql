@@ -102,3 +102,17 @@ CREATE TABLE public.relationships (
   CONSTRAINT relationships_partner1_id_fkey FOREIGN KEY (partner1_id) REFERENCES public.profiles(id),
   CONSTRAINT relationships_partner2_id_fkey FOREIGN KEY (partner2_id) REFERENCES public.profiles(id)
 );
+CREATE TABLE public.diaries (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  relationship_id uuid,
+  user_id uuid,
+  title text NOT NULL,
+  content text NOT NULL, -- Markdown content
+  diary_date date NOT NULL,
+  photos jsonb DEFAULT '[]'::jsonb, -- Array of photo URLs or objects
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT diaries_pkey PRIMARY KEY (id),
+  CONSTRAINT diaries_relationship_id_fkey FOREIGN KEY (relationship_id) REFERENCES public.relationships(id),
+  CONSTRAINT diaries_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);

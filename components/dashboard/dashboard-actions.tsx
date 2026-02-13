@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Calendar, Image as ImageIcon, PenLine, Smile } from "lucide-react";
+import {
+  Calendar,
+  Image as ImageIcon,
+  PenLine,
+  Smile,
+  BookOpen,
+} from "lucide-react";
 import { UploadPhotoDialog } from "../gallery/uploadPhotoDialog";
 
 export function DashboardActions() {
@@ -31,11 +37,11 @@ export function DashboardActions() {
       type: "upload",
     },
     {
-      title: "Plan Date",
-      description: "Add to calendar",
-      icon: <Calendar className="w-6 h-6 text-emerald-500" />,
+      title: "Write Diary",
+      description: "Our special story",
+      icon: <BookOpen className="w-6 h-6 text-emerald-500" />,
       color: "bg-emerald-50 dark:bg-emerald-900/20",
-      href: "/calendar/new",
+      href: "/diaries/new",
     },
   ];
 
