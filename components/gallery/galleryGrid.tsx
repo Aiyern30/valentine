@@ -1,14 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
-
 import { Upload, Image as ImageIcon } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import {
+  formatDistanceToNow,
+  isToday,
+  isThisWeek,
+  isThisMonth,
+  isThisYear,
+  isWithinInterval,
+  parseISO,
+} from "date-fns";
 import { DeletePhotoDialog } from "./deletePhotoDialog";
 import { EditPhotoDialog } from "./editPhotoDialog";
 import { PhotoViewer } from "./photoViewer";
 import { UploadPhotoDialog } from "./uploadPhotoDialog";
+import { DateFilter, type DateFilter as DateFilterType } from "./dateFilter";
+import { ImageEditor } from "./imageEditor";
 
 interface Photo {
   id: string;
@@ -33,9 +42,41 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [dateFilter, setDateFilter] = useState<DateFilterType>({ type: "all" });
+
+  // Filter photos by date
+  const filteredPhotos = useMemo(() => {
+    if (dateFilter.type === "all") return photos;
+
+    return photos.filter((photo) => {
+      const photoDate = parseISO(photo.taken_date || photo.created_at);
+
+      switch (dateFilter.type) {
+        case "today":
+          return isToday(photoDate);
+        case "week":
+          return isThisWeek(photoDate);
+        case "month":
+          return isThisMonth(photoDate);
+        case "year":
+          return isThisYear(photoDate);
+        case "custom":
+          if (dateFilter.startDate && dateFilter.endDate) {
+            return isWithinInterval(photoDate, {
+              start: parseISO(dateFilter.startDate),
+              end: parseISO(dateFilter.endDate),
+            });
+          }
+          return true;
+        default:
+          return true;
+      }
+    });
+  }, [photos, dateFilter]);
 
   const openViewer = (index: number) => {
     setViewerIndex(index);
@@ -54,8 +95,22 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
     setViewerOpen(false);
   };
 
+  const handleImageEdit = (photo: Photo) => {
+    setSelectedPhoto(photo);
+    setEditorOpen(true);
+    setViewerOpen(false);
+  };
+
   return (
     <>
+      {/* Filter Bar */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          Showing {filteredPhotos.length} of {photos.length} photos
+        </div>
+        <DateFilter onFilterChange={setDateFilter} />
+      </div>
+
       {/* Upload Button - Fixed Position */}
       <button
         onClick={() => setUploadDialogOpen(true)}
@@ -66,33 +121,36 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
       </button>
 
       {/* Empty State or Photo Grid */}
-      {photos.length === 0 ? (
+      {filteredPhotos.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-zinc-800 rounded-3xl border border-gray-100 dark:border-zinc-700/50">
           <div className="mx-auto w-20 h-20 bg-linear-to-br from-rose-500/10 to-pink-500/10 rounded-full flex items-center justify-center mb-6">
             <ImageIcon className="w-10 h-10 text-rose-500" />
           </div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            No photos yet
+            {photos.length === 0
+              ? "No photos yet"
+              : "No photos match your filter"}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">
-            Start building your collection of memories by uploading your first
-            photo together.
+            {photos.length === 0
+              ? "Start building your collection of memories by uploading your first photo together."
+              : "Try adjusting your date filter to see more photos."}
           </p>
-          <button
-            onClick={() => setUploadDialogOpen(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl font-semibold shadow-lg shadow-rose-500/25 transition-all hover:scale-105 active:scale-95"
-          >
-            <Upload className="w-5 h-5" />
-            Upload First Photo
-          </button>
+          {photos.length === 0 && (
+            <button
+              onClick={() => setUploadDialogOpen(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl font-semibold shadow-lg shadow-rose-500/25 transition-all hover:scale-105 active:scale-95"
+            >
+              <Upload className="w-5 h-5" />
+              Upload First Photo
+            </button>
+          )}
         </div>
       ) : (
         <>
           {/* Masonry Grid Layout */}
           <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-            {photos.map((photo, index) => {
-              const isOwner = photo.uploaded_by === currentUserId;
-
+            {filteredPhotos.map((photo, index) => {
               return (
                 <div
                   key={photo.id}
@@ -109,39 +167,34 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
                       className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-110"
                     />
 
-                    {/* linear Overlay on Hover */}
+                    {/* linear Overlay - Only on Hover */}
                     <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                    {/* Hover Info */}
+                    {/* Hover Info - Only Show on Hover */}
                     <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                      <div className="flex items-center gap-3 text-white">
-                        <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                          <span className="text-xs font-semibold">
-                            {photo.uploader?.display_name?.[0] || "?"}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {photo.uploader?.display_name || "Unknown"}
-                          </p>
-                          <p className="text-xs text-white/80">
-                            {formatDistanceToNow(new Date(photo.created_at), {
-                              addSuffix: true,
-                            })}
-                          </p>
+                      <div className="flex items-center justify-between text-white">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            <span className="text-xs font-semibold">
+                              {photo.uploader?.display_name?.[0] || "?"}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {photo.uploader?.display_name || "Unknown"}
+                            </p>
+                            <p className="text-xs text-white/80">
+                              {formatDistanceToNow(new Date(photo.created_at), {
+                                addSuffix: true,
+                              })}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-
-                    {/* Owner Badge */}
-                    {isOwner && (
-                      <div className="absolute top-3 right-3 px-2 py-1 bg-rose-500/90 backdrop-blur-sm rounded-full text-white text-xs font-medium">
-                        Your photo
-                      </div>
-                    )}
                   </div>
 
-                  {/* Caption Preview */}
+                  {/* Caption Preview - Always Show if Exists */}
                   {photo.caption && (
                     <div className="p-4">
                       <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
@@ -158,14 +211,27 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
 
       {/* Photo Viewer (Lightbox) */}
       <PhotoViewer
-        photos={photos}
+        photos={filteredPhotos}
         currentIndex={viewerIndex}
         isOpen={viewerOpen}
         onClose={() => setViewerOpen(false)}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onImageEdit={handleImageEdit}
         currentUserId={currentUserId}
       />
+
+      {/* Image Editor */}
+      {selectedPhoto && (
+        <ImageEditor
+          isOpen={editorOpen}
+          onClose={() => {
+            setEditorOpen(false);
+            setSelectedPhoto(null);
+          }}
+          imageUrl={selectedPhoto.photo_url}
+        />
+      )}
 
       {/* Dialogs */}
       <UploadPhotoDialog

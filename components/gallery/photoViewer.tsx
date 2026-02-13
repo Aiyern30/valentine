@@ -11,6 +11,7 @@ import {
   Edit2,
   Trash2,
   Clock,
+  Wand2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -35,6 +36,7 @@ interface PhotoViewerProps {
   onClose: () => void;
   onEdit?: (photo: Photo) => void;
   onDelete?: (photo: Photo) => void;
+  onImageEdit?: (photo: Photo) => void;
   currentUserId: string;
 }
 
@@ -45,6 +47,7 @@ export function PhotoViewer({
   onClose,
   onEdit,
   onDelete,
+  onImageEdit,
   currentUserId,
 }: PhotoViewerProps) {
   const [index, setIndex] = useState(currentIndex);
@@ -146,6 +149,17 @@ export function PhotoViewer({
                 Photo Details
               </h3>
               <div className="flex items-center gap-2">
+                {/* Image Edit Button */}
+                {isOwner && onImageEdit && (
+                  <button
+                    onClick={() => onImageEdit(currentPhoto)}
+                    className="p-2 rounded-lg hover:bg-purple-500/20 text-purple-400 transition-colors"
+                    title="Edit Image"
+                  >
+                    <Wand2 className="w-4 h-4" />
+                  </button>
+                )}
+
                 <button
                   onClick={handleDownload}
                   className="p-2 rounded-lg hover:bg-white/10 text-white transition-colors"
@@ -153,15 +167,17 @@ export function PhotoViewer({
                 >
                   <Download className="w-4 h-4" />
                 </button>
+
                 {isOwner && onEdit && (
                   <button
                     onClick={() => onEdit(currentPhoto)}
                     className="p-2 rounded-lg hover:bg-white/10 text-white transition-colors"
-                    title="Edit"
+                    title="Edit Details"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                 )}
+
                 {isOwner && onDelete && (
                   <button
                     onClick={() => onDelete(currentPhoto)}
