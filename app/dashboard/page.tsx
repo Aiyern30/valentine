@@ -6,7 +6,7 @@ import { UpcomingEvents } from "@/components/dashboard/upcoming-events";
 import {
   getUser,
   getRelationship,
-  getMilestones,
+  getMilestonesByUser,
   getRecentPhotos,
   isProfileComplete,
 } from "@/lib/data";
@@ -41,7 +41,9 @@ export default async function DashboardPage() {
 
   // Fetch real data (only if profile is complete)
   const relationship = await getRelationship(user.id);
-  const milestones = relationship ? await getMilestones(relationship.id, 5) : []; // Limit to 5
+
+  const milestones = await getMilestonesByUser(user.id, 5);
+
   const recentPhotos = relationship
     ? await getRecentPhotos(relationship.id)
     : [];

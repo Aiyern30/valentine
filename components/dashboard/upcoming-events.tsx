@@ -6,6 +6,7 @@ import { useState } from "react";
 import { CreateEventDialog } from "./create-event-dialog";
 
 export function UpcomingEvents({ milestones }: { milestones: Milestone[] }) {
+  console.log("UpcomingEvents milestones:", milestones);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   return (

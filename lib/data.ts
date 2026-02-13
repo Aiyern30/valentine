@@ -47,8 +47,9 @@ export async function isProfileComplete(userId: string): Promise<boolean> {
 
 export const getRelationship = cache(async (userId: string) => {
   const supabase = await createClient();
+
   // Find relationship where user is either partner1 or partner2
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("relationships")
     .select(
       `
@@ -59,7 +60,12 @@ export const getRelationship = cache(async (userId: string) => {
     )
     .or(`partner1_id.eq.${userId},partner2_id.eq.${userId}`)
     .eq("status", "active")
-    .single();
+    .maybeSingle(); // Changed from .single() to .maybeSingle()
+
+  if (error) {
+    console.error("Error fetching relationship:", error);
+    return null;
+  }
 
   return data;
 });
@@ -71,6 +77,7 @@ export async function getMilestones(
   const supabase = await createClient();
 
   const today = new Date().toISOString().split("T")[0];
+
   let query = supabase
     .from("milestones")
     .select("*")
@@ -85,6 +92,34 @@ export async function getMilestones(
 
   if (error) {
     console.error("Error fetching milestones:", error);
+    return [];
+  }
+
+  return (data as Milestone[]) || [];
+}
+
+export async function getMilestonesByUser(
+  userId: string,
+  limit?: number,
+): Promise<Milestone[]> {
+  const supabase = await createClient();
+
+  const today = new Date().toISOString().split("T")[0];
+
+  let query = supabase
+    .from("milestones")
+    .select("*")
+    .eq("created_by", userId)
+    .gte("milestone_date", today)
+    .order("milestone_date", { ascending: true });
+  if (limit) {
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Error fetching milestones by user:", error);
     return [];
   }
 

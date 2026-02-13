@@ -47,18 +47,8 @@ export async function createMilestone(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
+    console.error("User error:", userError);
     return { error: "You must be logged in to create milestones" };
-  }
-
-  // Get user's relationship
-  const { data: relationship, error: relError } = await supabase
-    .from("relationships")
-    .select("id")
-    .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
-    .single();
-
-  if (relError || !relationship) {
-    return { error: "You must be in a relationship to create milestones" };
   }
 
   const title = formData.get("title") as string;
@@ -70,19 +60,26 @@ export async function createMilestone(formData: FormData) {
     return { error: "Title and date are required" };
   }
 
-  const { error } = await supabase.from("milestones").insert({
-    relationship_id: relationship.id,
-    title,
-    milestone_date: date,
-    milestone_type: type || "other",
-    description: description || null,
-  });
+  const { data: newMilestone, error } = await supabase
+    .from("milestones")
+    .insert({
+      created_by: user.id,
+      title,
+      milestone_date: date,
+      milestone_type: type || "other",
+      description: description || null,
+    })
+    .select()
+    .single();
 
   if (error) {
     console.error("Error creating milestone:", error);
     return { error: "Failed to create milestone. Please try again." };
   }
 
+  console.log("Milestone created successfully:", newMilestone);
+
   revalidatePath("/dashboard");
+  revalidatePath("/milestones");
   return { success: true };
 }

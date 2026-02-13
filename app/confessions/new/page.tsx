@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 import React, { useState, ChangeEvent } from "react";
 import {
@@ -357,7 +358,6 @@ export default function CondolenceForm() {
 
   // Handle form submission
   const handleSubmit = (): void => {
-    console.log("Form submitted:", formData);
     // Here you would typically send the data to your backend
     alert("Condolence form submitted successfully!");
   };
@@ -741,7 +741,7 @@ export default function CondolenceForm() {
                             updateFormData("message", newPages.join(delimiter));
                           }}
                           placeholder={`Write page ${index + 1} content...`}
-                          className={`w-full bg-gray-50 dark:bg-zinc-900 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 min-h-[150px] resize-none transition-all ${
+                          className={`w-full bg-gray-50 dark:bg-zinc-900 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 min-h-37.5 resize-none transition-all ${
                             errors.message && index === 0
                               ? "border-red-500"
                               : "border-rose-100 dark:border-rose-900/30"
@@ -1247,7 +1247,7 @@ export default function CondolenceForm() {
             </div>
 
             {/* Preview Stage */}
-            <div className="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-[500px]">
+            <div className="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-125">
               {/* Background Glow based on Theme */}
               <div
                 className={`absolute inset-0 opacity-20 blur-[100px] transition-all duration-700 ${
