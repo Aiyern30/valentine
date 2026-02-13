@@ -3,6 +3,42 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+export async function completeProfile(formData: FormData) {
+  const supabase = await createClient();
+
+  const userId = formData.get("userId") as string;
+  const displayName = formData.get("displayName") as string;
+  const username = formData.get("username") as string | null;
+  const avatarUrl = formData.get("avatarUrl") as string | null;
+
+  if (!userId || !displayName) {
+    return { error: "Missing required fields" };
+  }
+
+  // Use upsert to handle both insert and update cases
+  const { error } = await supabase
+    .from("profiles")
+    .upsert(
+      {
+        id: userId,
+        display_name: displayName,
+        username: username || null,
+        avatar_url: avatarUrl || null,
+      },
+      {
+        onConflict: "id",
+      }
+    );
+
+  if (error) {
+    console.error("Error completing profile:", error);
+    return { error: "Failed to complete profile. Please try again." };
+  }
+
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
 export async function createMilestone(formData: FormData) {
   try {
     const supabase = await createClient();

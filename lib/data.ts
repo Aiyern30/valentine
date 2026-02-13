@@ -9,15 +9,40 @@ export const getUser = cache(async () => {
   return user;
 });
 
-export const getProfile = cache(async (userId: string) => {
+export async function getProfile(userId: string) {
   const supabase = await createClient();
-  const { data } = await supabase
+
+  const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", userId)
     .single();
+
+  if (error) {
+    console.error("Error fetching profile:", error);
+    return null;
+  }
+
   return data;
-});
+}
+
+export async function isProfileComplete(userId: string): Promise<boolean> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", userId)
+    .maybeSingle(); // Use maybeSingle() instead of single()
+
+  if (error) {
+    console.error("Error fetching profile:", error);
+    return false;
+  }
+
+  // If no profile exists or display_name is null/empty, profile is incomplete
+  return !!(data && data.display_name);
+}
 
 export const getRelationship = cache(async (userId: string) => {
   const supabase = await createClient();

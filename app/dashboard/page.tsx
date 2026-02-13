@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/no-unescaped-entities */
 import { RelationshipTimer } from "@/components/dashboard/relationship-timer";
 import { DashboardActions } from "@/components/dashboard/dashboard-actions";
 import { UpcomingEvents } from "@/components/dashboard/upcoming-events";
@@ -7,11 +8,13 @@ import {
   getRelationship,
   getMilestones,
   getRecentPhotos,
+  isProfileComplete,
 } from "@/lib/data";
 import { Bell, CalendarHeart, Image as ImageIcon, Plus } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
+import { ProfileCompletionDialog } from "@/components/ProfileCompletionDialog";
 
 export default async function DashboardPage() {
   const user = await getUser();
@@ -21,7 +24,22 @@ export default async function DashboardPage() {
     redirect("/");
   }
 
-  // Fetch real data
+  // Check if profile is complete
+  const profileComplete = await isProfileComplete(user.id);
+
+  // If profile is incomplete, show the completion dialog
+  if (!profileComplete) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
+        <ProfileCompletionDialog
+          userId={user.id}
+          userEmail={user.email || ""}
+        />
+      </div>
+    );
+  }
+
+  // Fetch real data (only if profile is complete)
   const relationship = await getRelationship(user.id);
   const milestones = relationship ? await getMilestones(relationship.id) : [];
   const recentPhotos = relationship
@@ -64,8 +82,7 @@ export default async function DashboardPage() {
         {relationship ? (
           <RelationshipTimer startDate={relationship.relationship_start_date} />
         ) : (
-          <div className="w-full bg-linear-to-r from-rose-400 to-pink-500 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden flex flex-col items-center text-center justify-center min-h-[200px]">
-            <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-20" />
+          <div className="w-full bg-linear-to-r from-rose-400 to-pink-500 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden flex flex-col items-center text-center justify-center min-h-50">
             <div className="relative z-10 space-y-4">
               <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-2">
                 <CalendarHeart className="w-8 h-8 text-white" />
