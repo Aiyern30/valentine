@@ -3,31 +3,88 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Image as ImageIcon } from "lucide-react";
-import { PhotoViewerDialog } from "./photo-viewer-dialog";
+import { useRouter } from "next/navigation";
+import { PhotoViewer } from "../gallery/photoViewer";
+import { DeletePhotoDialog } from "../gallery/deletePhotoDialog";
+import { EditPhotoDialog } from "../gallery/editPhotoDialog";
+import { ImageEditor } from "../gallery/imageEditor";
+import { updatePhotoImage } from "@/lib/actions";
 
 interface Photo {
   id: string;
   photo_url: string;
-  caption?: string;
-  taken_date?: string;
+  caption: string | null;
+  taken_date: string | null;
   created_at: string;
+  uploaded_by: string;
+  uploader?: {
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+  };
 }
 
-export function RecentMemoriesSection({ photos }: { photos: Photo[] }) {
+export function RecentMemoriesSection({
+  photos,
+  currentUserId,
+}: {
+  photos: Photo[];
+  currentUserId: string;
+}) {
   const [viewerOpen, setViewerOpen] = useState(false);
-  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
+  const [viewerIndex, setViewerIndex] = useState(0);
+  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const router = useRouter();
 
   const openViewer = (index: number) => {
-    setSelectedPhotoIndex(index);
+    setViewerIndex(index);
     setViewerOpen(true);
+  };
+
+  const handleEdit = (photo: any) => {
+    setSelectedPhoto(photo);
+    setEditDialogOpen(true);
+    setViewerOpen(false);
+  };
+
+  const handleDelete = (photo: any) => {
+    setSelectedPhoto(photo);
+    setDeleteDialogOpen(true);
+    setViewerOpen(false);
+  };
+
+  const handleImageEdit = (photo: any) => {
+    setSelectedPhoto(photo);
+    setEditorOpen(true);
+    setViewerOpen(false);
+  };
+
+  const handleImageSave = async (blob: Blob) => {
+    if (!selectedPhoto) return;
+    const result = await updatePhotoImage(selectedPhoto.id, blob);
+    if (result.success) {
+      router.refresh();
+      setEditorOpen(false);
+      setSelectedPhoto(null);
+    } else {
+      alert(result.error || "Failed to save image");
+    }
   };
 
   return (
     <>
       <div className="bg-white dark:bg-zinc-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-zinc-700/50">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold">Recent Memories</h3>
-          <button className="text-sm text-rose-500 font-medium hover:underline">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 italic font-dancing">
+            Recent Memories
+          </h3>
+          <button
+            onClick={() => router.push("/gallery")}
+            className="text-sm text-rose-500 font-medium hover:underline"
+          >
             View Gallery
           </button>
         </div>
@@ -45,18 +102,11 @@ export function RecentMemoriesSection({ photos }: { photos: Photo[] }) {
                   fill
                   className="object-cover transition-transform group-hover:scale-110"
                 />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-                  <span className="text-white font-medium text-sm backdrop-blur-sm bg-black/20 px-3 py-1.5 rounded-full">
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px]">
+                  <span className="text-white font-medium text-sm backdrop-blur-md bg-white/10 px-4 py-2 rounded-full border border-white/20">
                     View
                   </span>
                 </div>
-                {photo.caption && (
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent">
-                    <p className="text-white text-xs line-clamp-1">
-                      {photo.caption}
-                    </p>
-                  </div>
-                )}
               </button>
             ))}
           </div>
@@ -68,20 +118,55 @@ export function RecentMemoriesSection({ photos }: { photos: Photo[] }) {
             <p className="text-gray-500 dark:text-gray-400 text-sm">
               No photos uploaded yet
             </p>
-            <button className="mt-2 text-rose-500 text-sm hover:underline font-medium">
+            <button
+              onClick={() => router.push("/gallery")}
+              className="mt-2 text-rose-500 text-sm hover:underline font-medium"
+            >
               Upload your first photo
             </button>
           </div>
         )}
       </div>
 
-      {photos.length > 0 && (
-        <PhotoViewerDialog
-          photos={photos}
-          initialIndex={selectedPhotoIndex}
-          isOpen={viewerOpen}
-          onClose={() => setViewerOpen(false)}
-        />
+      <PhotoViewer
+        photos={photos as any}
+        currentIndex={viewerIndex}
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onImageEdit={handleImageEdit}
+        currentUserId={currentUserId}
+      />
+
+      {selectedPhoto && (
+        <>
+          <EditPhotoDialog
+            isOpen={editDialogOpen}
+            onClose={() => {
+              setEditDialogOpen(false);
+              setSelectedPhoto(null);
+            }}
+            photo={selectedPhoto as any}
+          />
+          <DeletePhotoDialog
+            isOpen={deleteDialogOpen}
+            onClose={() => {
+              setDeleteDialogOpen(false);
+              setSelectedPhoto(null);
+            }}
+            photoId={selectedPhoto.id}
+          />
+          <ImageEditor
+            isOpen={editorOpen}
+            onClose={() => {
+              setEditorOpen(false);
+              setSelectedPhoto(null);
+            }}
+            imageUrl={selectedPhoto.photo_url}
+            onSave={handleImageSave}
+          />
+        </>
       )}
     </>
   );

@@ -4,6 +4,7 @@ import { RelationshipTimer } from "@/components/dashboard/relationship-timer";
 import { DashboardActions } from "@/components/dashboard/dashboard-actions";
 import { UpcomingEvents } from "@/components/dashboard/upcoming-events";
 import { AnniversarySetup } from "@/components/dashboard/anniversary-setup";
+import { RecentMemoriesSection } from "@/components/dashboard/recent-memories-section";
 import {
   getUser,
   getRelationship,
@@ -104,48 +105,10 @@ export default async function DashboardPage() {
           <UpcomingEvents milestones={milestones} />
 
           {/* Recent Memories */}
-          <div className="bg-white dark:bg-zinc-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-zinc-700/50">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold">Recent Memories</h3>
-              <button className="text-sm text-rose-500 font-medium hover:underline">
-                View Gallery
-              </button>
-            </div>
-            {recentPhotos.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {recentPhotos.map((photo: any) => (
-                  <div
-                    key={photo.id}
-                    className="aspect-square rounded-xl bg-gray-100 dark:bg-zinc-900 overflow-hidden relative group cursor-pointer"
-                  >
-                    <Image
-                      src={photo.photo_url}
-                      alt={photo.caption || "Memory"}
-                      fill
-                      className="object-cover transition-transform group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                      <span className="text-white font-medium text-xs backdrop-blur-md px-2 py-1 rounded-full">
-                        View
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-gray-50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-gray-200 dark:border-zinc-700">
-                <div className="mx-auto w-12 h-12 bg-gray-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-3">
-                  <ImageIcon className="w-5 h-5 text-gray-400" />
-                </div>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  No photos uploaded yet
-                </p>
-                <button className="mt-2 text-rose-500 text-sm hover:underline font-medium">
-                  Upload your first photo
-                </button>
-              </div>
-            )}
-          </div>
+          <RecentMemoriesSection
+            photos={recentPhotos}
+            currentUserId={user.id}
+          />
         </div>
 
         {/* Right: Sidebar / Status */}
