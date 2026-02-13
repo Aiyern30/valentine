@@ -107,9 +107,9 @@ CREATE TABLE public.diaries (
   relationship_id uuid,
   user_id uuid,
   title text NOT NULL,
-  content text NOT NULL, -- Markdown content
+  content text NOT NULL, 
   diary_date date NOT NULL,
-  photos jsonb DEFAULT '[]'::jsonb, -- Array of photo URLs or objects
+  photos jsonb DEFAULT '[]'::jsonb,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT diaries_pkey PRIMARY KEY (id),

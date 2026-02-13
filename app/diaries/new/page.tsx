@@ -11,14 +11,17 @@ import {
   Loader2,
   Eye,
   PenLine,
+  X,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { createDiaryEntry } from "@/lib/diary-actions";
 
 export default function NewDiaryPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [photos, setPhotos] = useState<string[]>([]);
   const [isPreview, setIsPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -30,18 +33,35 @@ export default function NewDiaryPage() {
 
     try {
       setIsSaving(true);
-      // In a real app, we would call a server action here
-      // For now, we'll just simulate a delay and redirect
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const result = await createDiaryEntry({
+        title,
+        content,
+        diary_date: date,
+        photos,
+      });
 
-      console.log("Saving diary:", { title, content, date });
-      router.push("/dashboard");
+      if (result.success) {
+        router.push("/dashboard");
+      } else {
+        alert(result.error);
+      }
     } catch (error) {
       console.error("Failed to save diary:", error);
       alert("Failed to save diary entry");
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const addPhoto = () => {
+    const url = prompt("Enter a photo URL to attach:");
+    if (url) {
+      setPhotos((prev) => [...prev, url]);
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -59,16 +79,16 @@ export default function NewDiaryPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsPreview(!isPreview)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 underline underline-offset-4 decoration-rose-500/30"
             >
               {isPreview ? (
                 <>
-                  <PenLine className="w-4 h-4" />
-                  Edit
+                  <PenLine className="w-4 h-4 text-rose-500" />
+                  Edit Entry
                 </>
               ) : (
                 <>
-                  <Eye className="w-4 h-4" />
+                  <Eye className="w-4 h-4 text-rose-500" />
                   Preview
                 </>
               )}
@@ -76,21 +96,21 @@ export default function NewDiaryPage() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-2 px-6 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-sm font-bold shadow-lg shadow-rose-500/25 transition-all disabled:opacity-50 active:scale-95"
+              className="flex items-center gap-2 px-6 py-2 rounded-xl bg-linear-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-sm font-bold shadow-lg shadow-rose-500/25 transition-all disabled:opacity-50 active:scale-95"
             >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              Save Entry
+              Save to Diary
             </button>
           </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <div className="space-y-8">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
           {/* Metadata Card */}
           <div className="bg-white dark:bg-zinc-900 rounded-[32px] p-8 shadow-sm border border-gray-100 dark:border-zinc-800 space-y-6">
             <div className="space-y-2">
@@ -104,61 +124,103 @@ export default function NewDiaryPage() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Today was amazing because..."
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-zinc-950 rounded-2xl border border-transparent focus:border-rose-500 focus:bg-white dark:focus:bg-zinc-900 transition-all outline-hidden text-lg font-semibold"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-zinc-950 rounded-2xl border-2 border-transparent focus:border-rose-500/20 focus:bg-white dark:focus:bg-zinc-900 transition-all outline-hidden text-xl font-bold italic font-dancing"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
-                Date
-              </label>
-              <div className="relative group">
-                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-rose-500 transition-colors" />
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-zinc-950 rounded-2xl border border-transparent focus:border-rose-500 focus:bg-white dark:focus:bg-zinc-900 transition-all outline-hidden"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+                  Date
+                </label>
+                <div className="relative group">
+                  <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-rose-500 transition-colors" />
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-zinc-950 rounded-2xl border-2 border-transparent focus:border-rose-500/20 focus:bg-white dark:focus:bg-zinc-900 transition-all outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+                  Captured Memories
+                </label>
+                <button
+                  onClick={addPhoto}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-gray-50 dark:bg-zinc-950 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-gray-400 hover:text-rose-500 rounded-2xl border-2 border-dashed border-gray-200 dark:border-zinc-800 hover:border-rose-500/50 transition-all group font-medium"
+                >
+                  <ImageIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  Attach Photo URL
+                </button>
               </div>
             </div>
-          </div>
 
-          {/* Editor Area */}
-          <div className="bg-white dark:bg-zinc-900 rounded-[32px] shadow-sm border border-gray-100 dark:border-zinc-800 min-h-[500px] overflow-hidden">
-            {isPreview ? (
-              <div className="p-8 prose prose-rose dark:prose-invert max-w-none">
-                {content ? (
-                  <ReactMarkdown>{content}</ReactMarkdown>
-                ) : (
-                  <p className="text-gray-400 italic">
-                    Nothing to preview yet...
-                  </p>
-                )}
+            {/* Attached Photos Preview */}
+            {photos.length > 0 && (
+              <div className="flex flex-wrap gap-4 pt-4">
+                {photos.map((url, idx) => (
+                  <div
+                    key={idx}
+                    className="relative w-24 h-24 rounded-xl overflow-hidden group shadow-lg"
+                  >
+                    <img
+                      src={url}
+                      alt="Attached"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      onClick={() => removePhoto(idx)}
+                      className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
               </div>
-            ) : (
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your heart out here... (Markdown is supported! Use # for titles, * for bullets, etc.)"
-                className="w-full h-full min-h-[500px] p-8 bg-transparent text-lg resize-none outline-hidden leading-relaxed"
-              />
             )}
           </div>
 
-          {/* Guidelines */}
-          {!isPreview && (
-            <div className="flex items-center gap-4 px-4 py-3 bg-zinc-100 dark:bg-zinc-800 rounded-2xl text-xs text-gray-500 dark:text-gray-400">
-              <span className="font-bold flex items-center gap-1">
-                <ImageIcon className="w-3 h-3" /> Tip:
+          {/* Editor Area */}
+          <div className="bg-white dark:bg-zinc-900 rounded-[32px] shadow-xl border border-gray-100 dark:border-zinc-800 min-h-[600px] overflow-hidden flex flex-col focus-within:ring-2 ring-rose-500/20 transition-all">
+            <div className="bg-zinc-50 dark:bg-zinc-950/50 px-8 py-3 border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                {isPreview ? "Story Preview" : "Writing Canvas"}
               </span>
-              <span>
-                You can use Markdown to style your text. Try # Heading,
-                **Bold**, or *Italic*.
-              </span>
+              {!isPreview && (
+                <div className="flex items-center gap-4 text-[10px] text-gray-400 uppercase tracking-tighter">
+                  <span># H1</span>
+                  <span>## H2</span>
+                  <span>**Bold**</span>
+                  <span>*Italic*</span>
+                </div>
+              )}
             </div>
-          )}
+            <div className="flex-1 relative">
+              {isPreview ? (
+                <div className="p-12 prose prose-rose dark:prose-invert max-w-none prose-lg prose-p:leading-relaxed prose-headings:font-dancing prose-headings:font-bold prose-headings:text-rose-600">
+                  {content ? (
+                    <ReactMarkdown>{content}</ReactMarkdown>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full py-20 text-gray-400 gap-4">
+                      <PenLine className="w-12 h-12 opacity-20" />
+                      <p className="italic">Your story starts here...</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Once upon a time..."
+                  className="w-full h-full min-h-[600px] p-12 bg-transparent text-xl resize-none outline-hidden leading-relaxed font-medium"
+                />
+              )}
+            </div>
+          </div>
         </div>
       </main>
     </div>
