@@ -32,23 +32,7 @@ export default async function GalleryPage() {
         </div>
       </header>
 
-      {/* Gallery Grid */}
-      {photos.length > 0 ? (
-        <GalleryGrid photos={photos} currentUserId={user.id} />
-      ) : (
-        <div className="text-center py-20 bg-white dark:bg-zinc-800 rounded-3xl border border-gray-100 dark:border-zinc-700/50">
-          <div className="mx-auto w-20 h-20 bg-gray-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-6">
-            <ImageIcon className="w-10 h-10 text-gray-400" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            No photos yet
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">
-            Start building your collection of memories by uploading your first
-            photo together.
-          </p>
-        </div>
-      )}
+      <GalleryGrid photos={photos} currentUserId={user.id} />
     </div>
   );
 }
