@@ -338,3 +338,70 @@ export async function deletePhoto(photoId: string) {
     return { error: "An unexpected error occurred. Please try again." };
   }
 }
+// Update just the photo's image file
+export async function updatePhotoImage(photoId: string, blob: Blob) {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return { error: "You must be logged in to edit photos" };
+    }
+
+    if (!photoId) {
+      return { error: "Photo ID is required" };
+    }
+
+    // Get current photo to get the storage path
+    const { data: photo, error: fetchError } = await supabase
+      .from("photos")
+      .select("photo_url, uploaded_by")
+      .eq("id", photoId)
+      .single();
+
+    if (fetchError || !photo) {
+      return { error: "Photo not found" };
+    }
+
+    if (photo.uploaded_by !== user.id) {
+      return { error: "Unauthorized" };
+    }
+
+    // Extract storage path from URL
+    const urlParts = photo.photo_url.split("/photos/");
+    const oldPath = urlParts[1];
+
+    if (!oldPath) {
+      return { error: "Could not determine file path" };
+    }
+
+    // Convert Blob to File-like for upload
+    const file = new File([blob], "edited-photo.jpg", { type: "image/jpeg" });
+
+    // Upload with same path (overwrite)
+    const { error: uploadError } = await supabase.storage
+      .from("photos")
+      .upload(oldPath, file, {
+        cacheControl: "0", // No cache to see changes immediately
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error("Error uploading edited file:", uploadError);
+      return { error: "Failed to upload edited photo. Please try again." };
+    }
+
+    // Refresh database record just in case
+    revalidatePath("/gallery");
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected error in updatePhotoImage:", error);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
+}

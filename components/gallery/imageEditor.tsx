@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import {
   X,
@@ -10,7 +10,11 @@ import {
   Check,
   Download,
   Loader2,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
+import Cropper, { Area, Point } from "react-easy-crop";
+import getCroppedImg from "@/lib/crop-utils";
 
 interface ImageEditorProps {
   isOpen: boolean;
@@ -26,16 +30,15 @@ export function ImageEditor({
   onSave,
 }: ImageEditorProps) {
   const [rotation, setRotation] = useState(0);
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
   const [isCropping, setIsCropping] = useState(false);
-  const [cropArea, setCropArea] = useState({
-    x: 0,
-    y: 0,
-    width: 100,
-    height: 100,
-  });
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  const onCropComplete = useCallback((_sharedArea: Area, _pixelCrop: Area) => {
+    setCroppedAreaPixels(_pixelCrop);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -88,6 +91,15 @@ export function ImageEditor({
   };
 
   const applyEdits = async (): Promise<Blob | null> => {
+    // If we're not cropping, we still need to apply rotation at least
+    // We can use getCroppedImg with the full image size if croppedAreaPixels is null
+
+    // However, it's easier to just always use it if we have it
+    if (croppedAreaPixels) {
+      return getCroppedImg(imageUrl, croppedAreaPixels, rotation);
+    }
+
+    // fallback logic to just rotate if no crop was made
     return new Promise((resolve) => {
       const img = new window.Image();
       img.crossOrigin = "anonymous";
@@ -101,7 +113,6 @@ export function ImageEditor({
           return;
         }
 
-        // Calculate dimensions based on rotation
         const radians = (rotation * Math.PI) / 180;
         const sin = Math.abs(Math.sin(radians));
         const cos = Math.abs(Math.cos(radians));
@@ -112,7 +123,6 @@ export function ImageEditor({
         canvas.width = newWidth;
         canvas.height = newHeight;
 
-        // Apply rotation
         ctx.translate(newWidth / 2, newHeight / 2);
         ctx.rotate(radians);
         ctx.drawImage(img, -img.width / 2, -img.height / 2);
@@ -132,11 +142,19 @@ export function ImageEditor({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-10 bg-zinc-900/50 backdrop-blur-xl border-b border-white/10">
+      <div className="z-10 bg-zinc-900/50 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center justify-between p-4">
-          <h3 className="text-white font-semibold text-lg">Edit Photo</h3>
+          <div className="flex items-center gap-4">
+            <h3 className="text-white font-semibold text-lg">Edit Photo</h3>
+            {isCropping && (
+              <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-white/70 text-xs">
+                <span className="animate-pulse w-2 h-2 bg-rose-500 rounded-full" />
+                Cropping Mode
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleDownload}
@@ -148,7 +166,7 @@ export function ImageEditor({
               ) : (
                 <Download className="w-4 h-4" />
               )}
-              <span className="text-sm">Download</span>
+              <span className="text-sm hidden sm:inline">Download</span>
             </button>
             {onSave && (
               <button
@@ -174,60 +192,97 @@ export function ImageEditor({
         </div>
       </div>
 
-      {/* Image Preview */}
-      <div className="h-full flex items-center justify-center pt-20 pb-24">
-        <div
-          className="relative max-w-4xl max-h-full transition-transform duration-300"
-          style={{ transform: `rotate(${rotation}deg)` }}
-        >
-          <Image
-            src={imageUrl}
-            alt="Edit preview"
-            width={800}
-            height={600}
-            className="object-contain max-h-[70vh]"
-          />
-        </div>
+      {/* Main Area */}
+      <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
+        {isCropping ? (
+          <div className="absolute inset-0">
+            <Cropper
+              image={imageUrl}
+              crop={crop}
+              zoom={zoom}
+              rotation={rotation}
+              aspect={undefined}
+              onCropChange={setCrop}
+              onCropComplete={onCropComplete}
+              onZoomChange={setZoom}
+              classes={{
+                containerClassName: "bg-black",
+                mediaClassName: "max-h-[70vh]",
+              }}
+            />
+          </div>
+        ) : (
+          <div
+            className="relative max-w-4xl max-h-full transition-transform duration-300"
+            style={{ transform: `rotate(${rotation}deg)` }}
+          >
+            <Image
+              src={imageUrl}
+              alt="Edit preview"
+              width={800}
+              height={600}
+              className="object-contain max-h-[70vh] shadow-2xl"
+            />
+          </div>
+        )}
       </div>
 
       {/* Toolbar */}
-      <div className="absolute bottom-0 left-0 right-0 bg-zinc-900/50 backdrop-blur-xl border-t border-white/10">
-        <div className="flex items-center justify-center gap-4 p-6">
-          <button
-            onClick={rotateLeft}
-            className="flex flex-col items-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
-            title="Rotate Left"
-          >
-            <RotateCcw className="w-6 h-6" />
-            <span className="text-xs">Rotate Left</span>
-          </button>
+      <div className="z-10 bg-zinc-900/50 backdrop-blur-xl border-t border-white/10 p-6">
+        <div className="max-w-xl mx-auto flex flex-col gap-6">
+          {isCropping && (
+            <div className="flex items-center gap-4 text-white">
+              <Minimize2 className="w-4 h-4 text-white/50" />
+              <input
+                type="range"
+                value={zoom}
+                min={1}
+                max={3}
+                step={0.1}
+                aria-labelledby="Zoom"
+                onChange={(e) => setZoom(Number(e.target.value))}
+                className="flex-1 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-rose-500"
+              />
+              <Maximize2 className="w-4 h-4 text-white/50" />
+            </div>
+          )}
 
-          <button
-            onClick={rotateRight}
-            className="flex flex-col items-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
-            title="Rotate Right"
-          >
-            <RotateCw className="w-6 h-6" />
-            <span className="text-xs">Rotate Right</span>
-          </button>
+          <div className="flex items-center justify-center gap-3 sm:gap-6">
+            <button
+              onClick={rotateLeft}
+              className="flex flex-col items-center gap-2 px-4 sm:px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+              title="Rotate Left"
+            >
+              <RotateCcw className="w-6 h-6" />
+              <span className="text-[10px] sm:text-xs">Rotate Left</span>
+            </button>
 
-          {/* Crop feature can be added here later */}
-          {/* <button
-            onClick={() => setIsCropping(!isCropping)}
-            className={`flex flex-col items-center gap-2 px-6 py-3 rounded-xl transition-colors ${
-              isCropping
-                ? "bg-rose-500 text-white"
-                : "bg-white/10 hover:bg-white/20 text-white"
-            }`}
-            title="Crop"
-          >
-            <Crop className="w-6 h-6" />
-            <span className="text-xs">Crop</span>
-          </button> */}
+            <button
+              onClick={() => setIsCropping(!isCropping)}
+              className={`flex flex-col items-center gap-2 px-8 sm:px-12 py-3 rounded-xl transition-all duration-300 border-2 ${
+                isCropping
+                  ? "bg-rose-500 border-rose-400 text-white scale-110 shadow-lg shadow-rose-500/20"
+                  : "bg-white/10 border-transparent hover:bg-white/20 text-white"
+              }`}
+              title="Crop"
+            >
+              <Crop className="w-6 h-6" />
+              <span className="text-[10px] sm:text-xs font-medium">
+                {isCropping ? "Done Cropping" : "Crop"}
+              </span>
+            </button>
+
+            <button
+              onClick={rotateRight}
+              className="flex flex-col items-center gap-2 px-4 sm:px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+              title="Rotate Right"
+            >
+              <RotateCw className="w-6 h-6" />
+              <span className="text-[10px] sm:text-xs">Rotate Right</span>
+            </button>
+          </div>
         </div>
       </div>
-
-      <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 }

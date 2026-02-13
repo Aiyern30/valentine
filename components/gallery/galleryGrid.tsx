@@ -18,6 +18,8 @@ import { PhotoViewer } from "./photoViewer";
 import { UploadPhotoDialog } from "./uploadPhotoDialog";
 import { DateFilter, type DateFilter as DateFilterType } from "./dateFilter";
 import { ImageEditor } from "./imageEditor";
+import { useRouter } from "next/navigation";
+import { updatePhotoImage } from "@/lib/actions";
 
 interface Photo {
   id: string;
@@ -39,6 +41,7 @@ interface GalleryGridProps {
 }
 
 export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
+  const router = useRouter();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -47,6 +50,19 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
   const [dateFilter, setDateFilter] = useState<DateFilterType>({ type: "all" });
+
+  const handleImageSave = async (blob: Blob) => {
+    if (!selectedPhoto) return;
+
+    const result = await updatePhotoImage(selectedPhoto.id, blob);
+    if (result.success) {
+      router.refresh();
+      setEditorOpen(false);
+      setSelectedPhoto(null);
+    } else {
+      alert(result.error || "Failed to save image");
+    }
+  };
 
   // Filter photos by date
   const filteredPhotos = useMemo(() => {
@@ -227,6 +243,7 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
             setSelectedPhoto(null);
           }}
           imageUrl={selectedPhoto.photo_url}
+          onSave={handleImageSave}
         />
       )}
 
