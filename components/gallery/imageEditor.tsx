@@ -1,19 +1,17 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
-import Image from "next/image";
+import { useState, useRef } from "react";
 import {
   X,
   RotateCw,
   RotateCcw,
-  Crop,
+  Crop as CropIcon,
   Check,
   Download,
   Loader2,
-  Maximize2,
-  Minimize2,
 } from "lucide-react";
-import Cropper, { Area, Point } from "react-easy-crop";
+import ReactCrop, { type Crop, PixelCrop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 import getCroppedImg from "@/lib/crop-utils";
 
 interface ImageEditorProps {
@@ -30,15 +28,11 @@ export function ImageEditor({
   onSave,
 }: ImageEditorProps) {
   const [rotation, setRotation] = useState(0);
-  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [isCropping, setIsCropping] = useState(false);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-
-  const onCropComplete = useCallback((_sharedArea: Area, _pixelCrop: Area) => {
-    setCroppedAreaPixels(_pixelCrop);
-  }, []);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   if (!isOpen) return null;
 
@@ -91,12 +85,8 @@ export function ImageEditor({
   };
 
   const applyEdits = async (): Promise<Blob | null> => {
-    // If we're not cropping, we still need to apply rotation at least
-    // We can use getCroppedImg with the full image size if croppedAreaPixels is null
-
-    // However, it's easier to just always use it if we have it
-    if (croppedAreaPixels) {
-      return getCroppedImg(imageUrl, croppedAreaPixels, rotation);
+    if (completedCrop && imgRef.current) {
+      return getCroppedImg(imageUrl, completedCrop, rotation);
     }
 
     // fallback logic to just rotate if no crop was made
@@ -193,60 +183,44 @@ export function ImageEditor({
       </div>
 
       {/* Main Area */}
-      <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
-        {isCropping ? (
-          <div className="absolute inset-0">
-            <Cropper
-              image={imageUrl}
+      <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center p-4">
+        <div className="relative max-h-full max-w-full flex items-center justify-center">
+          {isCropping ? (
+            <ReactCrop
               crop={crop}
-              zoom={zoom}
-              rotation={rotation}
-              aspect={undefined}
-              onCropChange={setCrop}
-              onCropComplete={onCropComplete}
-              onZoomChange={setZoom}
-              classes={{
-                containerClassName: "bg-black",
-                mediaClassName: "max-h-[70vh]",
-              }}
-            />
-          </div>
-        ) : (
-          <div
-            className="relative max-w-4xl max-h-full transition-transform duration-300"
-            style={{ transform: `rotate(${rotation}deg)` }}
-          >
-            <Image
-              src={imageUrl}
-              alt="Edit preview"
-              width={800}
-              height={600}
-              className="object-contain max-h-[70vh] shadow-2xl"
-            />
-          </div>
-        )}
+              onChange={(c) => setCrop(c)}
+              onComplete={(c) => setCompletedCrop(c)}
+              className="max-h-full"
+            >
+              <img
+                ref={imgRef}
+                src={imageUrl}
+                alt="Edit preview"
+                className="max-h-[70vh] object-contain"
+                crossOrigin="anonymous"
+                style={{ transform: `rotate(${rotation}deg)` }}
+              />
+            </ReactCrop>
+          ) : (
+            <div
+              className="relative transition-transform duration-300"
+              style={{ transform: `rotate(${rotation}deg)` }}
+            >
+              <img
+                ref={imgRef}
+                src={imageUrl}
+                alt="Edit preview"
+                className="max-h-[70vh] object-contain shadow-2xl"
+                crossOrigin="anonymous"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Toolbar */}
-      <div className="z-10 bg-zinc-900/50 backdrop-blur-xl border-t border-white/10 p-6">
+      <div className="z-10 bg-zinc-900/50 backdrop-blur-xl border-t border-white/10 p-4 sm:p-6 shrink-0">
         <div className="max-w-xl mx-auto flex flex-col gap-6">
-          {isCropping && (
-            <div className="flex items-center gap-4 text-white">
-              <Minimize2 className="w-4 h-4 text-white/50" />
-              <input
-                type="range"
-                value={zoom}
-                min={1}
-                max={3}
-                step={0.1}
-                aria-labelledby="Zoom"
-                onChange={(e) => setZoom(Number(e.target.value))}
-                className="flex-1 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-rose-500"
-              />
-              <Maximize2 className="w-4 h-4 text-white/50" />
-            </div>
-          )}
-
           <div className="flex items-center justify-center gap-3 sm:gap-6">
             <button
               onClick={rotateLeft}
@@ -266,7 +240,7 @@ export function ImageEditor({
               }`}
               title="Crop"
             >
-              <Crop className="w-6 h-6" />
+              <CropIcon className="w-6 h-6" />
               <span className="text-[10px] sm:text-xs font-medium">
                 {isCropping ? "Done Cropping" : "Crop"}
               </span>

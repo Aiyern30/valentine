@@ -356,10 +356,10 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
       return { error: "Photo ID is required" };
     }
 
-    // Get current photo to get the storage path
+    // Get current photo to get the storage path and info
     const { data: photo, error: fetchError } = await supabase
       .from("photos")
-      .select("photo_url, uploaded_by")
+      .select("photo_url, uploaded_by, relationship_id, caption, taken_date")
       .eq("id", photoId)
       .single();
 
@@ -371,8 +371,9 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
       return { error: "Unauthorized" };
     }
 
-    // Extract storage path from URL
-    const urlParts = photo.photo_url.split("/photos/");
+    // Extract storage path from URL (remove query params if any)
+    const baseUrl = photo.photo_url.split("?")[0];
+    const urlParts = baseUrl.split("/photos/");
     const oldPath = urlParts[1];
 
     if (!oldPath) {
@@ -386,7 +387,7 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     const { error: uploadError } = await supabase.storage
       .from("photos")
       .upload(oldPath, file, {
-        cacheControl: "0", // No cache to see changes immediately
+        cacheControl: "0",
         upsert: true,
       });
 
@@ -394,6 +395,13 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
       console.error("Error uploading edited file:", uploadError);
       return { error: "Failed to upload edited photo. Please try again." };
     }
+
+    // Update the database record with a cache-busting timestamp
+    const newUrl = `${baseUrl}?v=${Date.now()}`;
+    await supabase
+      .from("photos")
+      .update({ photo_url: newUrl })
+      .eq("id", photoId);
 
     // Refresh database record just in case
     revalidatePath("/gallery");
