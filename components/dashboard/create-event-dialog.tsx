@@ -16,6 +16,7 @@ import {
 interface CreateEventDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  selectedDate?: Date | null;
 }
 
 const EVENT_TYPES = [
@@ -25,7 +26,7 @@ const EVENT_TYPES = [
   { id: "other", label: "Other", icon: Calendar },
 ];
 
-export function CreateEventDialog({ isOpen, onClose }: CreateEventDialogProps) {
+export function CreateEventDialog({ isOpen, onClose, selectedDate }: CreateEventDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState(EVENT_TYPES[0].id);
@@ -109,6 +110,7 @@ export function CreateEventDialog({ isOpen, onClose }: CreateEventDialogProps) {
                 name="date"
                 type="date"
                 required
+                defaultValue={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
                 className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
               />
             </div>

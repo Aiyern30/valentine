@@ -7,6 +7,7 @@ import { enUS } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useState } from "react";
 import { Heart, Gift, Calendar as CalendarIcon, Star } from "lucide-react";
+import { CreateEventDialog } from "@/components/dashboard/create-event-dialog";
 
 const locales = {
   "en-US": enUS,
@@ -34,6 +35,8 @@ interface MilestoneCalendarProps {
 
 export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
   const [view, setView] = useState<View>("month");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Transform milestones into calendar events
   const events = milestones.map((milestone) => ({
@@ -99,6 +102,12 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
       <span className="truncate">{event.title}</span>
     </div>
   );
+
+  // Handle slot selection (clicking on empty calendar slots)
+  const handleSelectSlot = ({ start }: { start: Date; end: Date }) => {
+    setSelectedDate(start);
+    setIsCreateDialogOpen(true);
+  };
 
   return (
     <div className="milestone-calendar">
@@ -258,6 +267,14 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
         tooltipAccessor={(event: any) =>
           event.resource.description || event.title
         }
+        onSelectSlot={handleSelectSlot}
+        selectable
+      />
+      
+      <CreateEventDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        selectedDate={selectedDate}
       />
     </div>
   );
