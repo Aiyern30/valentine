@@ -105,7 +105,7 @@ export async function createMilestone(formData: FormData) {
   const title = formData.get("title") as string;
   const date = formData.get("date") as string;
   const endDate = formData.get("endDate") as string | null;
-  const type = formData.get("type") as string;
+  const type = formData.get("milestone_type") as string;
   const description = formData.get("description") as string | null;
   const reminderType = formData.get("reminderType") as string;
   const reminderTime = formData.get("reminderTime") as string | null;
@@ -123,14 +123,8 @@ export async function createMilestone(formData: FormData) {
       created_by: user.id,
       title,
       milestone_date: date,
-      end_date: endDate || null,
       milestone_type: type || "other",
       description: description || null,
-      reminder_type: reminderType || "none",
-      reminder_time: reminderTime || null,
-      advance_days: advanceDays ? parseInt(advanceDays) : null,
-      advance_hours: advanceHours ? parseInt(advanceHours) : null,
-      advance_minutes: advanceMinutes ? parseInt(advanceMinutes) : null,
     })
     .select()
     .single();
@@ -145,6 +139,80 @@ export async function createMilestone(formData: FormData) {
   revalidatePath("/dashboard");
   revalidatePath("/milestones");
   return { success: true };
+}
+
+export async function updateMilestone(formData: FormData) {
+  const supabase = await createClient();
+  try {
+    const id = formData.get("id") as string;
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+    const date = formData.get("date") as string;
+    const endDate = formData.get("endDate") as string;
+    const type = formData.get("milestone_type") as string;
+    const reminderType = formData.get("reminderType") as string;
+    const reminderTime = formData.get("reminderTime") as string;
+    const advanceDays = formData.get("advanceDays") as string;
+    const advanceHours = formData.get("advanceHours") as string;
+    const advanceMinutes = formData.get("advanceMinutes") as string;
+
+    // Validate required fields
+    if (!id || !title || !date) {
+      return { error: "Missing required fields" };
+    }
+
+    // Your database update logic here
+    // Example with Supabase:
+
+    const { error } = await supabase
+      .from("milestones")
+      .update({
+        title,
+        description: description || null,
+        milestone_date: date,
+        milestone_type: type,
+      })
+      .eq("id", id);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    // Revalidate the page to show updated data
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating milestone:", error);
+    return { error: "Failed to update milestone" };
+  }
+}
+
+// Delete milestone
+export async function deleteMilestone(id: string) {
+  const supabase = await createClient();
+
+  try {
+    if (!id) {
+      return { error: "Milestone ID is required" };
+    }
+
+    // Your database delete logic here
+    // Example with Supabase:
+    const { error } = await supabase.from("milestones").delete().eq("id", id);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    // Revalidate the page to show updated data
+    revalidatePath("/dashboard");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting milestone:", error);
+    return { error: "Failed to delete milestone" };
+  }
 }
 
 export async function setAnniversary(formData: FormData) {

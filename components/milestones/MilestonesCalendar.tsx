@@ -8,6 +8,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useState } from "react";
 import { Heart, Gift, Calendar as CalendarIcon, Star } from "lucide-react";
 import { CreateEventDialog } from "@/components/dashboard/create-event-dialog";
+import { EditEventDialog } from "@/components/dashboard/edit-event-dialog";
 
 const locales = {
   "en-US": enUS,
@@ -26,8 +27,14 @@ interface Milestone {
   title: string;
   description?: string;
   milestone_date: string;
-  end_date?: string; // Add support for end date
+  end_date?: string;
+  milestone_type: string;
   category?: string;
+  reminder_type?: string;
+  reminder_time?: string;
+  advance_days?: number;
+  advance_hours?: number;
+  advance_minutes?: number;
 }
 
 interface MilestoneCalendarProps {
@@ -37,7 +44,11 @@ interface MilestoneCalendarProps {
 export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
   const [view, setView] = useState<View>("month");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
+    null,
+  );
 
   // Transform milestones into calendar events
   const events = milestones.map((milestone) => {
@@ -61,14 +72,17 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
     };
   });
 
-  // Get icon based on category
-  const getCategoryIcon = (category?: string) => {
-    switch (category?.toLowerCase()) {
+  // Get icon based on type or category
+  const getCategoryIcon = (type?: string, category?: string) => {
+    const typeOrCategory = (type || category || "").toLowerCase();
+
+    switch (typeOrCategory) {
       case "anniversary":
         return <Heart className="w-3 h-3" />;
       case "birthday":
         return <Gift className="w-3 h-3" />;
       case "date":
+      case "countdown":
         return <CalendarIcon className="w-3 h-3" />;
       default:
         return <Star className="w-3 h-3" />;
@@ -77,20 +91,26 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
 
   // Custom event styling
   const eventStyleGetter = (event: any) => {
-    const category = event.resource.category?.toLowerCase();
+    const type = (
+      event.resource.milestone_type ||
+      event.resource.category ||
+      ""
+    ).toLowerCase();
     let backgroundColor = "#ec4899"; // Default rose-500
 
-    switch (category) {
+    switch (type) {
       case "anniversary":
         backgroundColor = "#ef4444"; // red-500
         break;
       case "birthday":
         backgroundColor = "#8b5cf6"; // purple-500
         break;
+      case "countdown":
       case "date":
         backgroundColor = "#3b82f6"; // blue-500
         break;
       case "achievement":
+      case "other":
         backgroundColor = "#10b981"; // green-500
         break;
     }
@@ -112,10 +132,16 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
   // Custom event component
   const EventComponent = ({ event }: any) => (
     <div className="flex items-center gap-1 px-1">
-      {getCategoryIcon(event.resource.category)}
+      {getCategoryIcon(event.resource.milestone_type, event.resource.category)}
       <span className="truncate">{event.title}</span>
     </div>
   );
+
+  // Handle event click (open edit dialog)
+  const handleSelectEvent = (event: any) => {
+    setSelectedMilestone(event.resource);
+    setIsEditDialogOpen(true);
+  };
 
   // Handle slot selection (clicking on empty calendar slots)
   const handleSelectSlot = ({ start }: { start: Date; end: Date }) => {
@@ -199,10 +225,25 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
 
         .rbc-event {
           padding: 2px 6px;
+          cursor: pointer;
+        }
+
+        .rbc-event:hover {
+          opacity: 1;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
 
         .rbc-event:focus {
           outline: 2px solid rgb(244 63 94);
+        }
+
+        /* Allow multiple events to stack vertically */
+        .rbc-row-segment {
+          padding: 1px 2px;
+        }
+
+        .rbc-event-label {
+          font-size: 0.75rem;
         }
 
         .rbc-toolbar {
@@ -264,6 +305,31 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
         .dark .rbc-toolbar-label {
           color: rgb(243 244 246);
         }
+
+        /* Show more link styling */
+        .rbc-show-more {
+          background-color: rgba(244, 63, 94, 0.1);
+          color: rgb(244 63 94);
+          font-weight: 600;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .rbc-show-more:hover {
+          background-color: rgba(244, 63, 94, 0.2);
+        }
+
+        .dark .rbc-show-more {
+          background-color: rgba(244, 63, 94, 0.2);
+          color: rgb(251, 113, 133);
+        }
+
+        .dark .rbc-show-more:hover {
+          background-color: rgba(244, 63, 94, 0.3);
+        }
       `}</style>
 
       <Calendar
@@ -282,13 +348,26 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
           event.resource.description || event.title
         }
         onSelectSlot={handleSelectSlot}
+        onSelectEvent={handleSelectEvent}
         selectable
       />
 
       <CreateEventDialog
         isOpen={isCreateDialogOpen}
-        onClose={() => setIsCreateDialogOpen(false)}
+        onClose={() => {
+          setIsCreateDialogOpen(false);
+          setSelectedDate(null);
+        }}
         selectedDate={selectedDate}
+      />
+
+      <EditEventDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setSelectedMilestone(null);
+        }}
+        milestone={selectedMilestone}
       />
     </div>
   );
