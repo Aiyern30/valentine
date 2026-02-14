@@ -102,10 +102,16 @@ export function CreateEventDialog({
 
       // Add dates to formData
       if (startDate) {
-        formData.set("date", startDate.toISOString().split("T")[0]);
+        const year = startDate.getFullYear();
+        const month = String(startDate.getMonth() + 1).padStart(2, "0");
+        const day = String(startDate.getDate()).padStart(2, "0");
+        formData.set("date", `${year}-${month}-${day}`);
       }
       if (endDate && selectedType === "other") {
-        formData.set("endDate", endDate.toISOString().split("T")[0]);
+        const year = endDate.getFullYear();
+        const month = String(endDate.getMonth() + 1).padStart(2, "0");
+        const day = String(endDate.getDate()).padStart(2, "0");
+        formData.set("endDate", `${year}-${month}-${day}`);
       }
 
       const result = await createMilestone(formData);
@@ -212,7 +218,11 @@ export function CreateEventDialog({
                   Type
                 </label>
                 <div className="relative">
-                  <input type="hidden" name="milestone_type" value={selectedType} />
+                  <input
+                    type="hidden"
+                    name="milestone_type"
+                    value={selectedType}
+                  />
                   <button
                     type="button"
                     onClick={() => setIsSelectOpen(!isSelectOpen)}

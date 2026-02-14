@@ -123,8 +123,14 @@ export async function createMilestone(formData: FormData) {
       created_by: user.id,
       title,
       milestone_date: date,
+      end_date: endDate || null,
       milestone_type: type || "other",
       description: description || null,
+      reminder_type: reminderType || "none",
+      reminder_time: reminderType === "day_of" ? reminderTime : null,
+      advance_days: reminderType === "in_advance" ? parseInt(advanceDays || "0") : null,
+      advance_hours: reminderType === "in_advance" ? parseInt(advanceHours || "0") : null,
+      advance_minutes: reminderType === "in_advance" ? parseInt(advanceMinutes || "0") : null,
     })
     .select()
     .single();
@@ -148,21 +154,18 @@ export async function updateMilestone(formData: FormData) {
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;
     const date = formData.get("date") as string;
-    const endDate = formData.get("endDate") as string;
+    const endDate = formData.get("endDate") as string | null;
     const type = formData.get("milestone_type") as string;
     const reminderType = formData.get("reminderType") as string;
-    const reminderTime = formData.get("reminderTime") as string;
-    const advanceDays = formData.get("advanceDays") as string;
-    const advanceHours = formData.get("advanceHours") as string;
-    const advanceMinutes = formData.get("advanceMinutes") as string;
+    const reminderTime = formData.get("reminderTime") as string | null;
+    const advanceDays = formData.get("advanceDays") as string | null;
+    const advanceHours = formData.get("advanceHours") as string | null;
+    const advanceMinutes = formData.get("advanceMinutes") as string | null;
 
     // Validate required fields
     if (!id || !title || !date) {
       return { error: "Missing required fields" };
     }
-
-    // Your database update logic here
-    // Example with Supabase:
 
     const { error } = await supabase
       .from("milestones")
@@ -170,7 +173,13 @@ export async function updateMilestone(formData: FormData) {
         title,
         description: description || null,
         milestone_date: date,
+        end_date: endDate || null,
         milestone_type: type,
+        reminder_type: reminderType || "none",
+        reminder_time: reminderType === "day_of" ? reminderTime : null,
+        advance_days: reminderType === "in_advance" ? parseInt(advanceDays || "0") : null,
+        advance_hours: reminderType === "in_advance" ? parseInt(advanceHours || "0") : null,
+        advance_minutes: reminderType === "in_advance" ? parseInt(advanceMinutes || "0") : null,
       })
       .eq("id", id);
 

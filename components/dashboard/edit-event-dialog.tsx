@@ -77,18 +77,7 @@ export function EditEventDialog({
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState(EVENT_TYPES[0].id);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
-  const [selectedReminder, setSelectedReminder] = useState(
-    REMINDER_TYPES[0].id,
-  );
-  const [isReminderSelectOpen, setIsReminderSelectOpen] = useState(false);
   const [startDate, setStartDate] = useState<Date | null>(new Date());
-  const [endDate, setEndDate] = useState<Date | null>(null);
-  const [selectedDays, setSelectedDays] = useState("1");
-  const [selectedHours, setSelectedHours] = useState("0");
-  const [selectedMinutes, setSelectedMinutes] = useState("0");
-  const [isDaysOpen, setIsDaysOpen] = useState(false);
-  const [isHoursOpen, setIsHoursOpen] = useState(false);
-  const [isMinutesOpen, setIsMinutesOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const router = useRouter();
@@ -100,11 +89,6 @@ export function EditEventDialog({
       setDescription(milestone.description || "");
       setSelectedType(milestone.milestone_type || "birthday");
       setStartDate(new Date(milestone.milestone_date));
-      setEndDate(milestone.end_date ? new Date(milestone.end_date) : null);
-      setSelectedReminder(milestone.reminder_type || "none");
-      setSelectedDays(milestone.advance_days?.toString() || "1");
-      setSelectedHours(milestone.advance_hours?.toString() || "0");
-      setSelectedMinutes(milestone.advance_minutes?.toString() || "0");
     }
   }, [milestone]);
 
@@ -112,22 +96,20 @@ export function EditEventDialog({
 
   const currentType =
     EVENT_TYPES.find((t) => t.id === selectedType) || EVENT_TYPES[0];
-  const currentReminder =
-    REMINDER_TYPES.find((r) => r.id === selectedReminder) || REMINDER_TYPES[0];
 
   async function handleSubmit(formData: FormData) {
     if (!milestone) return;
-    
+
     try {
       setIsLoading(true);
       setError(null);
 
       // Add dates to formData
       if (startDate) {
-        formData.set("date", startDate.toISOString().split("T")[0]);
-      }
-      if (endDate && selectedType === "other") {
-        formData.set("endDate", endDate.toISOString().split("T")[0]);
+        const year = startDate.getFullYear();
+        const month = String(startDate.getMonth() + 1).padStart(2, '0');
+        const day = String(startDate.getDate()).padStart(2, '0');
+        formData.set("date", `${year}-${month}-${day}`);
       }
 
       formData.set("id", milestone.id);
@@ -148,7 +130,10 @@ export function EditEventDialog({
   }
 
   async function handleDelete() {
-    if (!milestone || !confirm("Are you sure you want to delete this milestone?")) {
+    if (
+      !milestone ||
+      !confirm("Are you sure you want to delete this milestone?")
+    ) {
       return;
     }
 
@@ -217,7 +202,7 @@ export function EditEventDialog({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-                  {selectedType === "other" ? "Start Date" : "Date"}
+                  Date
                 </label>
                 <div className="custom-datepicker-wrapper">
                   <DatePicker
@@ -233,32 +218,16 @@ export function EditEventDialog({
                 </div>
               </div>
 
-              {selectedType === "other" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-                    End Date (Optional)
-                  </label>
-                  <div className="custom-datepicker-wrapper">
-                    <DatePicker
-                      selected={endDate}
-                      onChange={(date: Date | null) => setEndDate(date)}
-                      dateFormat="MM/dd/yyyy"
-                      minDate={startDate || undefined}
-                      className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
-                      calendarClassName="custom-calendar"
-                      showPopperArrow={false}
-                      popperPlacement="bottom-start"
-                    />
-                  </div>
-                </div>
-              )}
-
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
                   Type
                 </label>
                 <div className="relative">
-                  <input type="hidden" name="milestone_type" value={selectedType} />
+                  <input
+                    type="hidden"
+                    name="milestone_type"
+                    value={selectedType}
+                  />
                   <button
                     type="button"
                     onClick={() => setIsSelectOpen(!isSelectOpen)}
@@ -331,19 +300,8 @@ export function EditEventDialog({
               />
             </div>
 
-            {/* Reminder Section - Same as Create Dialog */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1 flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-gray-400" />
-                  Reminder
-                </label>
-                <div className="relative">
-                  <input
-                    type="hidden"
-                    name="reminderType"
-                    value={selectedReminder}
-                  />
+            <div className="pt-6 flex items-center justify-between">"
+
                   <button
                     type="button"
                     onClick={() =>
