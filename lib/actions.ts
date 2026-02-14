@@ -128,9 +128,12 @@ export async function createMilestone(formData: FormData) {
       description: description || null,
       reminder_type: reminderType || "none",
       reminder_time: reminderType === "day_of" ? reminderTime : null,
-      advance_days: reminderType === "in_advance" ? parseInt(advanceDays || "0") : null,
-      advance_hours: reminderType === "in_advance" ? parseInt(advanceHours || "0") : null,
-      advance_minutes: reminderType === "in_advance" ? parseInt(advanceMinutes || "0") : null,
+      advance_days:
+        reminderType === "in_advance" ? parseInt(advanceDays || "0") : null,
+      advance_hours:
+        reminderType === "in_advance" ? parseInt(advanceHours || "0") : null,
+      advance_minutes:
+        reminderType === "in_advance" ? parseInt(advanceMinutes || "0") : null,
     })
     .select()
     .single();
@@ -177,9 +180,14 @@ export async function updateMilestone(formData: FormData) {
         milestone_type: type,
         reminder_type: reminderType || "none",
         reminder_time: reminderType === "day_of" ? reminderTime : null,
-        advance_days: reminderType === "in_advance" ? parseInt(advanceDays || "0") : null,
-        advance_hours: reminderType === "in_advance" ? parseInt(advanceHours || "0") : null,
-        advance_minutes: reminderType === "in_advance" ? parseInt(advanceMinutes || "0") : null,
+        advance_days:
+          reminderType === "in_advance" ? parseInt(advanceDays || "0") : null,
+        advance_hours:
+          reminderType === "in_advance" ? parseInt(advanceHours || "0") : null,
+        advance_minutes:
+          reminderType === "in_advance"
+            ? parseInt(advanceMinutes || "0")
+            : null,
       })
       .eq("id", id);
 

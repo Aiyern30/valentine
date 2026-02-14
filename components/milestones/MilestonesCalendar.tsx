@@ -361,14 +361,14 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
         selectedDate={selectedDate}
       />
 
-      {/* <EditEventDialog
+      <EditEventDialog
         isOpen={isEditDialogOpen}
         onClose={() => {
           setIsEditDialogOpen(false);
           setSelectedMilestone(null);
         }}
         milestone={selectedMilestone}
-      /> */}
+      />
     </div>
   );
 }
