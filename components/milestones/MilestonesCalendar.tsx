@@ -270,7 +270,7 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
         onSelectSlot={handleSelectSlot}
         selectable
       />
-      
+
       <CreateEventDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
