@@ -12,6 +12,7 @@ import {
 import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
 import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
 import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
+import Image from "next/image";
 
 // Type Definitions
 interface PagePhoto {
@@ -25,6 +26,7 @@ interface CategoryItem {
   url: string;
   title: string;
   date: string;
+  position?: "left" | "right";
 }
 
 interface Category {
@@ -907,6 +909,7 @@ export default function CondolenceForm() {
         )}
 
         {/* Step 3: Categories (Special Memories / Special Qualities) */}
+
         {currentStep === 3 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
             {wantsPhotos === null ? (
@@ -975,11 +978,11 @@ export default function CondolenceForm() {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {category.items.map((item, itemIndex) => (
                         <div
                           key={itemIndex}
-                          className="relative p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20 group"
+                          className="relative p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20 group hover:shadow-lg transition-shadow"
                         >
                           <button
                             onClick={() => {
@@ -989,103 +992,208 @@ export default function CondolenceForm() {
                               ].items.filter((_, i) => i !== itemIndex);
                               updateFormData("categories", newCategories);
                             }}
-                            className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors z-10"
+                            className="absolute top-3 right-3 p-1.5 bg-white dark:bg-zinc-800 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm z-10"
                           >
-                            <X size={18} />
+                            <X size={16} />
                           </button>
 
-                          <div className="space-y-4">
-                            <label className="block">
-                              <div
-                                className={`aspect-square rounded-xl border-2 border-dashed border-rose-200 dark:border-rose-800 flex flex-col items-center justify-center cursor-pointer hover:border-rose-400 transition-colors relative overflow-hidden ${item.url ? "border-none" : ""}`}
-                              >
-                                {item.url ? (
-                                  <>
-                                    <img
-                                      src={item.url}
-                                      alt="Detail"
-                                      className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                      <Upload
-                                        className="text-white"
-                                        size={24}
+                          {/* Layout: Image Left, Content Right */}
+                          <div className="flex gap-6">
+                            {/* Left: Image Upload */}
+                            <div className="shrink-0 w-48">
+                              <label className="block cursor-pointer">
+                                <div
+                                  className={`aspect-square rounded-xl border-2 border-dashed transition-all relative overflow-hidden ${
+                                    item.url
+                                      ? "border-transparent"
+                                      : "border-rose-200 dark:border-rose-800 hover:border-rose-400"
+                                  }`}
+                                >
+                                  {item.url ? (
+                                    <div className="relative w-full h-full group">
+                                      <Image
+                                        src={item.url}
+                                        alt={item.title || "Upload"}
+                                        fill
+                                        className="object-cover"
+                                        sizes="192px"
                                       />
+                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <div className="text-center">
+                                          <Upload
+                                            className="text-white mx-auto mb-1"
+                                            size={24}
+                                          />
+                                          <span className="text-xs text-white font-medium">
+                                            Change Photo
+                                          </span>
+                                        </div>
+                                      </div>
                                     </div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Upload
-                                      className="text-rose-300 mb-2"
-                                      size={24}
-                                    />
-                                    <span className="text-xs text-gray-400">
-                                      Upload Photo
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    const url = URL.createObjectURL(file);
+                                  ) : (
+                                    <div className="flex flex-col items-center justify-center h-full">
+                                      <Upload
+                                        className="text-rose-300 mb-2"
+                                        size={32}
+                                      />
+                                      <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                        Upload Photo
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const url = URL.createObjectURL(file);
+                                      const newCategories = [
+                                        ...formData.categories,
+                                      ];
+                                      newCategories[catIndex].items[itemIndex] =
+                                        {
+                                          ...newCategories[catIndex].items[
+                                            itemIndex
+                                          ],
+                                          file,
+                                          url,
+                                        };
+                                      updateFormData(
+                                        "categories",
+                                        newCategories,
+                                      );
+                                    }
+                                  }}
+                                />
+                              </label>
+
+                              {/* Photo Position Buttons - Below Image */}
+                              {item.url && (
+                                <div className="mt-3 space-y-2">
+                                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5">
+                                    Photo Position:
+                                  </p>
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newCategories = [
+                                          ...formData.categories,
+                                        ];
+                                        newCategories[catIndex].items[
+                                          itemIndex
+                                        ].position = "left";
+                                        updateFormData(
+                                          "categories",
+                                          newCategories,
+                                        );
+                                      }}
+                                      className={`flex-1 flex items-center justify-center w-12 h-10 rounded-lg text-sm font-bold transition-all ${
+                                        item.position === "left"
+                                          ? "bg-rose-500 text-white shadow-md"
+                                          : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-rose-300"
+                                      }`}
+                                    >
+                                      L
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newCategories = [
+                                          ...formData.categories,
+                                        ];
+                                        newCategories[catIndex].items[
+                                          itemIndex
+                                        ].position = "right";
+                                        updateFormData(
+                                          "categories",
+                                          newCategories,
+                                        );
+                                      }}
+                                      className={`flex-1 flex items-center justify-center w-12 h-10 rounded-lg text-sm font-bold transition-all ${
+                                        item.position === "right"
+                                          ? "bg-rose-500 text-white shadow-md"
+                                          : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-rose-300"
+                                      }`}
+                                    >
+                                      R
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Right: Form Fields */}
+                            <div className="flex-1 space-y-4">
+                              <div>
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                  Title
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. Our First Date"
+                                  value={item.title}
+                                  onChange={(e) => {
                                     const newCategories = [
                                       ...formData.categories,
                                     ];
-                                    newCategories[catIndex].items[itemIndex] = {
-                                      ...newCategories[catIndex].items[
-                                        itemIndex
-                                      ],
-                                      file,
-                                      url,
-                                    };
+                                    newCategories[catIndex].items[
+                                      itemIndex
+                                    ].title = e.target.value;
                                     updateFormData("categories", newCategories);
+                                  }}
+                                  className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                  {category.id === "memories"
+                                    ? "Date / Occasion"
+                                    : "Description"}
+                                </label>
+                                <textarea
+                                  placeholder={
+                                    category.id === "memories"
+                                      ? "e.g. Summer 2023, at the beach"
+                                      : "e.g. Always makes me laugh"
                                   }
-                                }}
-                              />
-                            </label>
-
-                            <input
-                              type="text"
-                              placeholder="Title"
-                              value={item.title}
-                              onChange={(e) => {
-                                const newCategories = [...formData.categories];
-                                newCategories[catIndex].items[itemIndex].title =
-                                  e.target.value;
-                                updateFormData("categories", newCategories);
-                              }}
-                              className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                            />
-
-                            <input
-                              type="text"
-                              placeholder={
-                                category.id === "memories"
-                                  ? "Date (e.g. Summer 2023)"
-                                  : "Description"
-                              }
-                              value={item.date}
-                              onChange={(e) => {
-                                const newCategories = [...formData.categories];
-                                newCategories[catIndex].items[itemIndex].date =
-                                  e.target.value;
-                                updateFormData("categories", newCategories);
-                              }}
-                              className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                            />
+                                  value={item.date}
+                                  onChange={(e) => {
+                                    const newCategories = [
+                                      ...formData.categories,
+                                    ];
+                                    newCategories[catIndex].items[
+                                      itemIndex
+                                    ].date = e.target.value;
+                                    updateFormData("categories", newCategories);
+                                  }}
+                                  rows={4}
+                                  className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all resize-none"
+                                />
+                              </div>
+                            </div>
                           </div>
                         </div>
                       ))}
 
                       {category.items.length === 0 && (
-                        <div className="col-span-full py-8 text-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-zinc-800 rounded-2xl">
-                          <p className="text-sm italic">
-                            No items added to {category.name} yet.
+                        <div className="col-span-full py-12 text-center">
+                          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-zinc-800 mb-4">
+                            {category.id === "memories" ? (
+                              <Heart className="text-gray-400" size={24} />
+                            ) : (
+                              <Sparkles className="text-gray-400" size={24} />
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                            No items added to {category.name} yet
+                          </p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                            Click "Add to {category.name}" to get started
                           </p>
                         </div>
                       )}
@@ -1093,13 +1201,13 @@ export default function CondolenceForm() {
                   </div>
                 ))}
 
-                <div className="flex justify-end pt-4 border-t border-rose-100 dark:border-rose-900/20">
+                <div className="flex justify-end pt-6 border-t border-rose-100 dark:border-rose-900/20">
                   <button
                     onClick={() => {
                       setCurrentStep(4);
                       setWantsPhotos(null);
                     }}
-                    className="px-8 py-3 bg-linear-to-r from-rose-500 to-pink-500 text-white rounded-full font-medium shadow-lg hover:shadow-rose-300 dark:hover:shadow-rose-900/30 transition-all font-serif"
+                    className="px-8 py-3 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-full font-medium shadow-lg hover:shadow-xl hover:shadow-rose-300/50 dark:hover:shadow-rose-900/30 transition-all transform hover:scale-105 active:scale-95"
                   >
                     Save & Preview Design
                   </button>
