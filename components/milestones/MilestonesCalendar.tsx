@@ -96,7 +96,7 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
       event.resource.category ||
       ""
     ).toLowerCase();
-    
+
     let backgroundColor = "#ec4899"; // Default rose-500
     let borderColor = "#be185d"; // Default rose-700
 
@@ -131,7 +131,8 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
         display: "block",
         fontSize: "0.875rem",
         fontWeight: "600",
-        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        boxShadow:
+          "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
       },
     };
   };
