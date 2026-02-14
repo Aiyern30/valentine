@@ -36,7 +36,10 @@ export default async function DashboardPage() {
   if (!profileComplete) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
-        <ProfileCompletionDialog userId={user.id} userEmail={user.email || ""} />
+        <ProfileCompletionDialog
+          userId={user.id}
+          userEmail={user.email || ""}
+        />
       </div>
     );
   }
@@ -46,7 +49,9 @@ export default async function DashboardPage() {
 
   const milestones = await getMilestonesByUser(user.id, 5);
 
-  const recentPhotos = relationship ? await getRecentPhotos(relationship.id) : [];
+  const recentPhotos = relationship
+    ? await getRecentPhotos(relationship.id)
+    : [];
 
   // Determine partner info
   const partner = relationship
@@ -60,7 +65,8 @@ export default async function DashboardPage() {
     profile?.display_name ||
     user.user_metadata?.full_name ||
     user.email?.split("@")[0];
-  const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || null;
+  const avatarUrl =
+    profile?.avatar_url || user.user_metadata?.avatar_url || null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -113,7 +119,10 @@ export default async function DashboardPage() {
           <UpcomingEvents milestones={milestones} />
 
           {/* Recent Memories */}
-          <RecentMemoriesSection photos={recentPhotos} currentUserId={user.id} />
+          <RecentMemoriesSection
+            photos={recentPhotos}
+            currentUserId={user.id}
+          />
         </div>
 
         {/* Right: Sidebar / Status */}
@@ -142,7 +151,9 @@ export default async function DashboardPage() {
                     <p className="font-semibold text-lg">
                       {partner?.display_name || "My Love"}
                     </p>
-                    <p className="text-indigo-100 text-sm">loves you very much</p>
+                    <p className="text-indigo-100 text-sm">
+                      loves you very much
+                    </p>
                   </div>
                 </div>
               </div>
