@@ -5,20 +5,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home,
-  Calendar,
   Image,
   Heart,
   MessageCircle,
   BookOpen,
   Menu,
-  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Calendar", href: "/dashboard/calendar", icon: Calendar },
   { name: "Gallery", href: "/gallery", icon: Image },
   { name: "Milestones", href: "/milestones", icon: Heart },
   { name: "Confessions", href: "/confessions", icon: MessageCircle },
@@ -98,14 +95,14 @@ function SidebarContent({
 }
 
 export function NavigationSidebar({ children }: NavigationSidebarProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   return (
     <>
       {/* Mobile menu button */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Drawer open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <Drawer open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <DrawerTrigger asChild>
             <button className="p-2 rounded-lg bg-white dark:bg-zinc-800 shadow-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors">
               <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
@@ -115,50 +112,25 @@ export function NavigationSidebar({ children }: NavigationSidebarProps) {
             <SidebarContent
               mobile
               pathname={pathname}
-              setSidebarOpen={setSidebarOpen}
+              setSidebarOpen={setMobileMenuOpen}
             />
           </DrawerContent>
         </Drawer>
       </div>
 
       <div className="lg:flex lg:min-h-screen">
-        {/* Desktop sidebar */}
-        <div
-          className={cn(
-            "hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:z-40 lg:w-64 transition-all duration-300 ease-in-out",
-            sidebarOpen ? "lg:translate-x-0" : "lg:-translate-x-48",
-          )}
-        >
+        {/* Desktop sidebar - always visible */}
+        <div className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:z-40 lg:w-64">
           <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 shadow-sm">
             <SidebarContent
               pathname={pathname}
-              setSidebarOpen={setSidebarOpen}
+              setSidebarOpen={setMobileMenuOpen}
             />
           </div>
         </div>
 
-        {/* Desktop sidebar toggle */}
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className={cn(
-            "hidden lg:flex lg:fixed lg:top-4 lg:z-50 p-2 rounded-lg bg-white dark:bg-zinc-800 shadow-lg border border-gray-200 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all duration-300",
-            sidebarOpen ? "lg:left-60" : "lg:left-4",
-          )}
-        >
-          {sidebarOpen ? (
-            <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-          ) : (
-            <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-          )}
-        </button>
-
         {/* Main content */}
-        <div
-          className={cn(
-            "flex flex-1 flex-col lg:transition-all lg:duration-300 lg:ease-in-out",
-            sidebarOpen ? "lg:ml-64" : "lg:ml-16",
-          )}
-        >
+        <div className="flex flex-1 flex-col lg:ml-64">
           <div className="pt-16 lg:pt-0">{children}</div>
         </div>
       </div>
