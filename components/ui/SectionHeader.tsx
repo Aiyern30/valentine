@@ -8,12 +8,14 @@ interface SectionHeaderProps {
   icon: ReactNode;
   title: ReactNode;
   description?: ReactNode;
+  button?: ReactNode;
 }
 
 export async function SectionHeader({
   icon,
   title,
   description,
+  button,
 }: SectionHeaderProps) {
   const user = await getUser();
   if (!user) {
@@ -48,6 +50,7 @@ export async function SectionHeader({
             avatar_url: avatarUrl,
           }}
         />
+        {button && <div>{button}</div>}
       </div>
     </header>
   );

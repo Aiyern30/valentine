@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { MilestonesList } from "@/components/milestones/MilestonesList";
 import { MilestoneCalendar } from "@/components/milestones/MilestonesCalendar";
 import { CreateMilestoneButton } from "@/components/milestones/CreateMilestonesButton";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { Heart } from "lucide-react";
 
 export default async function MilestonesPage() {
   const user = await getUser();
@@ -15,17 +17,13 @@ export default async function MilestonesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Our Milestones
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Track and celebrate your special moments together
-          </p>
-        </div>
-        <CreateMilestoneButton />
-      </div>
+
+      <SectionHeader
+        icon={<Heart className="w-6 h-6 text-white" />}
+        title={"Our Milestones"}
+        description={"Track and celebrate your special moments together"}
+        button={<CreateMilestoneButton />}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
