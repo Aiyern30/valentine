@@ -215,7 +215,7 @@ export function CreateEventDialog({
                       className="fixed inset-0 z-10"
                       onClick={() => setIsSelectOpen(false)}
                     />
-                    <div className="absolute top-full left-0 right-0 mt-2 z-20 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-2xl shadow-xl overflow-hidden py-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute top-full left-0 right-0 mt-2 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-2xl shadow-xl overflow-hidden py-1.5 animate-in fade-in slide-in-from-top-2 duration-200 max-h-60 overflow-y-auto">
                       {EVENT_TYPES.map((type) => (
                         <button
                           key={type.id}
@@ -295,7 +295,7 @@ export function CreateEventDialog({
                       className="fixed inset-0 z-10"
                       onClick={() => setIsReminderSelectOpen(false)}
                     />
-                    <div className="absolute top-full left-0 right-0 mt-2 z-20 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-2xl shadow-xl overflow-hidden py-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute top-full left-0 right-0 mt-2 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-2xl shadow-xl overflow-hidden py-1.5 animate-in fade-in slide-in-from-top-2 duration-200 max-h-60 overflow-y-auto">
                       {REMINDER_TYPES.map((reminder) => (
                         <button
                           key={reminder.id}
@@ -366,7 +366,7 @@ export function CreateEventDialog({
                       {isDaysOpen && (
                         <>
                           <div className="fixed inset-0 z-10" onClick={() => setIsDaysOpen(false)} />
-                          <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl max-h-40 overflow-y-auto py-1">
+                          <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl max-h-40 overflow-y-auto py-1">
                             {DAY_OPTIONS.slice(0, 31).map((option) => (
                               <button
                                 key={option.value}
@@ -412,7 +412,7 @@ export function CreateEventDialog({
                       {isHoursOpen && (
                         <>
                           <div className="fixed inset-0 z-10" onClick={() => setIsHoursOpen(false)} />
-                          <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl max-h-40 overflow-y-auto py-1">
+                          <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl max-h-40 overflow-y-auto py-1">
                             {HOUR_OPTIONS.map((option) => (
                               <button
                                 key={option.value}
@@ -458,7 +458,7 @@ export function CreateEventDialog({
                       {isMinutesOpen && (
                         <>
                           <div className="fixed inset-0 z-10" onClick={() => setIsMinutesOpen(false)} />
-                          <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl overflow-hidden py-1">
+                          <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl overflow-hidden py-1 max-h-40 overflow-y-auto">
                             {MINUTE_OPTIONS.map((option) => (
                               <button
                                 key={option.value}
