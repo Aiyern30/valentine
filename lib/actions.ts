@@ -3,6 +3,57 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+// Upload avatar to Supabase Storage
+export async function uploadAvatar(formData: FormData) {
+  try {
+    const supabase = await createClient();
+
+    const userId = formData.get("userId") as string;
+    const file = formData.get("avatar") as File;
+
+    if (!userId || !file || file.size === 0) {
+      return { error: "User ID and file are required" };
+    }
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      return { error: "File must be an image" };
+    }
+
+    // Validate file size (max 5MB for avatars)
+    if (file.size > 5 * 1024 * 1024) {
+      return { error: "File size must be less than 5MB" };
+    }
+
+    // Generate unique filename for avatar
+    const fileExt = file.name.split(".").pop();
+    const fileName = `avatars/${userId}/${Date.now()}.${fileExt}`;
+
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from("photos")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: true, // Allow overwriting
+      });
+
+    if (uploadError) {
+      console.error("Error uploading avatar:", uploadError);
+      return { error: "Failed to upload avatar. Please try again." };
+    }
+
+    // Get public URL
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("photos").getPublicUrl(fileName);
+
+    return { success: true, avatarUrl: publicUrl };
+  } catch (error) {
+    console.error("Unexpected error in uploadAvatar:", error);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
+}
+
 export async function completeProfile(formData: FormData) {
   const supabase = await createClient();
 
