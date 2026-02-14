@@ -11,6 +11,7 @@ import {
   Heart,
   Clock,
   ChevronDown,
+  Bell,
 } from "lucide-react";
 
 interface CreateEventDialogProps {
@@ -18,6 +19,12 @@ interface CreateEventDialogProps {
   onClose: () => void;
   selectedDate?: Date | null;
 }
+
+const REMINDER_TYPES = [
+  { id: "none", label: "No Reminder" },
+  { id: "day_of", label: "Remind on the day" },
+  { id: "in_advance", label: "Remind in advance" },
+];
 
 const EVENT_TYPES = [
   { id: "birthday", label: "Birthday", icon: PartyPopper },
@@ -35,12 +42,16 @@ export function CreateEventDialog({
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState(EVENT_TYPES[0].id);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
+  const [selectedReminder, setSelectedReminder] = useState(REMINDER_TYPES[0].id);
+  const [isReminderSelectOpen, setIsReminderSelectOpen] = useState(false);
   const router = useRouter();
 
   if (!isOpen) return null;
 
   const currentType =
     EVENT_TYPES.find((t) => t.id === selectedType) || EVENT_TYPES[0];
+  const currentReminder =
+    REMINDER_TYPES.find((r) => r.id === selectedReminder) || REMINDER_TYPES[0];
 
   async function handleSubmit(formData: FormData) {
     try {
@@ -108,7 +119,7 @@ export function CreateEventDialog({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-                Date
+                {selectedType === "other" ? "Start Date" : "Date"}
               </label>
               <input
                 name="date"
@@ -120,6 +131,19 @@ export function CreateEventDialog({
                 className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
               />
             </div>
+
+            {selectedType === "other" && (
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                  End Date (Optional)
+                </label>
+                <input
+                  name="endDate"
+                  type="date"
+                  className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
@@ -195,6 +219,130 @@ export function CreateEventDialog({
               placeholder="Add some details..."
               className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all resize-none placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-gray-900 dark:text-gray-100"
             />
+          </div>
+
+          {/* Reminder Section */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1 flex items-center gap-2">
+                <Bell className="w-4 h-4 text-gray-400" />
+                Reminder
+              </label>
+              <div className="relative">
+                <input type="hidden" name="reminderType" value={selectedReminder} />
+                <button
+                  type="button"
+                  onClick={() => setIsReminderSelectOpen(!isReminderSelectOpen)}
+                  className={`
+                    w-full px-5 py-3.5 rounded-2xl border-2 transition-all flex items-center justify-between text-left
+                    ${
+                      isReminderSelectOpen
+                        ? "border-rose-500 ring-4 ring-rose-500/10 bg-white dark:bg-zinc-900"
+                        : "border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50"
+                    }
+                  `}
+                >
+                  <span className="text-gray-900 dark:text-gray-100 font-medium">
+                    {currentReminder.label}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                      isReminderSelectOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {isReminderSelectOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setIsReminderSelectOpen(false)}
+                    />
+                    <div className="absolute top-full left-0 right-0 mt-2 z-20 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-2xl shadow-xl overflow-hidden py-1.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                      {REMINDER_TYPES.map((reminder) => (
+                        <button
+                          key={reminder.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedReminder(reminder.id);
+                            setIsReminderSelectOpen(false);
+                          }}
+                          className={`
+                            w-full px-4 py-2.5 flex items-center gap-3 transition-colors text-left
+                            ${
+                              selectedReminder === reminder.id
+                                ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold"
+                                : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700/50"
+                            }
+                          `}
+                        >
+                          {reminder.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Reminder Time (for day_of reminders) */}
+            {selectedReminder === "day_of" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
+                  Reminder Time
+                </label>
+                <input
+                  name="reminderTime"
+                  type="time"
+                  defaultValue="09:00"
+                  className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                />
+              </div>
+            )}
+
+            {/* Advance Reminder (for in_advance reminders) */}
+            {selectedReminder === "in_advance" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
+                  Remind Before
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">Days</label>
+                    <input
+                      name="advanceDays"
+                      type="number"
+                      min="0"
+                      max="365"
+                      defaultValue="1"
+                      className="w-full px-3 py-2 rounded-xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">Hours</label>
+                    <input
+                      name="advanceHours"
+                      type="number"
+                      min="0"
+                      max="23"
+                      defaultValue="0"
+                      className="w-full px-3 py-2 rounded-xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">Minutes</label>
+                    <input
+                      name="advanceMinutes"
+                      type="number"
+                      min="0"
+                      max="59"
+                      defaultValue="0"
+                      className="w-full px-3 py-2 rounded-xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-6 flex items-center justify-end gap-3">

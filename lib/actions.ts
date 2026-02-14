@@ -104,8 +104,14 @@ export async function createMilestone(formData: FormData) {
 
   const title = formData.get("title") as string;
   const date = formData.get("date") as string;
+  const endDate = formData.get("endDate") as string | null;
   const type = formData.get("type") as string;
   const description = formData.get("description") as string | null;
+  const reminderType = formData.get("reminderType") as string;
+  const reminderTime = formData.get("reminderTime") as string | null;
+  const advanceDays = formData.get("advanceDays") as string | null;
+  const advanceHours = formData.get("advanceHours") as string | null;
+  const advanceMinutes = formData.get("advanceMinutes") as string | null;
 
   if (!title || !date) {
     return { error: "Title and date are required" };
@@ -117,8 +123,14 @@ export async function createMilestone(formData: FormData) {
       created_by: user.id,
       title,
       milestone_date: date,
+      end_date: endDate || null,
       milestone_type: type || "other",
       description: description || null,
+      reminder_type: reminderType || "none",
+      reminder_time: reminderTime || null,
+      advance_days: advanceDays ? parseInt(advanceDays) : null,
+      advance_hours: advanceHours ? parseInt(advanceHours) : null,
+      advance_minutes: advanceMinutes ? parseInt(advanceMinutes) : null,
     })
     .select()
     .single();
