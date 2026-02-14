@@ -132,8 +132,8 @@ export function CreateEventDialog({
         onClick={onClose}
       />
 
-      {/* Dialog */}
-      <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100 dark:border-zinc-800">
+      {/* Dialog - REMOVED overflow-hidden to allow dropdowns to show */}
+      <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl animate-in fade-in zoom-in-95 duration-200 border border-gray-100 dark:border-zinc-800">
         <div className="p-8 pb-4 border-b border-gray-50 dark:border-zinc-800 flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 italic font-dancing">
             Create New Milestone
@@ -146,435 +146,440 @@ export function CreateEventDialog({
           </button>
         </div>
 
-        <form action={handleSubmit} className="p-8 space-y-5">
-          {error && (
-            <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium border border-red-100 dark:border-red-900/30">
-              {error}
-            </div>
-          )}
+        {/* Add max-height and overflow to the form content instead */}
+        <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+          <form action={handleSubmit} className="p-8 space-y-5">
+            {error && (
+              <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium border border-red-100 dark:border-red-900/30">
+                {error}
+              </div>
+            )}
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-              Milestone Title
-            </label>
-            <input
-              name="title"
-              type="text"
-              required
-              placeholder="e.g. Sarah's Birthday"
-              className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-gray-900 dark:text-gray-100"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-                {selectedType === "other" ? "Start Date" : "Date"}
+                Milestone Title
               </label>
-              <div className="custom-datepicker-wrapper">
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date: Date | null) => setStartDate(date)}
-                  dateFormat="MM/dd/yyyy"
-                  className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
-                  calendarClassName="custom-calendar"
-                  showPopperArrow={false}
-                  popperPlacement="bottom-start"
-                  required
-                />
-              </div>
+              <input
+                name="title"
+                type="text"
+                required
+                placeholder="e.g. Sarah's Birthday"
+                className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-gray-900 dark:text-gray-100"
+              />
             </div>
 
-            {selectedType === "other" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-                  End Date (Optional)
+                  {selectedType === "other" ? "Start Date" : "Date"}
                 </label>
                 <div className="custom-datepicker-wrapper">
                   <DatePicker
-                    selected={endDate}
-                    onChange={(date: Date | null) => setEndDate(date)}
+                    selected={startDate}
+                    onChange={(date: Date | null) => setStartDate(date)}
                     dateFormat="MM/dd/yyyy"
-                    minDate={startDate || undefined}
                     className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
                     calendarClassName="custom-calendar"
                     showPopperArrow={false}
                     popperPlacement="bottom-start"
+                    required
                   />
                 </div>
               </div>
-            )}
+
+              {selectedType === "other" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                    End Date (Optional)
+                  </label>
+                  <div className="custom-datepicker-wrapper">
+                    <DatePicker
+                      selected={endDate}
+                      onChange={(date: Date | null) => setEndDate(date)}
+                      dateFormat="MM/dd/yyyy"
+                      minDate={startDate || undefined}
+                      className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                      calendarClassName="custom-calendar"
+                      showPopperArrow={false}
+                      popperPlacement="bottom-start"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                  Type
+                </label>
+                <div className="relative">
+                  <input type="hidden" name="type" value={selectedType} />
+                  <button
+                    type="button"
+                    onClick={() => setIsSelectOpen(!isSelectOpen)}
+                    className={`
+                      w-full px-5 py-3.5 rounded-2xl border-2 transition-all flex items-center justify-between text-left
+                      ${
+                        isSelectOpen
+                          ? "border-rose-500 ring-4 ring-rose-500/10 bg-white dark:bg-zinc-900"
+                          : "border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50"
+                      }
+                    `}
+                  >
+                    <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                      <currentType.icon className="w-4 h-4 text-rose-500" />
+                      <span className="font-medium">{currentType.label}</span>
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isSelectOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  {isSelectOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setIsSelectOpen(false)}
+                      />
+                      <div className="absolute top-full left-0 right-0 mt-2 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-2xl shadow-xl overflow-hidden py-1.5 animate-in fade-in slide-in-from-top-2 duration-200 max-h-60 overflow-y-auto">
+                        {EVENT_TYPES.map((type) => (
+                          <button
+                            key={type.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedType(type.id);
+                              setIsSelectOpen(false);
+                            }}
+                            className={`
+                              w-full px-4 py-2.5 flex items-center gap-3 transition-colors text-left
+                              ${
+                                selectedType === type.id
+                                  ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold"
+                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700/50"
+                              }
+                            `}
+                          >
+                            <type.icon
+                              className={`w-4 h-4 ${selectedType === type.id ? "text-rose-500" : "text-gray-400"}`}
+                            />
+                            {type.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-                Type
+                Description (Optional)
               </label>
-              <div className="relative">
-                <input type="hidden" name="type" value={selectedType} />
-                <button
-                  type="button"
-                  onClick={() => setIsSelectOpen(!isSelectOpen)}
-                  className={`
-                    w-full px-5 py-3.5 rounded-2xl border-2 transition-all flex items-center justify-between text-left
-                    ${
-                      isSelectOpen
-                        ? "border-rose-500 ring-4 ring-rose-500/10 bg-white dark:bg-zinc-900"
-                        : "border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50"
-                    }
-                  `}
-                >
-                  <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-                    <currentType.icon className="w-4 h-4 text-rose-500" />
-                    <span className="font-medium">{currentType.label}</span>
-                  </div>
-                  <ChevronDown
-                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isSelectOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
-
-                {isSelectOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-10"
-                      onClick={() => setIsSelectOpen(false)}
-                    />
-                    <div className="absolute top-full left-0 right-0 mt-2 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-2xl shadow-xl overflow-hidden py-1.5 animate-in fade-in slide-in-from-top-2 duration-200 max-h-60 overflow-y-auto">
-                      {EVENT_TYPES.map((type) => (
-                        <button
-                          key={type.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedType(type.id);
-                            setIsSelectOpen(false);
-                          }}
-                          className={`
-                            w-full px-4 py-2.5 flex items-center gap-3 transition-colors text-left
-                            ${
-                              selectedType === type.id
-                                ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold"
-                                : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700/50"
-                            }
-                          `}
-                        >
-                          <type.icon
-                            className={`w-4 h-4 ${selectedType === type.id ? "text-rose-500" : "text-gray-400"}`}
-                          />
-                          {type.label}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-              Description (Optional)
-            </label>
-            <textarea
-              name="description"
-              rows={3}
-              placeholder="Add some details..."
-              className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all resize-none placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-gray-900 dark:text-gray-100"
-            />
-          </div>
-
-          {/* Reminder Section */}
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1 flex items-center gap-2">
-                <Bell className="w-4 h-4 text-gray-400" />
-                Reminder
-              </label>
-              <div className="relative">
-                <input
-                  type="hidden"
-                  name="reminderType"
-                  value={selectedReminder}
-                />
-                <button
-                  type="button"
-                  onClick={() => setIsReminderSelectOpen(!isReminderSelectOpen)}
-                  className={`
-                    w-full px-5 py-3.5 rounded-2xl border-2 transition-all flex items-center justify-between text-left
-                    ${
-                      isReminderSelectOpen
-                        ? "border-rose-500 ring-4 ring-rose-500/10 bg-white dark:bg-zinc-900"
-                        : "border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50"
-                    }
-                  `}
-                >
-                  <span className="text-gray-900 dark:text-gray-100 font-medium">
-                    {currentReminder.label}
-                  </span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
-                      isReminderSelectOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {isReminderSelectOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-10"
-                      onClick={() => setIsReminderSelectOpen(false)}
-                    />
-                    <div className="absolute top-full left-0 right-0 mt-2 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-2xl shadow-xl overflow-hidden py-1.5 animate-in fade-in slide-in-from-top-2 duration-200 max-h-60 overflow-y-auto">
-                      {REMINDER_TYPES.map((reminder) => (
-                        <button
-                          key={reminder.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedReminder(reminder.id);
-                            setIsReminderSelectOpen(false);
-                          }}
-                          className={`
-                            w-full px-4 py-2.5 flex items-center gap-3 transition-colors text-left
-                            ${
-                              selectedReminder === reminder.id
-                                ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold"
-                                : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700/50"
-                            }
-                          `}
-                        >
-                          {reminder.label}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+              <textarea
+                name="description"
+                rows={3}
+                placeholder="Add some details..."
+                className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all resize-none placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-gray-900 dark:text-gray-100"
+              />
             </div>
 
-            {/* Reminder Time (for day_of reminders) */}
-            {selectedReminder === "day_of" && (
+            {/* Reminder Section */}
+            <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
-                  Reminder Time
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1 flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-gray-400" />
+                  Reminder
                 </label>
-                <input
-                  name="reminderTime"
-                  type="time"
-                  defaultValue="09:00"
-                  className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
-                />
+                <div className="relative">
+                  <input
+                    type="hidden"
+                    name="reminderType"
+                    value={selectedReminder}
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIsReminderSelectOpen(!isReminderSelectOpen)
+                    }
+                    className={`
+                      w-full px-5 py-3.5 rounded-2xl border-2 transition-all flex items-center justify-between text-left
+                      ${
+                        isReminderSelectOpen
+                          ? "border-rose-500 ring-4 ring-rose-500/10 bg-white dark:bg-zinc-900"
+                          : "border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50"
+                      }
+                    `}
+                  >
+                    <span className="text-gray-900 dark:text-gray-100 font-medium">
+                      {currentReminder.label}
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                        isReminderSelectOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isReminderSelectOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setIsReminderSelectOpen(false)}
+                      />
+                      <div className="absolute top-full left-0 right-0 mt-2 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-2xl shadow-xl overflow-hidden py-1.5 animate-in fade-in slide-in-from-top-2 duration-200 max-h-60 overflow-y-auto">
+                        {REMINDER_TYPES.map((reminder) => (
+                          <button
+                            key={reminder.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedReminder(reminder.id);
+                              setIsReminderSelectOpen(false);
+                            }}
+                            className={`
+                              w-full px-4 py-2.5 flex items-center gap-3 transition-colors text-left
+                              ${
+                                selectedReminder === reminder.id
+                                  ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold"
+                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700/50"
+                              }
+                            `}
+                          >
+                            {reminder.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            )}
 
-            {/* Advance Reminder (for in_advance reminders) */}
-            {selectedReminder === "in_advance" && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
-                  Remind Before
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {/* Days Dropdown */}
-                  <div>
-                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
-                      Days
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="hidden"
-                        name="advanceDays"
-                        value={selectedDays}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setIsDaysOpen(!isDaysOpen)}
-                        className={`w-full px-3 py-2.5 rounded-xl border-2 transition-all flex items-center justify-between text-left text-sm ${
-                          isDaysOpen
-                            ? "border-rose-500 ring-2 ring-rose-500/10 bg-white dark:bg-zinc-900"
-                            : "border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50"
-                        }`}
-                      >
-                        <span className="text-gray-900 dark:text-gray-100 font-medium">
-                          {DAY_OPTIONS.find((d) => d.value === selectedDays)
-                            ?.label || "1 day"}
-                        </span>
-                        <ChevronDown
-                          className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isDaysOpen ? "rotate-180" : ""}`}
+              {/* Reminder Time (for day_of reminders) */}
+              {selectedReminder === "day_of" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
+                    Reminder Time
+                  </label>
+                  <input
+                    name="reminderTime"
+                    type="time"
+                    defaultValue="09:00"
+                    className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+              )}
+
+              {/* Advance Reminder (for in_advance reminders) */}
+              {selectedReminder === "in_advance" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
+                    Remind Before
+                  </label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* Days Dropdown */}
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                        Days
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="hidden"
+                          name="advanceDays"
+                          value={selectedDays}
                         />
-                      </button>
-                      {isDaysOpen && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-10"
-                            onClick={() => setIsDaysOpen(false)}
+                        <button
+                          type="button"
+                          onClick={() => setIsDaysOpen(!isDaysOpen)}
+                          className={`w-full px-3 py-2.5 rounded-xl border-2 transition-all flex items-center justify-between text-left text-sm ${
+                            isDaysOpen
+                              ? "border-rose-500 ring-2 ring-rose-500/10 bg-white dark:bg-zinc-900"
+                              : "border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50"
+                          }`}
+                        >
+                          <span className="text-gray-900 dark:text-gray-100 font-medium">
+                            {DAY_OPTIONS.find((d) => d.value === selectedDays)
+                              ?.label || "1 day"}
+                          </span>
+                          <ChevronDown
+                            className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isDaysOpen ? "rotate-180" : ""}`}
                           />
-                          <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl max-h-40 overflow-y-auto py-1">
-                            {DAY_OPTIONS.slice(0, 31).map((option) => (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedDays(option.value);
-                                  setIsDaysOpen(false);
-                                }}
-                                className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
-                                  selectedDays === option.value
-                                    ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold"
-                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700/50"
-                                }`}
-                              >
-                                {option.label}
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      )}
+                        </button>
+                        {isDaysOpen && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setIsDaysOpen(false)}
+                            />
+                            <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl max-h-40 overflow-y-auto py-1">
+                              {DAY_OPTIONS.slice(0, 31).map((option) => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedDays(option.value);
+                                    setIsDaysOpen(false);
+                                  }}
+                                  className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
+                                    selectedDays === option.value
+                                      ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold"
+                                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700/50"
+                                  }`}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Hours Dropdown */}
-                  <div>
-                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
-                      Hours
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="hidden"
-                        name="advanceHours"
-                        value={selectedHours}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setIsHoursOpen(!isHoursOpen)}
-                        className={`w-full px-3 py-2.5 rounded-xl border-2 transition-all flex items-center justify-between text-left text-sm ${
-                          isHoursOpen
-                            ? "border-rose-500 ring-2 ring-rose-500/10 bg-white dark:bg-zinc-900"
-                            : "border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50"
-                        }`}
-                      >
-                        <span className="text-gray-900 dark:text-gray-100 font-medium">
-                          {HOUR_OPTIONS.find((h) => h.value === selectedHours)
-                            ?.label || "0 hours"}
-                        </span>
-                        <ChevronDown
-                          className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isHoursOpen ? "rotate-180" : ""}`}
+                    {/* Hours Dropdown */}
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                        Hours
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="hidden"
+                          name="advanceHours"
+                          value={selectedHours}
                         />
-                      </button>
-                      {isHoursOpen && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-10"
-                            onClick={() => setIsHoursOpen(false)}
+                        <button
+                          type="button"
+                          onClick={() => setIsHoursOpen(!isHoursOpen)}
+                          className={`w-full px-3 py-2.5 rounded-xl border-2 transition-all flex items-center justify-between text-left text-sm ${
+                            isHoursOpen
+                              ? "border-rose-500 ring-2 ring-rose-500/10 bg-white dark:bg-zinc-900"
+                              : "border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50"
+                          }`}
+                        >
+                          <span className="text-gray-900 dark:text-gray-100 font-medium">
+                            {HOUR_OPTIONS.find((h) => h.value === selectedHours)
+                              ?.label || "0 hours"}
+                          </span>
+                          <ChevronDown
+                            className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isHoursOpen ? "rotate-180" : ""}`}
                           />
-                          <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl max-h-40 overflow-y-auto py-1">
-                            {HOUR_OPTIONS.map((option) => (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedHours(option.value);
-                                  setIsHoursOpen(false);
-                                }}
-                                className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
-                                  selectedHours === option.value
-                                    ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold"
-                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700/50"
-                                }`}
-                              >
-                                {option.label}
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      )}
+                        </button>
+                        {isHoursOpen && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setIsHoursOpen(false)}
+                            />
+                            <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl max-h-40 overflow-y-auto py-1">
+                              {HOUR_OPTIONS.map((option) => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedHours(option.value);
+                                    setIsHoursOpen(false);
+                                  }}
+                                  className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
+                                    selectedHours === option.value
+                                      ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold"
+                                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700/50"
+                                  }`}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Minutes Dropdown */}
-                  <div>
-                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
-                      Minutes
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="hidden"
-                        name="advanceMinutes"
-                        value={selectedMinutes}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setIsMinutesOpen(!isMinutesOpen)}
-                        className={`w-full px-3 py-2.5 rounded-xl border-2 transition-all flex items-center justify-between text-left text-sm ${
-                          isMinutesOpen
-                            ? "border-rose-500 ring-2 ring-rose-500/10 bg-white dark:bg-zinc-900"
-                            : "border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50"
-                        }`}
-                      >
-                        <span className="text-gray-900 dark:text-gray-100 font-medium">
-                          {MINUTE_OPTIONS.find(
-                            (m) => m.value === selectedMinutes,
-                          )?.label || "0 minutes"}
-                        </span>
-                        <ChevronDown
-                          className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isMinutesOpen ? "rotate-180" : ""}`}
+                    {/* Minutes Dropdown */}
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                        Minutes
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="hidden"
+                          name="advanceMinutes"
+                          value={selectedMinutes}
                         />
-                      </button>
-                      {isMinutesOpen && (
-                        <>
-                          <div
-                            className="fixed inset-0 z-10"
-                            onClick={() => setIsMinutesOpen(false)}
+                        <button
+                          type="button"
+                          onClick={() => setIsMinutesOpen(!isMinutesOpen)}
+                          className={`w-full px-3 py-2.5 rounded-xl border-2 transition-all flex items-center justify-between text-left text-sm ${
+                            isMinutesOpen
+                              ? "border-rose-500 ring-2 ring-rose-500/10 bg-white dark:bg-zinc-900"
+                              : "border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50"
+                          }`}
+                        >
+                          <span className="text-gray-900 dark:text-gray-100 font-medium">
+                            {MINUTE_OPTIONS.find(
+                              (m) => m.value === selectedMinutes,
+                            )?.label || "0 minutes"}
+                          </span>
+                          <ChevronDown
+                            className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isMinutesOpen ? "rotate-180" : ""}`}
                           />
-                          <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl overflow-hidden py-1 max-h-40 overflow-y-auto">
-                            {MINUTE_OPTIONS.map((option) => (
-                              <button
-                                key={option.value}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedMinutes(option.value);
-                                  setIsMinutesOpen(false);
-                                }}
-                                className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
-                                  selectedMinutes === option.value
-                                    ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold"
-                                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700/50"
-                                }`}
-                              >
-                                {option.label}
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      )}
+                        </button>
+                        {isMinutesOpen && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setIsMinutesOpen(false)}
+                            />
+                            <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl overflow-hidden py-1 max-h-40 overflow-y-auto">
+                              {MINUTE_OPTIONS.map((option) => (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedMinutes(option.value);
+                                    setIsMinutesOpen(false);
+                                  }}
+                                  className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
+                                    selectedMinutes === option.value
+                                      ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold"
+                                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700/50"
+                                  }`}
+                                >
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-
-          <div className="pt-6 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isLoading}
-              className="px-6 py-3 rounded-2xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 font-bold transition-colors disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-8 py-3 rounded-2xl bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold shadow-lg shadow-rose-500/25 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>Create Milestone</>
               )}
-            </button>
-          </div>
-        </form>
+            </div>
+
+            <div className="pt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isLoading}
+                className="px-6 py-3 rounded-2xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 font-bold transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="px-8 py-3 rounded-2xl bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold shadow-lg shadow-rose-500/25 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>Create Milestone</>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
