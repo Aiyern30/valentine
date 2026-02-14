@@ -12,11 +12,11 @@ import {
   isProfileComplete,
   getProfile,
 } from "@/lib/data";
-import { Bell, Plus } from "lucide-react";
+import { Home, Plus } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { ProfileDropdown } from "@/components/ProfileDropdown";
 import { ProfileCompletionDialog } from "@/components/ProfileCompletionDialog";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 
 export default async function DashboardPage() {
   const user = await getUser();
@@ -65,35 +65,20 @@ export default async function DashboardPage() {
     profile?.display_name ||
     user.user_metadata?.full_name ||
     user.email?.split("@")[0];
-  const avatarUrl =
-    profile?.avatar_url || user.user_metadata?.avatar_url || null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Welcome back, <span className="text-rose-500">{displayName}</span>
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Here's what's happening in your love life
-          </p>
-        </div>
 
-        <div className="flex items-center gap-4">
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
-            <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          </button>
-          <ProfileDropdown
-            user={{
-              ...user,
-              display_name: profile?.display_name,
-              avatar_url: avatarUrl,
-            }}
-          />
-        </div>
-      </header>
+      <SectionHeader
+        icon={<Home className="w-6 h-6 text-white" />}
+        title={
+          <>
+            Welcome back, <span className="text-rose-500">{displayName}</span>!
+          </>
+        }
+        description={"Here's what's happening in your love life"}
+      />
 
       {/* Main Feature: Timer or Setup CTA */}
       <section>

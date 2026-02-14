@@ -1,4 +1,8 @@
+import { Bell } from "lucide-react";
 import { ReactNode } from "react";
+import { ProfileDropdown } from "../ProfileDropdown";
+import { getProfile, getUser } from "@/lib/data";
+import { redirect } from "next/navigation";
 
 interface SectionHeaderProps {
   icon: ReactNode;
@@ -6,7 +10,20 @@ interface SectionHeaderProps {
   description?: ReactNode;
 }
 
-export function SectionHeader({ icon, title, description }: SectionHeaderProps) {
+export async function SectionHeader({
+  icon,
+  title,
+  description,
+}: SectionHeaderProps) {
+  const user = await getUser();
+  if (!user) {
+    redirect("/");
+  }
+  const profile = await getProfile(user.id);
+
+  const avatarUrl =
+    profile?.avatar_url || user.user_metadata?.avatar_url || null;
+
   return (
     <header className="flex items-center justify-between">
       <div>
@@ -19,6 +36,18 @@ export function SectionHeader({ icon, title, description }: SectionHeaderProps) 
         {description && (
           <p className="text-gray-500 dark:text-gray-400 mt-1">{description}</p>
         )}
+      </div>
+      <div className="flex items-center gap-4">
+        <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+          <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+        </button>
+        <ProfileDropdown
+          user={{
+            ...user,
+            display_name: profile?.display_name,
+            avatar_url: avatarUrl,
+          }}
+        />
       </div>
     </header>
   );
