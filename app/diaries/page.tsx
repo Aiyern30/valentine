@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getDiaries, getUser } from "@/lib/data";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -7,10 +9,10 @@ import {
   Plus,
   ChevronRight,
   Calendar,
-  User as UserIcon,
   MessageSquare,
 } from "lucide-react";
 import Image from "next/image";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 
 export default async function DiariesPage() {
   const user = await getUser();
@@ -21,23 +23,20 @@ export default async function DiariesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 italic font-dancing tracking-tight">
-            Our Love Story
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2 text-lg">
-            Every moment we've captured in words
-          </p>
-        </div>
-        <Link
-          href="/diaries/new"
-          className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-linear-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold shadow-xl shadow-rose-500/25 transition-all hover:-translate-y-1 active:scale-95 w-fit"
-        >
-          <Plus className="w-5 h-5" />
-          Write New Chapter
-        </Link>
-      </div>
+      <SectionHeader
+        icon={<BookOpen className="w-6 h-6 text-white" />}
+        title={<>Our Love Story</>}
+        description={"Every moment we've captured in words"}
+        button={
+          <Link
+            href="/diaries/new"
+            className="flex items-center gap-2 px-8 py-4 rounded-2xl bg-linear-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold shadow-xl shadow-rose-500/25 transition-all hover:-translate-y-1 active:scale-95 w-fit"
+          >
+            <Plus className="w-5 h-5" />
+            Write New Chapter
+          </Link>
+        }
+      />
 
       {diaries.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -130,7 +129,7 @@ export default async function DiariesPage() {
           ))}
         </div>
       ) : (
-        <div className="min-h-[400px] flex flex-col items-center justify-center bg-white dark:bg-zinc-900 rounded-[48px] border-2 border-dashed border-gray-100 dark:border-zinc-800 p-12 text-center">
+        <div className="min-h-100 flex flex-col items-center justify-center bg-white dark:bg-zinc-900 rounded-[48px] border-2 border-dashed border-gray-100 dark:border-zinc-800 p-12 text-center">
           <div className="w-24 h-24 bg-rose-50 dark:bg-rose-900/20 rounded-full flex items-center justify-center mb-6">
             <BookOpen className="w-10 h-10 text-rose-500" />
           </div>
