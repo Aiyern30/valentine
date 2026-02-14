@@ -13,7 +13,6 @@ import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnve
 import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
 import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
 import Image from "next/image";
-
 // Type Definitions
 interface PagePhoto {
   file: File | null;
@@ -26,7 +25,6 @@ interface CategoryItem {
   url: string;
   title: string;
   date: string;
-  position?: "left" | "right";
 }
 
 interface Category {
@@ -407,7 +405,6 @@ export default function CondolenceForm() {
             Step {currentStep + 1} of {totalSteps}
           </div>
         </div>
-
         {/* Step 0: Basic Information */}
         {currentStep === 0 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
@@ -552,7 +549,6 @@ export default function CondolenceForm() {
             </div>
           </div>
         )}
-
         {/* Step 1: Relationship Status */}
         {currentStep === 1 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
@@ -590,7 +586,8 @@ export default function CondolenceForm() {
             </div>
           </div>
         )}
-
+        {/* Step 2: Message */}
+        import Image from "next/image";
         {/* Step 2: Message */}
         {currentStep === 2 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
@@ -615,7 +612,7 @@ export default function CondolenceForm() {
                 <label className="block text-sm font-medium mb-2">
                   Your Message <span className="text-pink-400">*</span>
                 </label>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {(() => {
                     const delimiter = "<<<PAGE_BREAK>>>";
                     const pages = formData.message
@@ -624,138 +621,10 @@ export default function CondolenceForm() {
 
                     return pages.map((pageText, index) => (
                       <div key={index} className="relative group">
-                        <label className="text-xs text-gray-400 mb-1 block">
-                          Page {index + 1}
-                        </label>
-
-                        {/* Photo Upload Section */}
-                        <div className="mb-3 p-3 bg-gray-50/50 dark:bg-zinc-900/50 rounded-lg border border-rose-100/50 dark:border-rose-900/20">
-                          <div className="flex items-center gap-3">
-                            {formData.pagePhotos[index]?.file ? (
-                              <>
-                                <div className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-rose-300">
-                                  <img
-                                    src={formData.pagePhotos[index]?.url || ""}
-                                    alt={`Page ${index + 1} photo`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                  <button
-                                    onClick={() => {
-                                      const newPhotos = {
-                                        ...formData.pagePhotos,
-                                      };
-                                      delete newPhotos[index];
-                                      updateFormData("pagePhotos", newPhotos);
-                                    }}
-                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-bl-lg px-1.5 py-0.5 text-xs hover:bg-red-600"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                                <div className="flex-1">
-                                  <p className="text-xs text-gray-500 mb-2">
-                                    Photo Position:
-                                  </p>
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => {
-                                        const newPhotos = {
-                                          ...formData.pagePhotos,
-                                        };
-                                        newPhotos[index] = {
-                                          ...newPhotos[index],
-                                          position: "left",
-                                        };
-                                        updateFormData("pagePhotos", newPhotos);
-                                      }}
-                                      className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-                                        formData.pagePhotos[index]?.position ===
-                                        "left"
-                                          ? "bg-rose-500 text-white"
-                                          : "bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-zinc-700"
-                                      }`}
-                                    >
-                                      ← Left
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        const newPhotos = {
-                                          ...formData.pagePhotos,
-                                        };
-                                        newPhotos[index] = {
-                                          ...newPhotos[index],
-                                          position: "right",
-                                        };
-                                        updateFormData("pagePhotos", newPhotos);
-                                      }}
-                                      className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-                                        formData.pagePhotos[index]?.position ===
-                                        "right"
-                                          ? "bg-rose-500 text-white"
-                                          : "bg-gray-200 dark:bg-zinc-800 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-zinc-700"
-                                      }`}
-                                    >
-                                      Right →
-                                    </button>
-                                  </div>
-                                </div>
-                              </>
-                            ) : (
-                              <label className="flex-1 cursor-pointer">
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  className="hidden"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      const url = URL.createObjectURL(file);
-                                      const newPhotos = {
-                                        ...formData.pagePhotos,
-                                      };
-                                      newPhotos[index] = {
-                                        file,
-                                        position: "left",
-                                        url,
-                                      };
-                                      updateFormData("pagePhotos", newPhotos);
-                                    }
-                                  }}
-                                />
-                                <div className="flex items-center gap-2 px-3 py-2 border-2 border-dashed border-rose-300 dark:border-rose-700 rounded-lg hover:border-rose-400 dark:hover:border-rose-600 transition">
-                                  <span className="text-rose-400 text-xl">
-                                    📷
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    Add photo to this page (optional)
-                                  </span>
-                                </div>
-                              </label>
-                            )}
-                          </div>
-                        </div>
-
-                        <textarea
-                          value={pageText}
-                          onChange={(e) => {
-                            const newPages = [...pages];
-                            newPages[index] = e.target.value;
-                            updateFormData("message", newPages.join(delimiter));
-                          }}
-                          placeholder={`Write page ${index + 1} content...`}
-                          className={`w-full bg-gray-50 dark:bg-zinc-900 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 min-h-37.5 resize-none transition-all ${
-                            errors.message && index === 0
-                              ? "border-red-500"
-                              : "border-rose-100 dark:border-rose-900/30"
-                          }`}
-                          maxLength={500}
-                        />
-                        <div className="flex justify-between items-center mt-1">
-                          <span
-                            className={`text-xs ${pageText.length >= 450 ? "text-yellow-400" : "text-gray-400"}`}
-                          >
-                            {pageText.length}/500
-                          </span>
+                        <div className="flex items-center justify-between mb-3">
+                          <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                            Page {index + 1}
+                          </label>
                           {pages.length > 1 && (
                             <button
                               onClick={() => {
@@ -782,41 +651,218 @@ export default function CondolenceForm() {
                                 );
                                 updateFormData("pagePhotos", reindexedPhotos);
                               }}
-                              className="text-xs text-red-400 hover:text-red-500 hover:underline"
+                              className="text-xs text-red-400 hover:text-red-500 hover:underline flex items-center gap-1"
                             >
-                              Remove Page
+                              <span>🗑️</span> Remove Page
                             </button>
                           )}
+                        </div>
+
+                        {/* Main Content Area - Side by Side Layout */}
+                        <div className="p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20">
+                          <div className="flex gap-6">
+                            {/* Left Side: Photo Upload */}
+                            <div className="shrink-0 w-64">
+                              <label className="block cursor-pointer">
+                                <div
+                                  className={`aspect-square rounded-xl border-2 border-dashed transition-all relative overflow-hidden ${
+                                    formData.pagePhotos[index]?.file
+                                      ? "border-transparent"
+                                      : "border-rose-200 dark:border-rose-800 hover:border-rose-400"
+                                  }`}
+                                >
+                                  {formData.pagePhotos[index]?.file ? (
+                                    <div className="relative w-full h-full group/image">
+                                      <Image
+                                        src={
+                                          formData.pagePhotos[index]?.url || ""
+                                        }
+                                        alt={`Page ${index + 1} photo`}
+                                        fill
+                                        className="object-cover"
+                                        sizes="256px"
+                                      />
+                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center">
+                                        <div className="text-center">
+                                          <span className="text-3xl mb-2 block">
+                                            📷
+                                          </span>
+                                          <span className="text-xs text-white font-medium">
+                                            Change Photo
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <button
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          const newPhotos = {
+                                            ...formData.pagePhotos,
+                                          };
+                                          delete newPhotos[index];
+                                          updateFormData(
+                                            "pagePhotos",
+                                            newPhotos,
+                                          );
+                                        }}
+                                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow-lg transition-all z-10"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col items-center justify-center h-full">
+                                      <span className="text-5xl mb-3">📷</span>
+                                      <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                        Upload Photo
+                                      </span>
+                                      <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                        (Optional)
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const url = URL.createObjectURL(file);
+                                      const newPhotos = {
+                                        ...formData.pagePhotos,
+                                      };
+                                      newPhotos[index] = {
+                                        file,
+                                        position: "left",
+                                        url,
+                                      };
+                                      updateFormData("pagePhotos", newPhotos);
+                                    }
+                                  }}
+                                />
+                              </label>
+
+                              {/* Photo Position Buttons - Below Image */}
+                              {formData.pagePhotos[index]?.file && (
+                                <div className="mt-4 space-y-2">
+                                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                                    Photo Position:
+                                  </p>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newPhotos = {
+                                          ...formData.pagePhotos,
+                                        };
+                                        newPhotos[index] = {
+                                          ...newPhotos[index],
+                                          position: "left",
+                                        };
+                                        updateFormData("pagePhotos", newPhotos);
+                                      }}
+                                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                                        formData.pagePhotos[index]?.position ===
+                                        "left"
+                                          ? "bg-rose-500 text-white shadow-md"
+                                          : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-rose-300"
+                                      }`}
+                                    >
+                                      ← Left
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newPhotos = {
+                                          ...formData.pagePhotos,
+                                        };
+                                        newPhotos[index] = {
+                                          ...newPhotos[index],
+                                          position: "right",
+                                        };
+                                        updateFormData("pagePhotos", newPhotos);
+                                      }}
+                                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                                        formData.pagePhotos[index]?.position ===
+                                        "right"
+                                          ? "bg-rose-500 text-white shadow-md"
+                                          : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-rose-300"
+                                      }`}
+                                    >
+                                      Right →
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Right Side: Message Textarea */}
+                            <div className="flex-1 flex flex-col">
+                              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                Your Message
+                              </label>
+                              <textarea
+                                value={pageText}
+                                onChange={(e) => {
+                                  const newPages = [...pages];
+                                  newPages[index] = e.target.value;
+                                  updateFormData(
+                                    "message",
+                                    newPages.join(delimiter),
+                                  );
+                                }}
+                                placeholder={`Write your heartfelt message for page ${index + 1}...`}
+                                className={`flex-1 bg-white dark:bg-zinc-800 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none transition-all min-h-[280px] ${
+                                  errors.message && index === 0
+                                    ? "border-red-500"
+                                    : "border-rose-100 dark:border-rose-900/30"
+                                }`}
+                                maxLength={500}
+                              />
+                              <div className="flex justify-end mt-2">
+                                <span
+                                  className={`text-xs font-medium ${pageText.length >= 450 ? "text-yellow-500" : pageText.length >= 400 ? "text-orange-400" : "text-gray-400"}`}
+                                >
+                                  {pageText.length}/500 characters
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ));
                   })()}
 
+                  {/* Add Another Page Button */}
                   <button
                     onClick={() => {
                       const delimiter = "<<<PAGE_BREAK>>>";
                       const current = formData.message ? formData.message : "";
                       updateFormData("message", current + delimiter + "");
                     }}
-                    className="w-full py-3 border-2 border-dashed border-rose-200 dark:border-rose-800 rounded-xl text-rose-400 hover:border-rose-400 hover:text-rose-500 transition flex items-center justify-center gap-2 font-medium"
+                    className="w-full py-4 border-2 border-dashed border-rose-200 dark:border-rose-800 rounded-2xl text-rose-400 hover:border-rose-400 hover:text-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-900/10 transition-all flex items-center justify-center gap-2 font-medium"
                   >
-                    <span>+ Add Another Page</span>
+                    <span className="text-xl">+</span>
+                    <span>Add Another Page</span>
                   </button>
                 </div>
               </div>
 
+              {/* Message Suggestions */}
               {formData.relationshipStatus &&
                 messageSuggestions[formData.relationshipStatus] && (
-                  <div className="border-t border-gray-700 pt-6">
+                  <div className="border-t border-rose-100 dark:border-rose-900/20 pt-6 mt-8">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-pink-400 font-medium flex items-center gap-2">
-                        😊 Message Suggestions
+                      <h3 className="text-rose-500 dark:text-pink-400 font-semibold flex items-center gap-2">
+                        <span>💡</span> Message Suggestions
                       </h3>
-                      <button className="text-xs text-gray-400 hover:text-white">
+                      <button className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
                         See all
                       </button>
                     </div>
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {messageSuggestions[formData.relationshipStatus].map(
                         (suggestion: MessageSuggestion, idx: number) => (
                           <button
@@ -824,15 +870,15 @@ export default function CondolenceForm() {
                             onClick={() =>
                               updateFormData("message", suggestion.text)
                             }
-                            className="w-full text-left p-4 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition border border-gray-600"
+                            className="text-left p-4 bg-gradient-to-br from-rose-50 to-pink-50 dark:from-zinc-900 dark:to-rose-950/20 rounded-xl hover:shadow-md transition-all border border-rose-100 dark:border-rose-900/30 group"
                           >
                             <div className="flex items-start gap-3">
-                              <span className="text-pink-400">💕</span>
-                              <div className="flex-1">
-                                <div className="font-medium text-sm mb-1">
+                              <span className="text-2xl">💕</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-sm mb-1 text-gray-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition">
                                   {suggestion.title}
                                 </div>
-                                <div className="text-sm text-gray-300">
+                                <div className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
                                   {suggestion.text}
                                 </div>
                               </div>
@@ -843,7 +889,7 @@ export default function CondolenceForm() {
                                     suggestion.text,
                                   );
                                 }}
-                                className="text-gray-400 hover:text-white"
+                                className="flex-shrink-0 text-gray-400 hover:text-rose-500 transition p-1"
                                 title="Copy to clipboard"
                               >
                                 📋
@@ -858,7 +904,6 @@ export default function CondolenceForm() {
             </div>
           </div>
         )}
-
         {/* Fullscreen Message Dialog */}
         {isFullscreenMessage && (
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -907,9 +952,7 @@ export default function CondolenceForm() {
             </div>
           </div>
         )}
-
         {/* Step 3: Categories (Special Memories / Special Qualities) */}
-
         {currentStep === 3 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
             {wantsPhotos === null ? (
@@ -978,11 +1021,11 @@ export default function CondolenceForm() {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {category.items.map((item, itemIndex) => (
                         <div
                           key={itemIndex}
-                          className="relative p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20 group hover:shadow-lg transition-shadow"
+                          className="relative p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20 group"
                         >
                           <button
                             onClick={() => {
@@ -992,208 +1035,103 @@ export default function CondolenceForm() {
                               ].items.filter((_, i) => i !== itemIndex);
                               updateFormData("categories", newCategories);
                             }}
-                            className="absolute top-3 right-3 p-1.5 bg-white dark:bg-zinc-800 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shadow-sm z-10"
+                            className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors z-10"
                           >
-                            <X size={16} />
+                            <X size={18} />
                           </button>
 
-                          {/* Layout: Image Left, Content Right */}
-                          <div className="flex gap-6">
-                            {/* Left: Image Upload */}
-                            <div className="shrink-0 w-48">
-                              <label className="block cursor-pointer">
-                                <div
-                                  className={`aspect-square rounded-xl border-2 border-dashed transition-all relative overflow-hidden ${
-                                    item.url
-                                      ? "border-transparent"
-                                      : "border-rose-200 dark:border-rose-800 hover:border-rose-400"
-                                  }`}
-                                >
-                                  {item.url ? (
-                                    <div className="relative w-full h-full group">
-                                      <Image
-                                        src={item.url}
-                                        alt={item.title || "Upload"}
-                                        fill
-                                        className="object-cover"
-                                        sizes="192px"
-                                      />
-                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <div className="text-center">
-                                          <Upload
-                                            className="text-white mx-auto mb-1"
-                                            size={24}
-                                          />
-                                          <span className="text-xs text-white font-medium">
-                                            Change Photo
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="flex flex-col items-center justify-center h-full">
+                          <div className="space-y-4">
+                            <label className="block">
+                              <div
+                                className={`aspect-square rounded-xl border-2 border-dashed border-rose-200 dark:border-rose-800 flex flex-col items-center justify-center cursor-pointer hover:border-rose-400 transition-colors relative overflow-hidden ${item.url ? "border-none" : ""}`}
+                              >
+                                {item.url ? (
+                                  <>
+                                    <img
+                                      src={item.url}
+                                      alt="Detail"
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                       <Upload
-                                        className="text-rose-300 mb-2"
-                                        size={32}
+                                        className="text-white"
+                                        size={24}
                                       />
-                                      <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                        Upload Photo
-                                      </span>
                                     </div>
-                                  )}
-                                </div>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  className="hidden"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      const url = URL.createObjectURL(file);
-                                      const newCategories = [
-                                        ...formData.categories,
-                                      ];
-                                      newCategories[catIndex].items[itemIndex] =
-                                        {
-                                          ...newCategories[catIndex].items[
-                                            itemIndex
-                                          ],
-                                          file,
-                                          url,
-                                        };
-                                      updateFormData(
-                                        "categories",
-                                        newCategories,
-                                      );
-                                    }
-                                  }}
-                                />
-                              </label>
-
-                              {/* Photo Position Buttons - Below Image */}
-                              {item.url && (
-                                <div className="mt-3 space-y-2">
-                                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5">
-                                    Photo Position:
-                                  </p>
-                                  <div className="flex gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const newCategories = [
-                                          ...formData.categories,
-                                        ];
-                                        newCategories[catIndex].items[
-                                          itemIndex
-                                        ].position = "left";
-                                        updateFormData(
-                                          "categories",
-                                          newCategories,
-                                        );
-                                      }}
-                                      className={`flex-1 flex items-center justify-center w-12 h-10 rounded-lg text-sm font-bold transition-all ${
-                                        item.position === "left"
-                                          ? "bg-rose-500 text-white shadow-md"
-                                          : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-rose-300"
-                                      }`}
-                                    >
-                                      L
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const newCategories = [
-                                          ...formData.categories,
-                                        ];
-                                        newCategories[catIndex].items[
-                                          itemIndex
-                                        ].position = "right";
-                                        updateFormData(
-                                          "categories",
-                                          newCategories,
-                                        );
-                                      }}
-                                      className={`flex-1 flex items-center justify-center w-12 h-10 rounded-lg text-sm font-bold transition-all ${
-                                        item.position === "right"
-                                          ? "bg-rose-500 text-white shadow-md"
-                                          : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-rose-300"
-                                      }`}
-                                    >
-                                      R
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Right: Form Fields */}
-                            <div className="flex-1 space-y-4">
-                              <div>
-                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                                  Title
-                                </label>
-                                <input
-                                  type="text"
-                                  placeholder="e.g. Our First Date"
-                                  value={item.title}
-                                  onChange={(e) => {
+                                  </>
+                                ) : (
+                                  <>
+                                    <Upload
+                                      className="text-rose-300 mb-2"
+                                      size={24}
+                                    />
+                                    <span className="text-xs text-gray-400">
+                                      Upload Photo
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const url = URL.createObjectURL(file);
                                     const newCategories = [
                                       ...formData.categories,
                                     ];
-                                    newCategories[catIndex].items[
-                                      itemIndex
-                                    ].title = e.target.value;
+                                    newCategories[catIndex].items[itemIndex] = {
+                                      ...newCategories[catIndex].items[
+                                        itemIndex
+                                      ],
+                                      file,
+                                      url,
+                                    };
                                     updateFormData("categories", newCategories);
-                                  }}
-                                  className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                                  {category.id === "memories"
-                                    ? "Date / Occasion"
-                                    : "Description"}
-                                </label>
-                                <textarea
-                                  placeholder={
-                                    category.id === "memories"
-                                      ? "e.g. Summer 2023, at the beach"
-                                      : "e.g. Always makes me laugh"
                                   }
-                                  value={item.date}
-                                  onChange={(e) => {
-                                    const newCategories = [
-                                      ...formData.categories,
-                                    ];
-                                    newCategories[catIndex].items[
-                                      itemIndex
-                                    ].date = e.target.value;
-                                    updateFormData("categories", newCategories);
-                                  }}
-                                  rows={4}
-                                  className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all resize-none"
-                                />
-                              </div>
-                            </div>
+                                }}
+                              />
+                            </label>
+
+                            <input
+                              type="text"
+                              placeholder="Title"
+                              value={item.title}
+                              onChange={(e) => {
+                                const newCategories = [...formData.categories];
+                                newCategories[catIndex].items[itemIndex].title =
+                                  e.target.value;
+                                updateFormData("categories", newCategories);
+                              }}
+                              className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                            />
+
+                            <input
+                              type="text"
+                              placeholder={
+                                category.id === "memories"
+                                  ? "Date (e.g. Summer 2023)"
+                                  : "Description"
+                              }
+                              value={item.date}
+                              onChange={(e) => {
+                                const newCategories = [...formData.categories];
+                                newCategories[catIndex].items[itemIndex].date =
+                                  e.target.value;
+                                updateFormData("categories", newCategories);
+                              }}
+                              className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                            />
                           </div>
                         </div>
                       ))}
 
                       {category.items.length === 0 && (
-                        <div className="col-span-full py-12 text-center">
-                          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-zinc-800 mb-4">
-                            {category.id === "memories" ? (
-                              <Heart className="text-gray-400" size={24} />
-                            ) : (
-                              <Sparkles className="text-gray-400" size={24} />
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                            No items added to {category.name} yet
-                          </p>
-                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                            Click "Add to {category.name}" to get started
+                        <div className="col-span-full py-8 text-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-zinc-800 rounded-2xl">
+                          <p className="text-sm italic">
+                            No items added to {category.name} yet.
                           </p>
                         </div>
                       )}
@@ -1201,13 +1139,13 @@ export default function CondolenceForm() {
                   </div>
                 ))}
 
-                <div className="flex justify-end pt-6 border-t border-rose-100 dark:border-rose-900/20">
+                <div className="flex justify-end pt-4 border-t border-rose-100 dark:border-rose-900/20">
                   <button
                     onClick={() => {
                       setCurrentStep(4);
                       setWantsPhotos(null);
                     }}
-                    className="px-8 py-3 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-full font-medium shadow-lg hover:shadow-xl hover:shadow-rose-300/50 dark:hover:shadow-rose-900/30 transition-all transform hover:scale-105 active:scale-95"
+                    className="px-8 py-3 bg-linear-to-r from-rose-500 to-pink-500 text-white rounded-full font-medium shadow-lg hover:shadow-rose-300 dark:hover:shadow-rose-900/30 transition-all font-serif"
                   >
                     Save & Preview Design
                   </button>
@@ -1216,7 +1154,6 @@ export default function CondolenceForm() {
             )}
           </div>
         )}
-
         {/* Step 4: Personalization (was Step 5) */}
         {currentStep === 4 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
@@ -1340,7 +1277,6 @@ export default function CondolenceForm() {
             </div>
           </div>
         )}
-
         {/* Step 5: Final Preview */}
         {currentStep === 5 && (
           <div className="space-y-8 animate-in fade-in zoom-in duration-500">
@@ -1597,7 +1533,6 @@ export default function CondolenceForm() {
             </div>
           </div>
         )}
-
         {/* Navigation Buttons */}
         <div className="flex items-center justify-between mt-8">
           <button
@@ -1626,7 +1561,6 @@ export default function CondolenceForm() {
             <ChevronRight size={20} />
           </button>
         </div>
-
         {/* Back to homepage link */}
         {currentStep > 0 && (
           <button
