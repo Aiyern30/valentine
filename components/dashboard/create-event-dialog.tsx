@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { createMilestone } from "@/lib/actions";
 import { useRouter } from "next/navigation";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   X,
   Loader2,
@@ -28,12 +30,12 @@ const REMINDER_TYPES = [
 
 const DAY_OPTIONS = Array.from({ length: 366 }, (_, i) => ({
   value: i.toString(),
-  label: i === 0 ? "0 days" : i === 1 ? "1 day" : `${i} days`
+  label: i === 0 ? "0 days" : i === 1 ? "1 day" : `${i} days`,
 }));
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => ({
   value: i.toString(),
-  label: i === 0 ? "0 hours" : i === 1 ? "1 hour" : `${i} hours`
+  label: i === 0 ? "0 hours" : i === 1 ? "1 hour" : `${i} hours`,
 }));
 
 const MINUTE_OPTIONS = [
@@ -59,9 +61,14 @@ export function CreateEventDialog({
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState(EVENT_TYPES[0].id);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
-  const [selectedReminder, setSelectedReminder] = useState(REMINDER_TYPES[0].id);
+  const [selectedReminder, setSelectedReminder] = useState(
+    REMINDER_TYPES[0].id,
+  );
   const [isReminderSelectOpen, setIsReminderSelectOpen] = useState(false);
-  const [startDate, setStartDate] = useState(selectedDate ? selectedDate.toISOString().split("T")[0] : "");
+  const [startDate, setStartDate] = useState<Date | null>(
+    selectedDate || new Date(),
+  );
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedDays, setSelectedDays] = useState("1");
   const [selectedHours, setSelectedHours] = useState("0");
   const [selectedMinutes, setSelectedMinutes] = useState("0");
@@ -72,8 +79,12 @@ export function CreateEventDialog({
 
   // Update start date when selectedDate changes
   useEffect(() => {
-    if (selectedDate && selectedDate instanceof Date && !isNaN(selectedDate.getTime())) {
-      setStartDate(selectedDate.toISOString().split("T")[0]);
+    if (
+      selectedDate &&
+      selectedDate instanceof Date &&
+      !isNaN(selectedDate.getTime())
+    ) {
+      setStartDate(selectedDate);
     }
   }, [selectedDate]);
 
@@ -88,6 +99,14 @@ export function CreateEventDialog({
     try {
       setIsLoading(true);
       setError(null);
+
+      // Add dates to formData
+      if (startDate) {
+        formData.set("date", startDate.toISOString().split("T")[0]);
+      }
+      if (endDate && selectedType === "other") {
+        formData.set("endDate", endDate.toISOString().split("T")[0]);
+      }
 
       const result = await createMilestone(formData);
 
@@ -152,17 +171,18 @@ export function CreateEventDialog({
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
                 {selectedType === "other" ? "Start Date" : "Date"}
               </label>
-              <input
-                name="date"
-                type="date"
-                required
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
-                style={{
-                  colorScheme: 'auto'
-                }}
-              />
+              <div className="custom-datepicker-wrapper">
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date: Date | null) => setStartDate(date)}
+                  dateFormat="MM/dd/yyyy"
+                  className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                  calendarClassName="custom-calendar"
+                  showPopperArrow={false}
+                  popperPlacement="bottom-start"
+                  required
+                />
+              </div>
             </div>
 
             {selectedType === "other" && (
@@ -170,15 +190,18 @@ export function CreateEventDialog({
                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
                   End Date (Optional)
                 </label>
-                <input
-                  name="endDate"
-                  type="date"
-                  min={startDate}
-                  className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:rounded-lg [&::-webkit-calendar-picker-indicator]:opacity-60 hover:[&::-webkit-calendar-picker-indicator]:opacity-100"
-                  style={{
-                    colorScheme: 'auto'
-                  }}
-                />
+                <div className="custom-datepicker-wrapper">
+                  <DatePicker
+                    selected={endDate}
+                    onChange={(date: Date | null) => setEndDate(date)}
+                    dateFormat="MM/dd/yyyy"
+                    minDate={startDate || undefined}
+                    className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                    calendarClassName="custom-calendar"
+                    showPopperArrow={false}
+                    popperPlacement="bottom-start"
+                  />
+                </div>
               </div>
             )}
 
@@ -266,7 +289,11 @@ export function CreateEventDialog({
                 Reminder
               </label>
               <div className="relative">
-                <input type="hidden" name="reminderType" value={selectedReminder} />
+                <input
+                  type="hidden"
+                  name="reminderType"
+                  value={selectedReminder}
+                />
                 <button
                   type="button"
                   onClick={() => setIsReminderSelectOpen(!isReminderSelectOpen)}
@@ -346,9 +373,15 @@ export function CreateEventDialog({
                 <div className="grid grid-cols-3 gap-3">
                   {/* Days Dropdown */}
                   <div>
-                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">Days</label>
+                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                      Days
+                    </label>
                     <div className="relative">
-                      <input type="hidden" name="advanceDays" value={selectedDays} />
+                      <input
+                        type="hidden"
+                        name="advanceDays"
+                        value={selectedDays}
+                      />
                       <button
                         type="button"
                         onClick={() => setIsDaysOpen(!isDaysOpen)}
@@ -359,13 +392,19 @@ export function CreateEventDialog({
                         }`}
                       >
                         <span className="text-gray-900 dark:text-gray-100 font-medium">
-                          {DAY_OPTIONS.find(d => d.value === selectedDays)?.label || "1 day"}
+                          {DAY_OPTIONS.find((d) => d.value === selectedDays)
+                            ?.label || "1 day"}
                         </span>
-                        <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isDaysOpen ? "rotate-180" : ""}`} />
+                        <ChevronDown
+                          className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isDaysOpen ? "rotate-180" : ""}`}
+                        />
                       </button>
                       {isDaysOpen && (
                         <>
-                          <div className="fixed inset-0 z-10" onClick={() => setIsDaysOpen(false)} />
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setIsDaysOpen(false)}
+                          />
                           <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl max-h-40 overflow-y-auto py-1">
                             {DAY_OPTIONS.slice(0, 31).map((option) => (
                               <button
@@ -392,9 +431,15 @@ export function CreateEventDialog({
 
                   {/* Hours Dropdown */}
                   <div>
-                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">Hours</label>
+                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                      Hours
+                    </label>
                     <div className="relative">
-                      <input type="hidden" name="advanceHours" value={selectedHours} />
+                      <input
+                        type="hidden"
+                        name="advanceHours"
+                        value={selectedHours}
+                      />
                       <button
                         type="button"
                         onClick={() => setIsHoursOpen(!isHoursOpen)}
@@ -405,13 +450,19 @@ export function CreateEventDialog({
                         }`}
                       >
                         <span className="text-gray-900 dark:text-gray-100 font-medium">
-                          {HOUR_OPTIONS.find(h => h.value === selectedHours)?.label || "0 hours"}
+                          {HOUR_OPTIONS.find((h) => h.value === selectedHours)
+                            ?.label || "0 hours"}
                         </span>
-                        <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isHoursOpen ? "rotate-180" : ""}`} />
+                        <ChevronDown
+                          className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isHoursOpen ? "rotate-180" : ""}`}
+                        />
                       </button>
                       {isHoursOpen && (
                         <>
-                          <div className="fixed inset-0 z-10" onClick={() => setIsHoursOpen(false)} />
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setIsHoursOpen(false)}
+                          />
                           <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl max-h-40 overflow-y-auto py-1">
                             {HOUR_OPTIONS.map((option) => (
                               <button
@@ -438,9 +489,15 @@ export function CreateEventDialog({
 
                   {/* Minutes Dropdown */}
                   <div>
-                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">Minutes</label>
+                    <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                      Minutes
+                    </label>
                     <div className="relative">
-                      <input type="hidden" name="advanceMinutes" value={selectedMinutes} />
+                      <input
+                        type="hidden"
+                        name="advanceMinutes"
+                        value={selectedMinutes}
+                      />
                       <button
                         type="button"
                         onClick={() => setIsMinutesOpen(!isMinutesOpen)}
@@ -451,13 +508,20 @@ export function CreateEventDialog({
                         }`}
                       >
                         <span className="text-gray-900 dark:text-gray-100 font-medium">
-                          {MINUTE_OPTIONS.find(m => m.value === selectedMinutes)?.label || "0 minutes"}
+                          {MINUTE_OPTIONS.find(
+                            (m) => m.value === selectedMinutes,
+                          )?.label || "0 minutes"}
                         </span>
-                        <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isMinutesOpen ? "rotate-180" : ""}`} />
+                        <ChevronDown
+                          className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isMinutesOpen ? "rotate-180" : ""}`}
+                        />
                       </button>
                       {isMinutesOpen && (
                         <>
-                          <div className="fixed inset-0 z-10" onClick={() => setIsMinutesOpen(false)} />
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setIsMinutesOpen(false)}
+                          />
                           <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white dark:bg-zinc-800 border-2 border-gray-100 dark:border-zinc-700/50 rounded-xl shadow-xl overflow-hidden py-1 max-h-40 overflow-y-auto">
                             {MINUTE_OPTIONS.map((option) => (
                               <button
