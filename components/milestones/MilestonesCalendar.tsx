@@ -26,6 +26,7 @@ interface Milestone {
   title: string;
   description?: string;
   milestone_date: string;
+  end_date?: string; // Add support for end date
   category?: string;
 }
 
@@ -39,13 +40,26 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Transform milestones into calendar events
-  const events = milestones.map((milestone) => ({
-    id: milestone.id,
-    title: milestone.title,
-    start: new Date(milestone.milestone_date),
-    end: new Date(milestone.milestone_date),
-    resource: milestone,
-  }));
+  const events = milestones.map((milestone) => {
+    const startDate = new Date(milestone.milestone_date);
+    let endDate = new Date(milestone.milestone_date);
+
+    // If milestone has an end_date field, use it and add 1 day for proper display
+    if (milestone.end_date) {
+      endDate = new Date(milestone.end_date);
+      // Add 1 day to end date so it shows through the last day
+      // This is required by react-big-calendar to display multi-day events correctly
+      endDate.setDate(endDate.getDate() + 1);
+    }
+
+    return {
+      id: milestone.id,
+      title: milestone.title,
+      start: startDate,
+      end: endDate,
+      resource: milestone,
+    };
+  });
 
   // Get icon based on category
   const getCategoryIcon = (category?: string) => {
