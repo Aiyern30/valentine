@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -44,7 +45,9 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         onClick={() => setIsOpen(!isOpen)}
         className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 overflow-hidden hover:ring-2 hover:ring-rose-300 transition-all"
       >
-        {user.user_metadata?.avatar_url ? (
+        {user.avatar_url ? (
+          <Image src={user.avatar_url} alt="Profile" width={40} height={40} />
+        ) : user.user_metadata?.avatar_url ? (
           <Image
             src={user.user_metadata.avatar_url}
             alt="Profile"
@@ -52,7 +55,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
             height={40}
           />
         ) : (
-          user.email?.[0].toUpperCase()
+          user.email?.[0]?.toUpperCase()
         )}
       </button>
 
@@ -62,7 +65,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
           {/* User Info */}
           <div className="px-4 py-3 border-b border-gray-100 dark:border-zinc-700">
             <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              {user.user_metadata?.full_name || "User"}
+              {user.display_name || user.user_metadata?.full_name || "User"}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
               {user.email}
@@ -74,7 +77,7 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
             <button
               onClick={() => {
                 setIsOpen(false);
-                router.push("/dashboard/profile");
+                router.push("/profile");
               }}
               className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center gap-3"
             >

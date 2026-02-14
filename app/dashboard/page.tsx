@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/no-unescaped-entities */
 import { RelationshipTimer } from "@/components/dashboard/relationship-timer";
 import { DashboardActions } from "@/components/dashboard/dashboard-actions";
@@ -11,8 +10,9 @@ import {
   getMilestonesByUser,
   getRecentPhotos,
   isProfileComplete,
+  getProfile,
 } from "@/lib/data";
-import { Bell, Image as ImageIcon, Plus } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { ProfileDropdown } from "@/components/ProfileDropdown";
@@ -26,6 +26,9 @@ export default async function DashboardPage() {
     redirect("/");
   }
 
+  // Fetch profile from DB
+  const profile = await getProfile(user.id);
+
   // Check if profile is complete
   const profileComplete = await isProfileComplete(user.id);
 
@@ -33,10 +36,7 @@ export default async function DashboardPage() {
   if (!profileComplete) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
-        <ProfileCompletionDialog
-          userId={user.id}
-          userEmail={user.email || ""}
-        />
+        <ProfileCompletionDialog userId={user.id} userEmail={user.email || ""} />
       </div>
     );
   }
@@ -46,9 +46,7 @@ export default async function DashboardPage() {
 
   const milestones = await getMilestonesByUser(user.id, 5);
 
-  const recentPhotos = relationship
-    ? await getRecentPhotos(relationship.id)
-    : [];
+  const recentPhotos = relationship ? await getRecentPhotos(relationship.id) : [];
 
   // Determine partner info
   const partner = relationship
@@ -57,16 +55,20 @@ export default async function DashboardPage() {
       : relationship.partner1
     : null;
 
+  // Prefer DB profile for display name and avatar, fallback to user object
+  const displayName =
+    profile?.display_name ||
+    user.user_metadata?.full_name ||
+    user.email?.split("@")[0];
+  const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url || null;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Welcome back,{" "}
-            <span className="text-rose-500">
-              {user.user_metadata?.full_name || user.email?.split("@")[0]}
-            </span>
+            Welcome back, <span className="text-rose-500">{displayName}</span>
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
             Here's what's happening in your love life
@@ -77,7 +79,13 @@ export default async function DashboardPage() {
           <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
             <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <ProfileDropdown user={user} />
+          <ProfileDropdown
+            user={{
+              ...user,
+              display_name: profile?.display_name,
+              avatar_url: avatarUrl,
+            }}
+          />
         </div>
       </header>
 
@@ -105,10 +113,7 @@ export default async function DashboardPage() {
           <UpcomingEvents milestones={milestones} />
 
           {/* Recent Memories */}
-          <RecentMemoriesSection
-            photos={recentPhotos}
-            currentUserId={user.id}
-          />
+          <RecentMemoriesSection photos={recentPhotos} currentUserId={user.id} />
         </div>
 
         {/* Right: Sidebar / Status */}
@@ -137,9 +142,7 @@ export default async function DashboardPage() {
                     <p className="font-semibold text-lg">
                       {partner?.display_name || "My Love"}
                     </p>
-                    <p className="text-indigo-100 text-sm">
-                      loves you very much
-                    </p>
+                    <p className="text-indigo-100 text-sm">loves you very much</p>
                   </div>
                 </div>
               </div>
