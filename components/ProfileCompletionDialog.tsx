@@ -5,6 +5,7 @@ import { useState, useRef } from "react";
 import { completeProfile, uploadAvatar } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import { Loader2, User, AtSign, Sparkles, Camera, X } from "lucide-react";
+import Image from "next/image";
 import { compressImage, validateImageFile } from "@/lib/image-utils";
 
 interface ProfileCompletionDialogProps {
@@ -104,9 +105,9 @@ export function ProfileCompletionDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
       {/* Dialog - Cannot be closed */}
-      <div className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-gray-100 dark:border-zinc-800">
+      <div className="relative w-full max-w-lg h-[90vh] bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300 border border-gray-100 dark:border-zinc-800 flex flex-col">
         {/* Header with linear */}
-        <div className="bg-linear-to-r from-rose-500 to-pink-500 p-8 text-white relative overflow-hidden">
+        <div className="bg-linear-to-r from-rose-500 to-pink-500 p-8 text-white relative overflow-hidden shrink-0">
           <div className="relative z-10 text-center">
             <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-8 h-8 text-white" />
@@ -118,7 +119,7 @@ export function ProfileCompletionDialog({
           </div>
         </div>
 
-        <form action={handleSubmit} className="p-8 space-y-6">
+        <form action={handleSubmit} className="p-8 space-y-6 overflow-y-auto flex-1 min-h-0">
           {error && (
             <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium border border-red-100 dark:border-red-900/30">
               {error}
@@ -186,10 +187,13 @@ export function ProfileCompletionDialog({
               {imagePreview ? (
                 <div className="relative">
                   <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                    <img
+                    <Image
                       src={imagePreview}
                       alt="Profile preview"
+                      width={96}
+                      height={96}
                       className="w-full h-full object-cover"
+                      unoptimized
                     />
                   </div>
                   <button
