@@ -89,42 +89,49 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
     }
   };
 
-  // Custom event styling
+  // Custom event styling with enhanced colors
   const eventStyleGetter = (event: any) => {
     const type = (
       event.resource.milestone_type ||
       event.resource.category ||
       ""
     ).toLowerCase();
+    
     let backgroundColor = "#ec4899"; // Default rose-500
+    let borderColor = "#be185d"; // Default rose-700
 
     switch (type) {
       case "anniversary":
         backgroundColor = "#ef4444"; // red-500
+        borderColor = "#dc2626"; // red-600
         break;
       case "birthday":
         backgroundColor = "#8b5cf6"; // purple-500
+        borderColor = "#7c3aed"; // purple-600
         break;
       case "countdown":
       case "date":
         backgroundColor = "#3b82f6"; // blue-500
+        borderColor = "#2563eb"; // blue-600
         break;
       case "achievement":
       case "other":
         backgroundColor = "#10b981"; // green-500
+        borderColor = "#059669"; // green-600
         break;
     }
 
     return {
       style: {
         backgroundColor,
-        borderRadius: "6px",
-        opacity: 0.9,
+        borderRadius: "8px",
+        opacity: 0.95,
         color: "white",
-        border: "0px",
+        border: `2px solid ${borderColor}`,
         display: "block",
         fontSize: "0.875rem",
-        fontWeight: "500",
+        fontWeight: "600",
+        boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
       },
     };
   };
