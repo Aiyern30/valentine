@@ -1,9 +1,10 @@
+// components/dashboard/relationship-timer.tsx
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
 import { useState, useEffect } from "react";
-import { Heart } from "lucide-react";
-
+import { Heart, Edit2, Check, X } from "lucide-react";
+import { updateAnniversaryDate } from "@/lib/actions";
 export function RelationshipTimer({ startDate }: { startDate: string }) {
   const [timeTogether, setTimeTogether] = useState({
     years: 0,
@@ -12,6 +13,11 @@ export function RelationshipTimer({ startDate }: { startDate: string }) {
     minutes: 0,
     seconds: 0,
   });
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editDate, setEditDate] = useState(startDate);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const start = new Date(startDate).getTime();
@@ -36,12 +42,40 @@ export function RelationshipTimer({ startDate }: { startDate: string }) {
     return () => clearInterval(timer);
   }, [startDate]);
 
+  async function handleSaveDate() {
+    setIsSaving(true);
+    setError("");
+
+    const result = await updateAnniversaryDate(editDate);
+
+    if (result.error) {
+      setError(result.error);
+      setIsSaving(false);
+      return;
+    }
+
+    setIsEditing(false);
+    setIsSaving(false);
+    // Page will auto-refresh due to revalidatePath in the action
+  }
+
   return (
     <div className="w-full bg-linear-to-r from-rose-500 to-pink-600 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden group">
       <div className="absolute top-0 left-0 w-full h-full bg-[url('/noise.png')] opacity-20" />
       <div className="absolute -right-10 -bottom-10 opacity-10 transform rotate-12 group-hover:scale-110 transition-transform duration-700">
         <Heart size={200} fill="currentColor" />
       </div>
+
+      {/* Edit Button */}
+      {!isEditing && (
+        <button
+          onClick={() => setIsEditing(true)}
+          className="absolute top-4 right-4 z-20 p-2 bg-white/20 hover:bg-white/30 rounded-lg backdrop-blur-sm transition-colors"
+          aria-label="Edit anniversary date"
+        >
+          <Edit2 className="w-4 h-4" />
+        </button>
+      )}
 
       <div className="relative z-10 flex flex-col items-center">
         <h2 className="text-xl md:text-2xl font-medium text-rose-100 mb-6 font-script">
@@ -56,10 +90,50 @@ export function RelationshipTimer({ startDate }: { startDate: string }) {
           <TimeUnit value={timeTogether.seconds} label="Seconds" />
         </div>
 
-        <div className="mt-8 flex items-center gap-2 text-rose-200 text-sm">
-          <span>Since {new Date(startDate).toLocaleDateString()}</span>
-          <Heart size={14} className="animate-pulse" fill="currentColor" />
+        {/* Anniversary Date Display/Edit */}
+        <div className="mt-8 flex items-center gap-3 text-rose-200 text-sm">
+          {isEditing ? (
+            <div className="flex items-center gap-2">
+              <span className="text-white">Since:</span>
+              <input
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+                className="px-3 py-1.5 bg-white/20 border border-white/40 rounded-lg text-white backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/50"
+                disabled={isSaving}
+              />
+              <button
+                onClick={handleSaveDate}
+                disabled={isSaving}
+                className="p-1.5 bg-green-500 hover:bg-green-600 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <Check className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditDate(startDate);
+                  setError("");
+                }}
+                disabled={isSaving}
+                className="p-1.5 bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <span>Since {new Date(startDate).toLocaleDateString()}</span>
+              <Heart size={14} className="animate-pulse" fill="currentColor" />
+            </>
+          )}
         </div>
+
+        {error && (
+          <p className="mt-2 text-sm text-red-200 bg-red-500/20 px-4 py-2 rounded-lg">
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );

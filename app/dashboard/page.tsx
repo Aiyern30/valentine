@@ -21,18 +21,13 @@ import { InvitePartnerCard } from "@/components/InvitePartnerCards";
 export default async function DashboardPage() {
   const user = await getUser();
 
-  // Redirect to home if not authenticated
   if (!user) {
     redirect("/");
   }
 
-  // Fetch profile from DB
   const profile = await getProfile(user.id);
-
-  // Check if profile is complete
   const profileComplete = await isProfileComplete(user.id);
 
-  // If profile is incomplete, show the completion dialog
   if (!profileComplete) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">
@@ -44,7 +39,7 @@ export default async function DashboardPage() {
     );
   }
 
-  // Fetch real data (only if profile is complete)
+  // ✅ Only fetch ACTIVE relationships (not pending)
   const relationship = await getRelationship(user.id);
 
   const milestones = await getMilestonesByUser(user.id, 5);
@@ -53,14 +48,12 @@ export default async function DashboardPage() {
     ? await getRecentPhotos(relationship.id)
     : [];
 
-  // Determine partner info
   const partner = relationship
     ? relationship.partner1_id === user.id
       ? relationship.partner2
       : relationship.partner1
     : null;
 
-  // Prefer DB profile for display name and avatar, fallback to user object
   const displayName =
     profile?.display_name ||
     user.user_metadata?.full_name ||
@@ -68,8 +61,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header */}
-
       <SectionHeader
         icon={<Home className="w-6 h-6 text-white" />}
         title={
@@ -82,7 +73,8 @@ export default async function DashboardPage() {
 
       {/* Main Feature: Timer or Setup CTA */}
       <section>
-        {relationship ? (
+        {/* ✅ Only show timer if relationship exists AND is active */}
+        {relationship && relationship.status === "active" ? (
           <RelationshipTimer startDate={relationship.relationship_start_date} />
         ) : (
           <AnniversarySetup />

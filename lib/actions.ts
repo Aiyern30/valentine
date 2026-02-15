@@ -278,6 +278,58 @@ export async function setAnniversary(formData: FormData) {
   return { success: true };
 }
 
+export async function updateAnniversaryDate(newDate: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { error: "You must be logged in" };
+  }
+
+  if (!newDate) {
+    return { error: "Anniversary date is required" };
+  }
+
+  try {
+    // Get current active relationship
+    const { data: relationship, error: fetchError } = await supabase
+      .from("relationships")
+      .select("id")
+      .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (fetchError || !relationship) {
+      return { error: "No active relationship found" };
+    }
+
+    // Update the anniversary date
+    const { error: updateError } = await supabase
+      .from("relationships")
+      .update({
+        relationship_start_date: newDate,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", relationship.id);
+
+    if (updateError) {
+      console.error("Error updating anniversary date:", updateError);
+      return { error: "Failed to update anniversary date" };
+    }
+
+    console.log("✅ Anniversary date updated successfully");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("❌ Error updating anniversary date:", error);
+    return { error: "An unexpected error occurred" };
+  }
+}
+
 export async function removePartner() {
   const supabase = await createClient();
 

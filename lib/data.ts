@@ -45,22 +45,22 @@ export async function isProfileComplete(userId: string): Promise<boolean> {
   return !!(data && data.display_name);
 }
 
-export const getRelationship = cache(async (userId: string) => {
+// lib/data.ts
+export async function getRelationship(userId: string) {
   const supabase = await createClient();
 
-  // Find relationship where user is either partner1 or partner2
   const { data, error } = await supabase
     .from("relationships")
     .select(
       `
       *,
-      partner1:profiles!relationships_partner1_id_fkey(*),
-      partner2:profiles!relationships_partner2_id_fkey(*)
+      partner1:profiles!partner1_id(*),
+      partner2:profiles!partner2_id(*)
     `,
     )
     .or(`partner1_id.eq.${userId},partner2_id.eq.${userId}`)
     .eq("status", "active")
-    .maybeSingle(); // Changed from .single() to .maybeSingle()
+    .maybeSingle();
 
   if (error) {
     console.error("Error fetching relationship:", error);
@@ -68,7 +68,7 @@ export const getRelationship = cache(async (userId: string) => {
   }
 
   return data;
-});
+}
 
 export async function getMilestones(
   relationshipId: string,
