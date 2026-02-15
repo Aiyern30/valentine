@@ -1,4 +1,4 @@
-// api/invitations/send.ts
+// api/invitations/send/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 
@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   const { inviteeEmail } = await req.json();
-  const supabase = await createClient(); // Add await here
+  const supabase = await createClient();
 
   // Get current user
   const {
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
 
   // Generate unique token
   const invitationToken = crypto.randomUUID();
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   // Create invitation record
   const { data: invitation, error: inviteError } = await supabase
@@ -63,6 +63,7 @@ export async function POST(req: Request) {
     .single();
 
   if (inviteError) {
+    console.error("Database error:", inviteError);
     return Response.json(
       { error: "Failed to create invitation" },
       { status: 500 },
@@ -79,18 +80,35 @@ export async function POST(req: Request) {
   // Send email
   const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitationToken}`;
 
-  await resend.emails.send({
-    from: "lovesick@gmail.com",
-    to: inviteeEmail,
-    subject: `${inviterProfile?.display_name || "Someone"} invited you to connect!`,
-    html: `
-      <h2>You've been invited! 💕</h2>
-      <p>${inviterProfile?.display_name || "Someone special"} wants to connect with you on LoveSick.</p>
-      <p>Click the link below to accept the invitation:</p>
-      <a href="${inviteLink}" style="display: inline-block; padding: 12px 24px; background-color: #f43f5e; color: white; text-decoration: none; border-radius: 8px;">Accept Invitation</a>
-      <p style="color: #666; font-size: 14px;">This invitation expires in 7 days.</p>
-    `,
-  });
+  try {
+    const { data, error } = await resend.emails.send({
+      from: "LoveSick <onboarding@resend.dev>", // ✅ Fixed
+      to: inviteeEmail,
+      subject: `${inviterProfile?.display_name || "Someone"} invited you to connect!`,
+      html: `
+        <h2>You've been invited! 💕</h2>
+        <p>${inviterProfile?.display_name || "Someone special"} wants to connect with you on LoveSick.</p>
+        <p>Click the link below to accept the invitation:</p>
+        <a href="${inviteLink}" style="display: inline-block; padding: 12px 24px; background-color: #f43f5e; color: white; text-decoration: none; border-radius: 8px;">Accept Invitation</a>
+        <p style="color: #666; font-size: 14px;">This invitation expires in 7 days.</p>
+      `,
+    });
 
-  return Response.json({ success: true, invitation });
+    if (error) {
+      console.error("Resend error:", error);
+      return Response.json(
+        { error: "Failed to send email", details: error },
+        { status: 500 },
+      );
+    }
+
+    console.log("Email sent successfully:", data);
+    return Response.json({ success: true, invitation, emailId: data?.id });
+  } catch (error) {
+    console.error("Email sending exception:", error);
+    return Response.json(
+      { error: "Failed to send email", details: error },
+      { status: 500 },
+    );
+  }
 }
