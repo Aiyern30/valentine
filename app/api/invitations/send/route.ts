@@ -1,8 +1,12 @@
-// api/invitations/send/route.ts
+// app/api/invitations/send/route.ts
 import { createClient } from "@/lib/supabase/server";
-import { Resend } from "resend";
+import * as brevo from "@getbrevo/brevo";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const apiInstance = new brevo.TransactionalEmailsApi();
+apiInstance.setApiKey(
+  brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY!,
+);
 
 export async function POST(req: Request) {
   const { inviteeEmail } = await req.json();
@@ -81,34 +85,55 @@ export async function POST(req: Request) {
   const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitationToken}`;
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: "LoveSick <onboarding@resend.dev>", // ✅ Fixed
-      to: inviteeEmail,
-      subject: `${inviterProfile?.display_name || "Someone"} invited you to connect!`,
-      html: `
-        <h2>You've been invited! 💕</h2>
-        <p>${inviterProfile?.display_name || "Someone special"} wants to connect with you on LoveSick.</p>
-        <p>Click the link below to accept the invitation:</p>
-        <a href="${inviteLink}" style="display: inline-block; padding: 12px 24px; background-color: #f43f5e; color: white; text-decoration: none; border-radius: 8px;">Accept Invitation</a>
-        <p style="color: #666; font-size: 14px;">This invitation expires in 7 days.</p>
-      `,
-    });
+    const sendSmtpEmail = new brevo.SendSmtpEmail();
 
-    if (error) {
-      console.error("Resend error:", error);
-      return Response.json(
-        { error: "Failed to send email", details: error },
-        { status: 500 },
-      );
-    }
+    sendSmtpEmail.subject = `${inviterProfile?.display_name || "Someone"} invited you to connect!`;
+    sendSmtpEmail.to = [{ email: inviteeEmail }];
+    sendSmtpEmail.htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(to bottom right, #fff1f2, #fce7f3); border-radius: 16px; padding: 32px; text-align: center;">
+          <h2 style="color: #e11d48; margin-bottom: 16px;">You've been invited! 💕</h2>
+          <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
+            <strong>${inviterProfile?.display_name || "Someone special"}</strong> wants to connect with you on LoveSick.
+          </p>
+          <p style="font-size: 14px; color: #6b7280; margin-bottom: 32px;">
+            Click the button below to accept the invitation:
+          </p>
+          <a href="${inviteLink}" 
+             style="display: inline-block; 
+                    padding: 14px 28px; 
+                    background-color: #f43f5e; 
+                    color: white; 
+                    text-decoration: none; 
+                    border-radius: 12px; 
+                    font-weight: 600;
+                    font-size: 16px;">
+            Accept Invitation
+          </a>
+          <p style="color: #9ca3af; font-size: 12px; margin-top: 32px;">
+            This invitation expires in 7 days.
+          </p>
+        </div>
+      </body>
+      </html>
+    `;
+    sendSmtpEmail.sender = {
+      name: "LoveSick",
+      email: "noreply@lovesick.app",
+    };
 
-    console.log("Email sent successfully:", data);
-    return Response.json({ success: true, invitation, emailId: data?.id });
+    const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log("✅ Email sent successfully:", data);
+
+    return Response.json({ success: true, invitation });
   } catch (error) {
-    console.error("Email sending exception:", error);
-    return Response.json(
-      { error: "Failed to send email", details: error },
-      { status: 500 },
-    );
+    console.error("❌ Email sending exception:", error);
+    return Response.json({ error: "Failed to send email" }, { status: 500 });
   }
 }

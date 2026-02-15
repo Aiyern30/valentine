@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@getbrevo/brevo": "^3.0.1",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
     "@tailwindcss/typography": "^0.5.19",
@@ -26,7 +27,6 @@
     "react-dom": "19.2.3",
     "react-image-crop": "^11.0.10",
     "react-markdown": "^10.1.0",
-    "resend": "^6.9.2",
     "tailwind-merge": "^3.4.0",
     "vaul": "^1.1.2"
   },
