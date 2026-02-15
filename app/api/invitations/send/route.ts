@@ -84,14 +84,23 @@ export async function POST(req: Request) {
   const inviterName =
     inviterProfile?.display_name || inviterProfile?.username || "Someone";
 
-  // ✅ Auto-detect base URL based on environment
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || // Use env var if set
-    process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}` // Vercel auto-provides this
-      : "http://localhost:3000"; // Fallback to localhost
+  // ✅ Improved URL detection with fallback
+  let baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+  // If not set, try to get from request headers
+  if (!baseUrl) {
+    const host = req.headers.get("host");
+    const protocol = req.headers.get("x-forwarded-proto") || "http";
+    baseUrl = host ? `${protocol}://${host}` : "http://localhost:3000";
+  }
 
   const inviteLink = `${baseUrl}/invite/${invitationToken}`;
+
+  // Debug logging
+  console.log("🔍 Environment check:");
+  console.log("  - NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
+  console.log("  - Detected baseUrl:", baseUrl);
+  console.log("  - Full invite link:", inviteLink);
 
   try {
     const sendSmtpEmail = new brevo.SendSmtpEmail();
@@ -177,8 +186,9 @@ export async function POST(req: Request) {
       </html>
     `;
 
+    // ✅ Use custom sender name from user's display name
     sendSmtpEmail.sender = {
-      name: "LoveSick",
+      name: `${inviterName} (via LoveSick)`, // Shows who invited them
       email: "aiyern30@gmail.com",
     };
 
