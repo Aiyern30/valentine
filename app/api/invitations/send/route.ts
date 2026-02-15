@@ -77,17 +77,26 @@ export async function POST(req: Request) {
   // Get inviter profile
   const { data: inviterProfile } = await supabase
     .from("profiles")
-    .select("display_name, username")
+    .select("display_name, username, avatar_url")
     .eq("id", user.id)
     .single();
 
-  // Send email
-  const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitationToken}`;
+  const inviterName =
+    inviterProfile?.display_name || inviterProfile?.username || "Someone";
+
+  // ✅ Auto-detect base URL based on environment
+  const baseUrl =
+    process.env.NEXT_PUBLIC_APP_URL || // Use env var if set
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}` // Vercel auto-provides this
+      : "http://localhost:3000"; // Fallback to localhost
+
+  const inviteLink = `${baseUrl}/invite/${invitationToken}`;
 
   try {
     const sendSmtpEmail = new brevo.SendSmtpEmail();
 
-    sendSmtpEmail.subject = `${inviterProfile?.display_name || "Someone"} invited you to connect!`;
+    sendSmtpEmail.subject = `${inviterName} invited you to LoveSick! 💕`;
     sendSmtpEmail.to = [{ email: inviteeEmail }];
     sendSmtpEmail.htmlContent = `
       <!DOCTYPE html>
@@ -96,42 +105,94 @@ export async function POST(req: Request) {
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
       </head>
-      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: linear-gradient(to bottom right, #fff1f2, #fce7f3); border-radius: 16px; padding: 32px; text-align: center;">
-          <h2 style="color: #e11d48; margin-bottom: 16px;">You've been invited! 💕</h2>
-          <p style="font-size: 16px; color: #4b5563; margin-bottom: 24px;">
-            <strong>${inviterProfile?.display_name || "Someone special"}</strong> wants to connect with you on LoveSick.
-          </p>
-          <p style="font-size: 14px; color: #6b7280; margin-bottom: 32px;">
-            Click the button below to accept the invitation:
-          </p>
-          <a href="${inviteLink}" 
-             style="display: inline-block; 
-                    padding: 14px 28px; 
-                    background-color: #f43f5e; 
-                    color: white; 
-                    text-decoration: none; 
-                    border-radius: 12px; 
-                    font-weight: 600;
-                    font-size: 16px;">
-            Accept Invitation
-          </a>
-          <p style="color: #9ca3af; font-size: 12px; margin-top: 32px;">
-            This invitation expires in 7 days.
-          </p>
-        </div>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9fafb;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; padding: 40px 20px;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;">
+                <!-- Header -->
+                <tr>
+                  <td style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); padding: 40px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 600;">💕 LoveSick</h1>
+                  </td>
+                </tr>
+                
+                <!-- Content -->
+                <tr>
+                  <td style="padding: 40px;">
+                    <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">You've been invited!</h2>
+                    
+                    <p style="color: #4b5563; font-size: 16px; margin: 0 0 24px 0;">
+                      <strong style="color: #e11d48; font-size: 18px;">${inviterName}</strong> wants to connect with you on <strong>LoveSick</strong>.
+                    </p>
+                    
+                    <p style="color: #6b7280; font-size: 15px; margin: 0 0 32px 0;">
+                      LoveSick helps couples share memories, plan dates, and stay connected. Accept this invitation to start your journey together! ✨
+                    </p>
+                    
+                    <!-- Button -->
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td align="center" style="padding: 0 0 32px 0;">
+                          <a href="${inviteLink}" 
+                             style="display: inline-block; 
+                                    padding: 16px 40px; 
+                                    background-color: #f43f5e; 
+                                    color: white; 
+                                    text-decoration: none; 
+                                    border-radius: 12px; 
+                                    font-weight: 600;
+                                    font-size: 16px;
+                                    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);">
+                            Accept Invitation →
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                    <!-- Alternative Link -->
+                    <p style="color: #9ca3af; font-size: 13px; margin: 0; text-align: center;">
+                      Or copy this link: <br/>
+                      <a href="${inviteLink}" style="color: #f43f5e; word-break: break-all;">${inviteLink}</a>
+                    </p>
+                  </td>
+                </tr>
+                
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+                    <p style="color: #9ca3af; font-size: 12px; margin: 0 0 8px 0;">
+                      This invitation expires in 7 days.
+                    </p>
+                    <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                      This email was sent from LoveSick because ${inviterName} invited you to connect.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
       </body>
       </html>
     `;
+
     sendSmtpEmail.sender = {
       name: "LoveSick",
-      email: "noreply@lovesick.app",
+      email: "aiyern30@gmail.com",
     };
 
     const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log("✅ Email sent successfully:", data);
+    console.log("✅ Email sent successfully");
+    console.log("📧 Invitation link:", inviteLink);
+    console.log("📧 To:", inviteeEmail);
+    console.log("📧 Inviter:", inviterName);
 
-    return Response.json({ success: true, invitation });
+    return Response.json({
+      success: true,
+      invitation,
+      messageId: data.body.messageId,
+    });
   } catch (error) {
     console.error("❌ Email sending exception:", error);
     return Response.json({ error: "Failed to send email" }, { status: 500 });
