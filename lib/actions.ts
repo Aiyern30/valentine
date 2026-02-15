@@ -255,6 +255,7 @@ export async function setAnniversary(formData: FormData) {
     .from("relationships")
     .select("id")
     .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
+    .eq("status", "active")
     .maybeSingle();
 
   if (existingRel) {
@@ -276,6 +277,66 @@ export async function setAnniversary(formData: FormData) {
 
   revalidatePath("/dashboard");
   return { success: true };
+}
+
+export async function removePartner() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return { error: "You must be logged in" };
+  }
+
+  try {
+    // Get current relationship
+    const { data: relationship, error: relationshipError } = await supabase
+      .from("relationships")
+      .select("*")
+      .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (relationshipError) {
+      console.error("Error fetching relationship:", relationshipError);
+      return { error: "Failed to fetch relationship" };
+    }
+
+    if (!relationship) {
+      return { error: "No active relationship found" };
+    }
+
+    // Update relationship status to 'ended'
+    const { error: updateError } = await supabase
+      .from("relationships")
+      .update({
+        status: "ended",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", relationship.id);
+
+    if (updateError) {
+      console.error("Error ending relationship:", updateError);
+      return { error: "Failed to end relationship" };
+    }
+
+    // Cancel any pending invitations from this user
+    await supabase
+      .from("relationship_invitations")
+      .update({ status: "cancelled" })
+      .eq("inviter_id", user.id)
+      .eq("status", "pending");
+
+    console.log("✅ Relationship ended successfully");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("❌ Error removing relationship:", error);
+    return { error: "An unexpected error occurred" };
+  }
 }
 
 // Upload photo to Supabase Storage and create database record
