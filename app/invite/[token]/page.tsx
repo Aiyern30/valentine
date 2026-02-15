@@ -6,15 +6,27 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function InvitePage({ params }: { params: { token: string } }) {
+export default function InvitePage({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
   const [status, setStatus] = useState<
     "loading" | "valid" | "expired" | "error"
   >("loading");
   const [inviterName, setInviterName] = useState("");
+  const [token, setToken] = useState<string>("");
   const router = useRouter();
   const supabase = createClient();
 
+  // Unwrap params Promise
   useEffect(() => {
+    params.then((p) => setToken(p.token));
+  }, [params]);
+
+  useEffect(() => {
+    if (!token) return; // Wait until token is set
+
     const verifyInvitation = async () => {
       const { data: invitation, error } = await supabase
         .from("relationship_invitations")
@@ -24,11 +36,12 @@ export default function InvitePage({ params }: { params: { token: string } }) {
           inviter:profiles!inviter_id(display_name, username)
         `,
         )
-        .eq("invitation_token", params.token)
+        .eq("invitation_token", token)
         .eq("status", "pending")
         .single();
 
       if (error || !invitation) {
+        console.error("Invitation lookup error:", error);
         setStatus("error");
         return;
       }
@@ -40,13 +53,15 @@ export default function InvitePage({ params }: { params: { token: string } }) {
       }
 
       setInviterName(
-        invitation.inviter.display_name || invitation.inviter.username,
+        invitation.inviter?.display_name ||
+          invitation.inviter?.username ||
+          "Someone",
       );
       setStatus("valid");
     };
 
     verifyInvitation();
-  }, [params.token, supabase]); // Add dependencies directly to useEffect
+  }, [token, supabase]);
 
   async function acceptInvitation() {
     setStatus("loading");
@@ -58,7 +73,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
 
     if (!user) {
       // Redirect to signup/login with redirect back to this page
-      router.push(`/auth/signup?redirect=/invite/${params.token}`);
+      router.push(`/auth/signup?redirect=/invite/${token}`);
       return;
     }
 
@@ -66,7 +81,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
     const { data: invitation } = await supabase
       .from("relationship_invitations")
       .select("inviter_id, invitee_email")
-      .eq("invitation_token", params.token)
+      .eq("invitation_token", token)
       .single();
 
     // Add null check
@@ -87,6 +102,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
       .single();
 
     if (relError || !relationship) {
+      console.error("Relationship creation error:", relError);
       setStatus("error");
       return;
     }
@@ -99,7 +115,7 @@ export default function InvitePage({ params }: { params: { token: string } }) {
         relationship_id: relationship.id,
         accepted_at: new Date().toISOString(),
       })
-      .eq("invitation_token", params.token);
+      .eq("invitation_token", token);
 
     // Redirect to dashboard
     router.push("/dashboard?welcome=true");

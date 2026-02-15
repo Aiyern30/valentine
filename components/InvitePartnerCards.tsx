@@ -189,7 +189,7 @@ export function InvitePartnerCard() {
   if (pendingInvitations.length > 0) {
     return (
       <>
-        <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 rounded-3xl p-6 text-gray-800 dark:text-gray-200 shadow-md">
+        <div className="bg-linear-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 rounded-3xl p-6 text-gray-800 dark:text-gray-200 shadow-md">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium">Pending Invitations</h3>
             <span className="text-xs bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 px-2 py-1 rounded-full">
@@ -206,7 +206,7 @@ export function InvitePartnerCard() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                      <Clock className="w-4 h-4 text-amber-500 shrink-0" />
                       <span className="text-xs text-amber-600 dark:text-amber-400">
                         {getTimeRemaining(invitation.expires_at)}
                       </span>
@@ -223,7 +223,7 @@ export function InvitePartnerCard() {
                     onClick={() =>
                       openCancelDialog(invitation.id, invitation.invitee_email)
                     }
-                    className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                    className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
                     title="Cancel invitation"
                   >
                     <XCircle className="w-5 h-5" />
@@ -243,7 +243,7 @@ export function InvitePartnerCard() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-zinc-800 rounded-2xl p-6 max-w-md w-full">
               <div className="flex items-start gap-4 mb-4">
-                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center shrink-0">
                   <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
                 </div>
                 <div className="flex-1">
@@ -291,7 +291,7 @@ export function InvitePartnerCard() {
   // If no pending invitations, show the invite button
   return (
     <>
-      <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 rounded-3xl p-6 text-gray-800 dark:text-gray-200 shadow-md relative overflow-hidden">
+      <div className="bg-linear-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 rounded-3xl p-6 text-gray-800 dark:text-gray-200 shadow-md relative overflow-hidden">
         <div className="relative z-10">
           <h3 className="text-lg font-medium mb-4">Invite Partner</h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
