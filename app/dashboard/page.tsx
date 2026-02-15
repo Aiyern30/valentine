@@ -12,12 +12,12 @@ import {
   isProfileComplete,
   getProfile,
 } from "@/lib/data";
-import { Home, Plus } from "lucide-react";
+import { Home } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { ProfileCompletionDialog } from "@/components/ProfileCompletionDialog";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-
+import { InvitePartnerCard } from "@/components/InvitePartnerCards";
 export default async function DashboardPage() {
   const user = await getUser();
 
@@ -146,18 +146,19 @@ export default async function DashboardPage() {
               <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
             </div>
           ) : (
-            <div className="bg-linear-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 rounded-3xl p-6 text-gray-800 dark:text-gray-200 shadow-md relative overflow-hidden">
-              <div className="relative z-10">
-                <h3 className="text-lg font-medium mb-4">Invite Partner</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  Connect with your special someone to unlock shared features.
-                </p>
-                <button className="w-full flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white py-2.5 rounded-xl font-medium transition-colors">
-                  <Plus className="w-4 h-4" />
-                  Send Invite
-                </button>
-              </div>
-            </div>
+            // <div className="bg-linear-to-br from-gray-100 to-gray-200 dark:from-zinc-800 dark:to-zinc-900 rounded-3xl p-6 text-gray-800 dark:text-gray-200 shadow-md relative overflow-hidden">
+            //   <div className="relative z-10">
+            //     <h3 className="text-lg font-medium mb-4">Invite Partner</h3>
+            //     <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            //       Connect with your special someone to unlock shared features.
+            //     </p>
+            //     <button className="w-full flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white py-2.5 rounded-xl font-medium transition-colors">
+            //       <Plus className="w-4 h-4" />
+            //       Send Invite
+            //     </button>
+            //   </div>
+            // </div>
+            <InvitePartnerCard />
           )}
 
           {/* Daily Quote/Confession Teaser */}
