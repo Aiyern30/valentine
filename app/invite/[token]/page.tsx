@@ -14,6 +14,7 @@ export default function InvitePage({
   const [status, setStatus] = useState<
     "loading" | "valid" | "expired" | "error"
   >("loading");
+
   const [inviterName, setInviterName] = useState("");
   const [token, setToken] = useState<string>("");
   const router = useRouter();
@@ -21,13 +22,21 @@ export default function InvitePage({
 
   // Unwrap params Promise
   useEffect(() => {
-    params.then((p) => setToken(p.token));
+    params.then((p) => {
+      console.log("📍 Token from params:", p.token);
+      setToken(p.token);
+    });
   }, [params]);
 
   useEffect(() => {
-    if (!token) return; // Wait until token is set
+    if (!token) {
+      console.log("⏳ Waiting for token...");
+      return;
+    }
 
     const verifyInvitation = async () => {
+      console.log("🔍 Verifying invitation with token:", token);
+
       const { data: invitation, error } = await supabase
         .from("relationship_invitations")
         .select(
@@ -40,6 +49,9 @@ export default function InvitePage({
         .eq("status", "pending")
         .single();
 
+      console.log("📧 Invitation data:", invitation);
+      console.log("❌ Error:", error);
+
       if (error || !invitation) {
         console.error("Invitation lookup error:", error);
         setStatus("error");
@@ -47,16 +59,24 @@ export default function InvitePage({
       }
 
       // Check if expired
-      if (new Date(invitation.expires_at) < new Date()) {
+      const expiryDate = new Date(invitation.expires_at);
+      const now = new Date();
+      console.log("⏰ Expiry date:", expiryDate);
+      console.log("⏰ Current date:", now);
+      console.log("⏰ Is expired?", expiryDate < now);
+
+      if (expiryDate < now) {
         setStatus("expired");
         return;
       }
 
-      setInviterName(
+      const name =
         invitation.inviter?.display_name ||
-          invitation.inviter?.username ||
-          "Someone",
-      );
+        invitation.inviter?.username ||
+        "Someone";
+
+      console.log("👤 Inviter name:", name);
+      setInviterName(name);
       setStatus("valid");
     };
 
@@ -64,6 +84,7 @@ export default function InvitePage({
   }, [token, supabase]);
 
   async function acceptInvitation() {
+    console.log("✅ Accepting invitation...");
     setStatus("loading");
 
     // Get current user
@@ -71,53 +92,117 @@ export default function InvitePage({
       data: { user },
     } = await supabase.auth.getUser();
 
+    console.log("👤 Current user:", user);
+
     if (!user) {
-      // Redirect to signup/login with redirect back to this page
+      console.log("❌ No user, redirecting to signup");
       router.push(`/auth/signup?redirect=/invite/${token}`);
       return;
     }
 
-    // Create relationship
-    const { data: invitation } = await supabase
+    // Get invitation details
+    const { data: invitation, error: invError } = await supabase
       .from("relationship_invitations")
       .select("inviter_id, invitee_email")
       .eq("invitation_token", token)
       .single();
 
-    // Add null check
+    console.log("📧 Invitation details:", invitation);
+    console.log("❌ Invitation error:", invError);
+
     if (!invitation) {
+      console.error("❌ No invitation found");
       setStatus("error");
       return;
     }
 
-    const { data: relationship, error: relError } = await supabase
+    // ✅ IMPORTANT: Check if inviter has a pending relationship with an anniversary date
+    const { data: existingRelationship, error: existingError } = await supabase
       .from("relationships")
-      .insert({
-        partner1_id: invitation.inviter_id,
-        partner2_id: user.id,
-        relationship_start_date: new Date().toISOString().split("T")[0],
-        status: "active",
-      })
-      .select()
-      .single();
+      .select("id, relationship_start_date, partner1_id")
+      .eq("partner1_id", invitation.inviter_id)
+      .eq("status", "pending")
+      .is("partner2_id", null)
+      .maybeSingle();
 
-    if (relError || !relationship) {
-      console.error("Relationship creation error:", relError);
-      setStatus("error");
-      return;
+    console.log("🔗 Existing relationship:", existingRelationship);
+    console.log("❌ Existing relationship error:", existingError);
+
+    let relationshipId;
+
+    if (existingRelationship) {
+      // ✅ Update existing relationship - keeps the original anniversary date!
+      console.log("🔄 Updating existing relationship...");
+      console.log(
+        "📅 Using anniversary date:",
+        existingRelationship.relationship_start_date,
+      );
+
+      const { data: updatedRel, error: updateError } = await supabase
+        .from("relationships")
+        .update({
+          partner2_id: user.id,
+          status: "active",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existingRelationship.id)
+        .select()
+        .single();
+
+      console.log("✅ Updated relationship:", updatedRel);
+      console.log("❌ Update error:", updateError);
+
+      if (updateError || !updatedRel) {
+        console.error("Relationship update error:", updateError);
+        setStatus("error");
+        return;
+      }
+
+      relationshipId = updatedRel.id;
+    } else {
+      // ❌ Fallback: If no pending relationship exists, create new one
+      // This should rarely happen - only if inviter didn't set anniversary first
+      console.log(
+        "➕ Creating new relationship (no pending relationship found)...",
+      );
+
+      const { data: newRel, error: relError } = await supabase
+        .from("relationships")
+        .insert({
+          partner1_id: invitation.inviter_id,
+          partner2_id: user.id,
+          relationship_start_date: new Date().toISOString().split("T")[0],
+          status: "active",
+        })
+        .select()
+        .single();
+
+      console.log("✅ New relationship:", newRel);
+      console.log("❌ Create error:", relError);
+
+      if (relError || !newRel) {
+        console.error("Relationship creation error:", relError);
+        setStatus("error");
+        return;
+      }
+
+      relationshipId = newRel.id;
     }
 
     // Update invitation status
-    await supabase
+    console.log("📝 Updating invitation status...");
+    const { error: updateInviteError } = await supabase
       .from("relationship_invitations")
       .update({
         status: "accepted",
-        relationship_id: relationship.id,
+        relationship_id: relationshipId,
         accepted_at: new Date().toISOString(),
       })
       .eq("invitation_token", token);
 
-    // Redirect to dashboard
+    console.log("❌ Update invite error:", updateInviteError);
+
+    console.log("🎉 Success! Redirecting to dashboard...");
     router.push("/dashboard?welcome=true");
   }
 
