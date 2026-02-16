@@ -300,7 +300,7 @@ export async function updateAnniversaryDate(newDate: string) {
       .from("relationships")
       .select("id")
       .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
-      .eq("status", "active")
+      .in("status", ["active", "pending"])
       .maybeSingle();
 
     if (fetchError || !relationship) {

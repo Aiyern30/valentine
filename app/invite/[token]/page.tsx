@@ -100,110 +100,31 @@ export default function InvitePage({
       return;
     }
 
-    // Get invitation details
-    const { data: invitation, error: invError } = await supabase
-      .from("relationship_invitations")
-      .select("inviter_id, invitee_email")
-      .eq("invitation_token", token)
-      .single();
+    // ✅ Use server-side API to handle invitation acceptance (bypasses RLS issues)
+    try {
+      const response = await fetch("/api/invitations/accept", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token }),
+      });
 
-    console.log("📧 Invitation details:", invitation);
-    console.log("❌ Invitation error:", invError);
+      const result = await response.json();
 
-    if (!invitation) {
-      console.error("❌ No invitation found");
+      if (!response.ok) {
+        console.error("❌ API Error:", result.error);
+        setStatus("error");
+        return;
+      }
+
+      console.log("🎉 Success! Relationship created:", result.relationshipId);
+      console.log("🎉 Redirecting to dashboard...");
+      router.push("/dashboard?welcome=true");
+    } catch (error) {
+      console.error("❌ Network error accepting invitation:", error);
       setStatus("error");
-      return;
     }
-
-    // ✅ IMPORTANT: Check if inviter has a pending relationship with an anniversary date
-    const { data: existingRelationship, error: existingError } = await supabase
-      .from("relationships")
-      .select("id, relationship_start_date, partner1_id")
-      .eq("partner1_id", invitation.inviter_id)
-      .eq("status", "pending")
-      .is("partner2_id", null)
-      .maybeSingle();
-
-    console.log("🔗 Existing relationship:", existingRelationship);
-    console.log("❌ Existing relationship error:", existingError);
-
-    let relationshipId;
-
-    if (existingRelationship) {
-      // ✅ Update existing relationship - keeps the original anniversary date!
-      console.log("🔄 Updating existing relationship...");
-      console.log(
-        "📅 Using anniversary date:",
-        existingRelationship.relationship_start_date,
-      );
-
-      const { data: updatedRel, error: updateError } = await supabase
-        .from("relationships")
-        .update({
-          partner2_id: user.id,
-          status: "active",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existingRelationship.id)
-        .select()
-        .single();
-
-      console.log("✅ Updated relationship:", updatedRel);
-      console.log("❌ Update error:", updateError);
-
-      if (updateError || !updatedRel) {
-        console.error("Relationship update error:", updateError);
-        setStatus("error");
-        return;
-      }
-
-      relationshipId = updatedRel.id;
-    } else {
-      // ❌ Fallback: If no pending relationship exists, create new one
-      // This should rarely happen - only if inviter didn't set anniversary first
-      console.log(
-        "➕ Creating new relationship (no pending relationship found)...",
-      );
-
-      const { data: newRel, error: relError } = await supabase
-        .from("relationships")
-        .insert({
-          partner1_id: invitation.inviter_id,
-          partner2_id: user.id,
-          relationship_start_date: new Date().toISOString().split("T")[0],
-          status: "active",
-        })
-        .select()
-        .single();
-
-      console.log("✅ New relationship:", newRel);
-      console.log("❌ Create error:", relError);
-
-      if (relError || !newRel) {
-        console.error("Relationship creation error:", relError);
-        setStatus("error");
-        return;
-      }
-
-      relationshipId = newRel.id;
-    }
-
-    // Update invitation status
-    console.log("📝 Updating invitation status...");
-    const { error: updateInviteError } = await supabase
-      .from("relationship_invitations")
-      .update({
-        status: "accepted",
-        relationship_id: relationshipId,
-        accepted_at: new Date().toISOString(),
-      })
-      .eq("invitation_token", token);
-
-    console.log("❌ Update invite error:", updateInviteError);
-
-    console.log("🎉 Success! Redirecting to dashboard...");
-    router.push("/dashboard?welcome=true");
   }
 
   if (status === "loading") {

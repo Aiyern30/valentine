@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Check if user already has a relationship
+  // Check if user already has an ACTIVE relationship OR is already partner2 in a relationship
   const { data: existingRelationship } = await supabase
     .from("relationships")
     .select("*")
@@ -29,10 +29,27 @@ export async function POST(req: Request) {
     .single();
 
   if (existingRelationship) {
-    return Response.json(
-      { error: "You already have an active relationship" },
-      { status: 400 },
-    );
+    // If user is partner2 in any relationship, they can't send invitations
+    if (existingRelationship.partner2_id === user.id) {
+      return Response.json(
+        { error: "You are already in a relationship" },
+        { status: 400 },
+      );
+    }
+
+    // If user is partner1 AND the relationship is active (has both partners), they can't send new invitations
+    if (
+      existingRelationship.partner1_id === user.id &&
+      existingRelationship.partner2_id !== null &&
+      existingRelationship.status === "active"
+    ) {
+      return Response.json(
+        { error: "You already have an active relationship" },
+        { status: 400 },
+      );
+    }
+
+    // If user is partner1 and relationship is pending (they set anniversary, now inviting partner) - ALLOW
   }
 
   // Check for pending invitation
@@ -54,6 +71,20 @@ export async function POST(req: Request) {
   const invitationToken = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
+  // Get any existing pending relationship for the inviter to link to the invitation
+  const { data: relationship } = await supabase
+    .from("relationships")
+    .select("id")
+    .eq("partner1_id", user.id)
+    .eq("status", "pending")
+    .is("partner2_id", null)
+    .maybeSingle();
+
+  console.log(
+    "🔗 Linking invitation to relationship:",
+    relationship?.id || "None found",
+  );
+
   // Create invitation record
   const { data: invitation, error: inviteError } = await supabase
     .from("relationship_invitations")
@@ -62,6 +93,7 @@ export async function POST(req: Request) {
       invitee_email: inviteeEmail,
       invitation_token: invitationToken,
       expires_at: expiresAt.toISOString(),
+      relationship_id: relationship?.id || null,
     })
     .select()
     .single();

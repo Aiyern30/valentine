@@ -18,6 +18,7 @@ import { redirect } from "next/navigation";
 import { ProfileCompletionDialog } from "@/components/ProfileCompletionDialog";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { InvitePartnerCard } from "@/components/InvitePartnerCards";
+// app/dashboard/page.tsx
 export default async function DashboardPage() {
   const user = await getUser();
 
@@ -39,7 +40,7 @@ export default async function DashboardPage() {
     );
   }
 
-  // ✅ Only fetch ACTIVE relationships (not pending)
+  // ✅ Fetch relationship (active OR pending with partner1_id = current user)
   const relationship = await getRelationship(user.id);
 
   const milestones = await getMilestonesByUser(user.id, 5);
@@ -48,7 +49,13 @@ export default async function DashboardPage() {
     ? await getRecentPhotos(relationship.id)
     : [];
 
-  const partner = relationship
+  // ✅ Only consider it a "complete" relationship if status is active AND has both partners
+  const hasActivePartner =
+    relationship &&
+    relationship.status === "active" &&
+    relationship.partner2_id !== null;
+
+  const partner = hasActivePartner
     ? relationship.partner1_id === user.id
       ? relationship.partner2
       : relationship.partner1
@@ -73,8 +80,7 @@ export default async function DashboardPage() {
 
       {/* Main Feature: Timer or Setup CTA */}
       <section>
-        {/* ✅ Only show timer if relationship exists AND is active */}
-        {relationship && relationship.status === "active" ? (
+        {relationship ? (
           <RelationshipTimer startDate={relationship.relationship_start_date} />
         ) : (
           <AnniversarySetup />

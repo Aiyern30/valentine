@@ -49,7 +49,8 @@ export async function isProfileComplete(userId: string): Promise<boolean> {
 export async function getRelationship(userId: string) {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  // ✅ Fix: First try to get ACTIVE relationships (prioritize these)
+  const { data: activeRel, error: activeError } = await supabase
     .from("relationships")
     .select(
       `
@@ -62,12 +63,35 @@ export async function getRelationship(userId: string) {
     .eq("status", "active")
     .maybeSingle();
 
-  if (error) {
-    console.error("Error fetching relationship:", error);
+  if (activeError) {
+    console.error("Error fetching active relationship:", activeError);
+  }
+
+  // If we found an active relationship, return it
+  if (activeRel) {
+    return activeRel;
+  }
+
+  // ✅ Fallback: If no active relationship, look for pending ones
+  const { data: pendingRel, error: pendingError } = await supabase
+    .from("relationships")
+    .select(
+      `
+      *,
+      partner1:profiles!partner1_id(*),
+      partner2:profiles!partner2_id(*)
+    `,
+    )
+    .or(`partner1_id.eq.${userId},partner2_id.eq.${userId}`)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (pendingError) {
+    console.error("Error fetching pending relationship:", pendingError);
     return null;
   }
 
-  return data;
+  return pendingRel;
 }
 
 export async function getMilestones(
