@@ -69,7 +69,7 @@ export function AnimatedEnvelope({
 }: AnimatedEnvelopeProps) {
   const [stage, setStage] = useState<AnimationStage>("idle");
   const [showSparkles, setShowSparkles] = useState(false);
-  const [isCardFoldOpen, setIsCardFoldOpen] = useState(false);
+  const [lastOpenPageIndex, setLastOpenPageIndex] = useState(0);
 
   const isOpen =
     controlledIsOpen !== undefined ? controlledIsOpen : stage !== "idle";
@@ -108,86 +108,190 @@ export function AnimatedEnvelope({
     [music],
   );
 
+  // Prepare Content - Multi-Page Booklet System
   const delimiter = "<<<PAGE_BREAK>>>";
-  const messageChunks = message ? message.split(delimiter) : [""];
+  let messageChunks = message ? message.split(delimiter) : [""];
+  if (messageChunks.length === 1 && messageChunks[0].length > 600) {
+    messageChunks = message.match(/[\s\S]{1,500}/g) || [message];
+  }
 
-  // Helper to render a message page content
-  const renderMessagePage = (pageIndex: number, isRight: boolean = false) => {
-    const chunk = messageChunks[pageIndex];
-    if (chunk === undefined) return null;
+  // Construct leaves array
+  const leaves: any[] = [];
 
-    return (
-      <div className="block">
-        {pagePhotos[pageIndex] && pagePhotos[pageIndex].url && (
-          <div
-            className={`w-1/3 mb-2 animate-in fade-in zoom-in duration-700 ${
-              pagePhotos[pageIndex].position === "right"
-                ? "float-right ml-4"
-                : "float-left mr-4"
-            }`}
-          >
-            <img
-              src={pagePhotos[pageIndex].url}
-              alt={`Page ${pageIndex + 1}`}
-              className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4"
-            />
-          </div>
-        )}
-        <p
-          className="font-serif text-sm leading-relaxed"
-          style={{ color: textColor }}
-        >
-          {chunk}
-        </p>
-      </div>
-    );
-  };
+  const totalCategoryItems = categories.reduce(
+    (sum, cat) => sum + cat.items.length,
+    0,
+  );
+  const totalPages = messageChunks.length + totalCategoryItems;
 
-  const renderMemories = () => {
-    const allItems = categories.flatMap((cat) =>
-      cat.items.map((item) => ({ ...item, categoryName: cat.name })),
-    );
-    if (!allItems.length) return null;
+  // Leaf 0: Front=Cover, Back=Page 1
+  leaves.push({
+    index: 0,
+    type: "cover",
+    front: { type: "cover" },
+    back:
+      messageChunks.length > 0
+        ? {
+            type: "message",
+            text: messageChunks[0],
+            page: 1,
+            total: totalPages,
+          }
+        : { type: "empty" },
+  });
 
-    return (
-      <div className="mt-8 space-y-6 pt-6 border-t border-black/5">
-        <h3 className="text-center font-serif italic opacity-50 text-xs tracking-widest uppercase">
-          Special Details
-        </h3>
-        <div className="grid grid-cols-1 gap-4">
-          {allItems.map((item, i) => (
-            <div
-              key={i}
-              className="bg-white/50 dark:bg-black/20 rounded-xl p-3 border border-black/5 shadow-sm"
-            >
-              <div className="mb-2 text-center">
-                <span className="text-[9px] uppercase tracking-widest opacity-40 font-bold">
-                  {item.categoryName}
-                </span>
-              </div>
-              {item.url && (
-                <img
-                  src={item.url}
-                  alt={item.title}
-                  className="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm"
-                />
-              )}
-              <div className="text-center">
-                <p
-                  className="font-serif font-bold text-sm"
-                  style={{ color: titleColor }}
+  // Data Chunks (Message + Memories)
+  const allContentChunks = [
+    ...messageChunks.slice(1).map((text, i) => ({
+      type: "message",
+      text,
+      page: i + 2,
+      total: totalPages,
+    })),
+    ...categories.flatMap((cat) =>
+      cat.items.map((item) => ({
+        type: "memory",
+        ...item,
+        categoryName: cat.name,
+      })),
+    ),
+  ];
+
+  // Fix page numbering for memory items
+  let currentMemoryPageIndex = messageChunks.length + 1;
+  allContentChunks.forEach((chunk) => {
+    if (chunk.type === "memory") {
+      (chunk as any).page = currentMemoryPageIndex++;
+      (chunk as any).total = totalPages;
+    }
+  });
+
+  // Data Leaves
+  for (let i = 0; i < allContentChunks.length; i += 2) {
+    leaves.push({
+      index: leaves.length,
+      type: "message",
+      front: allContentChunks[i],
+      back: i + 1 < allContentChunks.length ? allContentChunks[i + 1] : null,
+    });
+  }
+
+  // Ensure last leaf has signature on back
+  const lastLeafIndex = leaves.length - 1;
+  const lastLeaf = leaves[lastLeafIndex];
+  if (!lastLeaf.back) {
+    lastLeaf.back = { type: "signature" };
+  } else {
+    leaves.push({
+      index: leaves.length,
+      type: "message",
+      front: null,
+      back: { type: "signature" },
+    });
+  }
+
+  // Helper to render a message or memory page content
+  const renderContentPage = (data: any, isBack: boolean = false) => {
+    if (!data) return null;
+
+    if (data.type === "message") {
+      return (
+        <div className="flex-1 flex flex-col h-full">
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="block">
+              {pagePhotos[data.page - 1] && pagePhotos[data.page - 1].url && (
+                <div
+                  className={`w-1/3 mb-2 animate-in fade-in zoom-in duration-700 ${
+                    pagePhotos[data.page - 1].position === "right"
+                      ? "float-right ml-4"
+                      : "float-left mr-4"
+                  }`}
                 >
-                  {item.title}
-                </p>
-                <p className="font-serif italic text-[10px] opacity-40">
-                  {item.date}
-                </p>
-              </div>
+                  <img
+                    src={pagePhotos[data.page - 1].url}
+                    alt={`Page ${data.page}`}
+                    className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4"
+                  />
+                </div>
+              )}
+              <p
+                className="font-serif text-sm leading-relaxed"
+                style={{ color: textColor }}
+              >
+                {data.text}
+              </p>
             </div>
-          ))}
+          </div>
+          <div
+            className="mt-3 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest shrink-0"
+            style={{ color: titleColor }}
+          >
+            <span>
+              PAGE {data.page} / {data.total}
+            </span>
+            {!isBack ? <span>TAP TO FLIP ➔</span> : <span>← TAP TO BACK</span>}
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+
+    if (data.type === "memory") {
+      return (
+        <div className="flex-1 flex flex-col h-full">
+          <div className="flex-1 bg-white/50 dark:bg-black/20 rounded-xl p-3 border border-black/5 shadow-inner flex flex-col min-h-0">
+            <div className="mb-2 text-center shrink-0">
+              <span
+                className="text-[10px] uppercase tracking-[0.2em] opacity-60 font-bold"
+                style={{ color: titleColor }}
+              >
+                {data.categoryName}
+              </span>
+            </div>
+            <div className="flex-1 relative rounded-lg overflow-hidden border border-black/10 min-h-0">
+              {data.url ? (
+                <img
+                  src={data.url}
+                  alt={data.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center opacity-20 py-10">
+                  <Heart size={48} />
+                </div>
+              )}
+            </div>
+            <div className="mt-3 text-center shrink-0">
+              <h3
+                className="font-['Caveat'] text-xl font-bold mb-1"
+                style={{ color: titleColor }}
+              >
+                {data.title ||
+                  (data.categoryName === "Special Memories"
+                    ? "Special Memory"
+                    : "Special Quality")}
+              </h3>
+              <p className="font-serif text-[9px] uppercase tracking-widest opacity-40 font-bold">
+                {data.date ||
+                  (data.categoryName === "Special Memories"
+                    ? "Secret Moment"
+                    : "Detail")}
+              </p>
+            </div>
+          </div>
+          <div
+            className="mt-3 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest shrink-0"
+            style={{ color: titleColor }}
+          >
+            <span>
+              PAGE {data.page} / {data.total}
+            </span>
+            {!isBack ? <span>TAP TO FLIP ➔</span> : <span>← TAP TO BACK</span>}
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   const handleOpen = async () => {
@@ -213,13 +317,13 @@ export function AnimatedEnvelope({
     if (controlledIsOpen === false) {
       setStage("idle");
       setShowSparkles(false);
-      setIsCardFoldOpen(false);
+      setLastOpenPageIndex(0);
     }
   }, [controlledIsOpen]);
 
   return (
     <div className="relative w-full h-full flex items-center justify-center perspective-1000">
-      <div className="relative w-[320px] h-[220px] md:w-[360px] md:h-[240px]">
+      <div className="relative w-80 h-55 md:w-90 md:h-60">
         <SparkleParticles active={showSparkles} />
 
         {/* 1. Envelope Back */}
@@ -235,11 +339,10 @@ export function AnimatedEnvelope({
           transition={{ duration: 0.8 }}
         />
 
-        {/* 2. The 3D Folding Card */}
+        {/* 2. The 3D Folding Card - Multi-Page Booklet */}
         <motion.div
           className="absolute left-1/2 origin-center"
           style={{
-            x: "-50%",
             top: "-20px",
             width: "320px",
             height: "400px",
@@ -250,16 +353,17 @@ export function AnimatedEnvelope({
                 ? 50
                 : 5,
           }}
-          initial={{ y: 0, scale: 1, rotate: 0, opacity: 0 }}
+          initial={{ y: 0, scale: 1, rotate: 0, opacity: 0, x: "-50%" }}
           animate={
             stage === "idle" ||
             stage === "seal-dissolve" ||
             stage === "flap-open"
-              ? { y: 0, opacity: 0 }
+              ? { y: 0, opacity: 0, x: "-50%" }
               : stage === "card-rise"
                 ? {
                     y: -120,
                     opacity: 1,
+                    x: "-50%",
                     rotate: [0, -2, 2, 0],
                     transition: {
                       y: { duration: 1.2, ease: easeInOut },
@@ -276,6 +380,12 @@ export function AnimatedEnvelope({
                       y: -50,
                       scale: 1.1,
                       opacity: 1,
+                      x:
+                        lastOpenPageIndex === leaves.length
+                          ? "50%"
+                          : lastOpenPageIndex > 0
+                            ? "0%"
+                            : "-50%",
                       transition: { duration: 1 },
                     }
                   : stage === "floating"
@@ -283,127 +393,183 @@ export function AnimatedEnvelope({
                         y: [-50, -60, -50],
                         scale: 1.1,
                         opacity: 1,
+                        x:
+                          lastOpenPageIndex === leaves.length
+                            ? "50%"
+                            : lastOpenPageIndex > 0
+                              ? "0%"
+                              : "-50%",
                         transition: {
                           y: { repeat: Infinity, duration: 3, ease: easeInOut },
                           scale: { duration: 0.5 },
+                          x: { duration: 0.8, ease: easeInOut },
                         },
                       }
                     : {}
           }
-          onClick={(e) => {
-            if (stage === "floating" || stage === "envelope-fade") {
-              e.stopPropagation();
-              setIsCardFoldOpen(!isCardFoldOpen);
-            }
-          }}
         >
           <div
-            className="relative w-full h-full"
+            className="relative w-full h-full preserve-3d"
             style={{ transformStyle: "preserve-3d" }}
           >
-            {/* BACK OF CARD (Right Page) */}
-            <div
-              className="absolute inset-0 rounded-r-lg p-6 flex flex-col shadow-inner border border-black/10"
-              style={{
-                backgroundColor: cardColor,
-                borderLeft: "none",
-              }}
-            >
-              <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
-                {renderMessagePage(1, true)}
-                {renderMemories()}
-                <p
-                  className="font- serif text-2xl mt-8"
-                  style={{ color: titleColor }}
-                >
-                  With love, <br /> {sender}
-                </p>
-              </div>
-            </div>
+            {leaves.map((leaf, i) => {
+              const isFlipped = i < lastOpenPageIndex;
+              const zIndex = isFlipped ? i : 50 - i;
 
-            {/* FOLDING PART (Front Cover + Inside Left) */}
-            <motion.div
-              className="absolute inset-0 origin-left preserve-3d"
-              style={{ transformStyle: "preserve-3d" }}
-              animate={{ rotateY: isCardFoldOpen ? -175 : 0 }}
-              transition={{ duration: 0.8, ease: easeInOut }}
-            >
-              {/* CARD FRONT (Cover) */}
-              <div
-                className="absolute inset-0 rounded-lg p-8 flex flex-col items-center justify-center text-center shadow-md border border-black/10"
-                style={{
-                  backgroundColor: cardColor,
-                  backfaceVisibility: "hidden",
-                  zIndex: 2,
-                }}
-              >
-                <div className="absolute inset-0 bg-noise opacity-30 rounded-lg pointer-events-none" />
-                <div
-                  className="w-16 h-16 rounded-full mb-6 flex items-center justify-center"
+              return (
+                <motion.div
+                  key={i}
+                  className="absolute inset-0 origin-left preserve-3d"
                   style={{
-                    backgroundColor: "rgba(0,0,0,0.03)",
-                    color: titleColor,
+                    transformStyle: "preserve-3d",
+                    zIndex,
+                  }}
+                  animate={{ rotateY: isFlipped ? -175 : 0 }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (stage === "floating" || stage === "envelope-fade") {
+                      // If closed and is top-most right leaf -> Flip Open
+                      if (!isFlipped && i === lastOpenPageIndex) {
+                        setLastOpenPageIndex(i + 1);
+                      }
+                      // If open and is top-most left leaf -> Flip Close
+                      else if (isFlipped && i === lastOpenPageIndex - 1) {
+                        setLastOpenPageIndex(i);
+                      }
+                    }
                   }}
                 >
-                  <Heart size={32} fill="currentColor" />
-                </div>
-                <h2
-                  className="font-['Caveat'] text-4xl mb-2 font-bold"
-                  style={{ color: titleColor }}
-                >
-                  {title}
-                </h2>
-                <p
-                  className="font-['Caveat'] text-xl opacity-60"
-                  style={{ color: titleColor }}
-                >
-                  For: {recipient || "Someone special"}
-                </p>
-
-                <div className="mt-12 flex flex-col items-center gap-2">
+                  {/* FRONT FACE */}
                   <div
-                    className="w-8 h-8 rounded-full border-2 border-dashed flex items-center justify-center animate-pulse"
-                    style={{ borderColor: titleColor }}
+                    className={`absolute inset-0 rounded-r-lg rounded-l-none bg-white backface-hidden shadow-md border border-black/10 overflow-hidden ${leaf.front?.type === "cover" ? "flex flex-col items-center justify-center text-center" : "p-5 flex flex-col"}`}
+                    style={{
+                      backgroundColor: cardColor,
+                      backfaceVisibility: "hidden",
+                    }}
                   >
-                    <span className="text-[10px]" style={{ color: titleColor }}>
-                      TAP
-                    </span>
+                    {leaf.front?.type === "cover" ? (
+                      <>
+                        <div className="absolute inset-0 bg-noise opacity-30 pointer-events-none rounded-lg" />
+                        <div
+                          className="w-16 h-16 rounded-full mb-6 flex items-center justify-center"
+                          style={{
+                            backgroundColor: "rgba(0,0,0,0.03)",
+                            color: titleColor,
+                          }}
+                        >
+                          <Heart size={32} fill="currentColor" />
+                        </div>
+                        <h2
+                          className="font-['Caveat'] text-4xl mb-2 font-bold"
+                          style={{ color: titleColor }}
+                        >
+                          {title}
+                        </h2>
+                        <p
+                          className="font-['Caveat'] text-xl opacity-60"
+                          style={{ color: titleColor }}
+                        >
+                          For: {recipient || "Someone special"}
+                        </p>
+                        <div className="mt-12 flex flex-col items-center gap-2">
+                          <div
+                            className="w-8 h-8 rounded-full border-2 border-dashed flex items-center justify-center animate-pulse"
+                            style={{ borderColor: titleColor }}
+                          >
+                            <span
+                              className="text-[10px]"
+                              style={{ color: titleColor }}
+                            >
+                              TAP
+                            </span>
+                          </div>
+                          <p
+                            className="text-[10px] uppercase tracking-[0.2em] font-bold"
+                            style={{ color: titleColor, opacity: 0.4 }}
+                          >
+                            Open Card
+                          </p>
+                        </div>
+                      </>
+                    ) : leaf.front?.type === "message" ||
+                      leaf.front?.type === "memory" ? (
+                      renderContentPage(leaf.front)
+                    ) : (
+                      <div className="flex-1 flex items-center justify-center opacity-[0.03]">
+                        <Heart size={120} />
+                      </div>
+                    )}
                   </div>
-                  <p
-                    className="text-[10px] uppercase tracking-[0.2em] font-bold"
-                    style={{ color: titleColor, opacity: 0.4 }}
-                  >
-                    Open Card
-                  </p>
-                </div>
-              </div>
 
-              {/* CARD INSIDE LEFT */}
-              <div
-                className="absolute inset-0 rounded-l-lg p-6 bg-white backface-hidden flex flex-col border border-black/10 shadow-inner"
-                style={{
-                  backgroundColor: cardColor,
-                  transform: "rotateY(180deg)",
-                  backfaceVisibility: "hidden",
-                  borderRight: "none",
-                }}
-              >
-                <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
-                  {renderMessagePage(0)}
-                  {!messageChunks[0] && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center opacity-20 h-full">
-                      <Heart size={48} style={{ color: titleColor }} />
-                      <p
-                        className="text-[10px] mt-2 font-bold uppercase tracking-widest"
-                        style={{ color: titleColor }}
-                      >
-                        Always & Forever
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
+                  {/* BACK FACE */}
+                  <div
+                    className="absolute inset-0 rounded-l-lg rounded-r-none bg-white backface-hidden shadow-inner border border-black/10 overflow-hidden p-5 flex flex-col"
+                    style={{
+                      backgroundColor: cardColor,
+                      transform: "rotateY(180deg)",
+                      backfaceVisibility: "hidden",
+                      borderRight: "none",
+                    }}
+                  >
+                    {leaf.back?.type === "message" ||
+                    leaf.back?.type === "memory" ? (
+                      renderContentPage(leaf.back, true)
+                    ) : leaf.back?.type === "signature" ? (
+                      // LAST PAGE BACK - SHOW SENDER/SIGNATURE
+                      <div className="flex-1 flex flex-col justify-between items-center text-center h-full">
+                        <div className="flex-1 flex flex-col items-center justify-center">
+                          <div className="mb-6 opacity-20">
+                            <Heart size={48} />
+                          </div>
+                          <p
+                            className="font-['Caveat'] text-4xl leading-tight mb-2"
+                            style={{ color: titleColor }}
+                          >
+                            With love,
+                          </p>
+                          <p
+                            className="font-['Caveat'] text-3xl opacity-80"
+                            style={{ color: titleColor }}
+                          >
+                            {sender}
+                          </p>
+                          <div className="mt-12 opacity-40">
+                            <span
+                              className="text-[10px] uppercase tracking-[0.3em] font-bold"
+                              style={{ color: titleColor }}
+                            >
+                              End of Card
+                            </span>
+                          </div>
+                        </div>
+                        <div
+                          className="flex justify-between items-center text-xs opacity-40 font-bold tracking-widest w-full shrink-0"
+                          style={{ color: titleColor }}
+                        >
+                          <span className="ml-auto">← TAP TO BACK</span>
+                        </div>
+                      </div>
+                    ) : (
+                      // Blank back / Placeholder
+                      <div className="flex-1 flex flex-col items-center justify-center text-center opacity-30">
+                        <Heart
+                          size={48}
+                          style={{ color: titleColor }}
+                          className="mb-4"
+                        />
+                        <p
+                          className="font-['Caveat'] text-2xl"
+                          style={{ color: titleColor }}
+                        >
+                          Always & Forever
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </motion.div>
 

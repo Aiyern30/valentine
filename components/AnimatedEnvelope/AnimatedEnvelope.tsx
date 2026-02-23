@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { easeInOut, easeOut, motion, spring } from "framer-motion";
 import { Heart } from "lucide-react";
+import Image from "next/image";
 
 interface PagePhoto {
   file: File | null;
@@ -199,9 +200,11 @@ export function AnimatedEnvelope({
                       : "float-left mr-4"
                   }`}
                 >
-                  <img
-                    src={pagePhotos[data.page - 1].url}
+                  <Image
+                    src={pagePhotos[data.page - 1].url!}
                     alt={`Page ${data.page}`}
+                    width={300}
+                    height={400}
                     className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4"
                   />
                 </div>
@@ -239,12 +242,13 @@ export function AnimatedEnvelope({
                 {data.categoryName}
               </span>
             </div>
-            <div className="flex-1 relative rounded-lg overflow-hidden border border-black/10 max-h-[220px]">
+            <div className="flex-1 relative rounded-lg overflow-hidden border border-black/10 max-h-55">
               {data.url ? (
-                <img
+                <Image
                   src={data.url}
                   alt={data.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center opacity-20 py-10">
@@ -611,32 +615,34 @@ export function AnimatedEnvelope({
                         renderContentPage(leaf.back, true)
                       ) : leaf.back?.type === "signature" ? (
                         // LAST PAGE BACK - SHOW SENDER/SIGNATURE
-                        <div className="flex-1 flex flex-col items-center justify-center text-center">
-                          <div className="mb-6 opacity-20">
-                            <Heart size={48} />
-                          </div>
-                          <p
-                            className="font-['Caveat'] text-4xl leading-tight mb-2"
-                            style={{ color: titleColor }}
-                          >
-                            With love,
-                          </p>
-                          <p
-                            className="font-['Caveat'] text-3xl opacity-80"
-                            style={{ color: titleColor }}
-                          >
-                            {sender}
-                          </p>
-                          <div className="mt-12 opacity-40">
-                            <span
-                              className="text-[10px] uppercase tracking-[0.3em] font-bold"
+                        <div className="flex-1 flex flex-col justify-between items-center text-center h-full">
+                          <div className="flex-1 flex flex-col items-center justify-center">
+                            <div className="mb-6 opacity-20">
+                              <Heart size={48} />
+                            </div>
+                            <p
+                              className="font-['Caveat'] text-4xl leading-tight mb-2"
                               style={{ color: titleColor }}
                             >
-                              End of Card
-                            </span>
+                              With love,
+                            </p>
+                            <p
+                              className="font-['Caveat'] text-3xl opacity-80"
+                              style={{ color: titleColor }}
+                            >
+                              {sender}
+                            </p>
+                            <div className="mt-12 opacity-40">
+                              <span
+                                className="text-[10px] uppercase tracking-[0.3em] font-bold"
+                                style={{ color: titleColor }}
+                              >
+                                End of Card
+                              </span>
+                            </div>
                           </div>
                           <div
-                            className="mt-4 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest w-full px-4 fixed bottom-8 left-0"
+                            className="flex justify-between items-center text-xs opacity-40 font-bold tracking-widest w-full shrink-0"
                             style={{ color: titleColor }}
                           >
                             <span className="ml-auto">← TAP TO BACK</span>
