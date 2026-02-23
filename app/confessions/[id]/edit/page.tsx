@@ -177,7 +177,11 @@ const EditConfessionPage = () => {
           });
 
           // If confession already has category items, auto-show them
-          const hasCategories = confession.categories && confession.categories.some((cat: any) => cat.items && cat.items.length > 0);
+          const hasCategories =
+            confession.categories &&
+            confession.categories.some(
+              (cat: any) => cat.items && cat.items.length > 0,
+            );
           if (hasCategories) {
             setWantsPhotos(true);
             setCategoriesSaved(true);
@@ -639,7 +643,9 @@ const EditConfessionPage = () => {
                                   {formData.pagePhotos[index]?.url ? (
                                     <div className="relative w-full h-full group/image">
                                       <Image
-                                        src={formData.pagePhotos[index]?.url || ""}
+                                        src={
+                                          formData.pagePhotos[index]?.url || ""
+                                        }
                                         alt={`Page ${index + 1} photo`}
                                         fill
                                         className="object-cover"
@@ -830,7 +836,8 @@ const EditConfessionPage = () => {
         {/* Step 3: Categories (Special Memories / Special Qualities) */}
         {currentStep === 3 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
-            {wantsPhotos === null && !formData.categories.some((cat) => cat.items.length > 0) ? (
+            {wantsPhotos === null &&
+            !formData.categories.some((cat) => cat.items.length > 0) ? (
               <div className="space-y-8 text-center">
                 <div className="mx-auto w-20 h-20 bg-linear-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center transform rotate-12">
                   <Upload className="text-white" size={40} />
@@ -871,229 +878,187 @@ const EditConfessionPage = () => {
             ) : (
               <>
                 <div className="space-y-10">
-                {formData.categories.map((category, catIndex) => (
-                  <div key={category.id} className="space-y-6">
-                    <div className="flex items-center justify-between border-b border-rose-100 dark:border-rose-900/20 pb-4">
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        {category.id === "memories" ? (
-                          <Heart className="text-rose-500" size={24} />
-                        ) : (
-                          <Sparkles className="text-amber-500" size={24} />
-                        )}
-                        {category.name}
-                      </h2>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            const newCategories = [...formData.categories];
-                            newCategories[catIndex].items.push({
-                              file: null,
-                              url: "",
-                              title: "",
-                              date: "",
-                            });
-                            setFormData((prev) => ({
-                              ...prev,
-                              categories: newCategories,
-                            }));
-                          }}
-                          className="px-4 py-2 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-lg text-sm font-medium hover:bg-rose-100 transition-colors"
-                        >
-                          + Add One
-                        </button>
-                        <label className="px-4 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600 transition-colors cursor-pointer flex items-center gap-2">
-                          <Upload size={16} />
-                          Upload Multiple
-                          <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            className="hidden"
-                            onChange={(e) => {
-                              const files = Array.from(e.target.files || []);
-                              if (files.length > 0) {
-                                const newCategories = [...formData.categories];
-                                files.forEach((file) => {
-                                  const url = URL.createObjectURL(file);
-                                  newCategories[catIndex].items.push({
-                                    file,
-                                    url,
-                                    title: "",
-                                    date: "",
-                                  });
-                                });
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  categories: newCategories,
-                                }));
-                              }
-                              e.target.value = "";
-                            }}
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {category.items.map((item, itemIndex) => (
-                        <div
-                          key={itemIndex}
-                          className="relative p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20 group"
-                        >
+                  {formData.categories.map((category, catIndex) => (
+                    <div key={category.id} className="space-y-6">
+                      <div className="flex items-center justify-between border-b border-rose-100 dark:border-rose-900/20 pb-4">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                          {category.id === "memories" ? (
+                            <Heart className="text-rose-500" size={24} />
+                          ) : (
+                            <Sparkles className="text-amber-500" size={24} />
+                          )}
+                          {category.name}
+                        </h2>
+                        <div className="flex gap-2">
                           <button
                             onClick={() => {
                               const newCategories = [...formData.categories];
-                              newCategories[catIndex].items = newCategories[
-                                catIndex
-                              ].items.filter((_, i) => i !== itemIndex);
+                              newCategories[catIndex].items.push({
+                                file: null,
+                                url: "",
+                                title: "",
+                                date: "",
+                              });
                               setFormData((prev) => ({
                                 ...prev,
                                 categories: newCategories,
                               }));
                             }}
-                            className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors z-10"
+                            className="px-4 py-2 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-lg text-sm font-medium hover:bg-rose-100 transition-colors"
                           >
-                            <X size={18} />
+                            + Add One
                           </button>
+                          <label className="px-4 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600 transition-colors cursor-pointer flex items-center gap-2">
+                            <Upload size={16} />
+                            Upload Multiple
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              className="hidden"
+                              onChange={(e) => {
+                                const files = Array.from(e.target.files || []);
+                                if (files.length > 0) {
+                                  const newCategories = [
+                                    ...formData.categories,
+                                  ];
+                                  files.forEach((file) => {
+                                    const url = URL.createObjectURL(file);
+                                    newCategories[catIndex].items.push({
+                                      file,
+                                      url,
+                                      title: "",
+                                      date: "",
+                                    });
+                                  });
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    categories: newCategories,
+                                  }));
+                                }
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
 
-                          {/* Horizontal Layout: Image Left, Fields Right */}
-                          <div className="flex gap-4">
-                            {/* Left: Upload Image */}
-                            <div className="shrink-0 w-32 flex flex-col">
-                              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
-                                Upload Image
-                              </label>
-                              <label className="block cursor-pointer flex-1">
-                                <div
-                                  className={`h-full min-h-35 rounded-xl border-2 border-dashed transition-colors relative overflow-hidden ${
-                                    item.url
-                                      ? "border-transparent"
-                                      : "border-rose-200 dark:border-rose-800 hover:border-rose-400"
-                                  }`}
-                                >
-                                  {item.url ? (
-                                    <>
-                                      <Image
-                                        src={item.url}
-                                        alt="Detail"
-                                        fill
-                                        className="object-cover"
-                                      />
-                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <div className="text-center">
-                                          <Upload
-                                            className="text-white mx-auto mb-1"
-                                            size={20}
-                                          />
-                                          <span className="text-xs text-white font-medium">
-                                            Change
-                                          </span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {category.items.map((item, itemIndex) => (
+                          <div
+                            key={itemIndex}
+                            className="relative p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20 group"
+                          >
+                            <button
+                              onClick={() => {
+                                const newCategories = [...formData.categories];
+                                newCategories[catIndex].items = newCategories[
+                                  catIndex
+                                ].items.filter((_, i) => i !== itemIndex);
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  categories: newCategories,
+                                }));
+                              }}
+                              className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors z-10"
+                            >
+                              <X size={18} />
+                            </button>
+
+                            {/* Horizontal Layout: Image Left, Fields Right */}
+                            <div className="flex gap-4">
+                              {/* Left: Upload Image */}
+                              <div className="shrink-0 w-32 flex flex-col">
+                                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                  Upload Image
+                                </label>
+                                <label className="block cursor-pointer flex-1">
+                                  <div
+                                    className={`h-full min-h-35 rounded-xl border-2 border-dashed transition-colors relative overflow-hidden ${
+                                      item.url
+                                        ? "border-transparent"
+                                        : "border-rose-200 dark:border-rose-800 hover:border-rose-400"
+                                    }`}
+                                  >
+                                    {item.url ? (
+                                      <>
+                                        <Image
+                                          src={item.url}
+                                          alt="Detail"
+                                          fill
+                                          className="object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                          <div className="text-center">
+                                            <Upload
+                                              className="text-white mx-auto mb-1"
+                                              size={20}
+                                            />
+                                            <span className="text-xs text-white font-medium">
+                                              Change
+                                            </span>
+                                          </div>
                                         </div>
+                                      </>
+                                    ) : (
+                                      <div className="flex flex-col items-center justify-center h-full">
+                                        <Upload
+                                          className="text-rose-300 mb-2"
+                                          size={28}
+                                        />
+                                        <span className="text-xs text-gray-400 text-center px-2">
+                                          Upload Photo
+                                        </span>
                                       </div>
-                                    </>
-                                  ) : (
-                                    <div className="flex flex-col items-center justify-center h-full">
-                                      <Upload
-                                        className="text-rose-300 mb-2"
-                                        size={28}
-                                      />
-                                      <span className="text-xs text-gray-400 text-center px-2">
-                                        Upload Photo
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  className="hidden"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      const url = URL.createObjectURL(file);
-                                      const newCategories = [
-                                        ...formData.categories,
-                                      ];
-                                      newCategories[catIndex].items[itemIndex] =
-                                        {
+                                    )}
+                                  </div>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        const url = URL.createObjectURL(file);
+                                        const newCategories = [
+                                          ...formData.categories,
+                                        ];
+                                        newCategories[catIndex].items[
+                                          itemIndex
+                                        ] = {
                                           ...newCategories[catIndex].items[
                                             itemIndex
                                           ],
                                           file,
                                           url,
                                         };
-                                      setFormData((prev) => ({
-                                        ...prev,
-                                        categories: newCategories,
-                                      }));
-                                    }
-                                  }}
-                                />
-                              </label>
-                            </div>
-
-                            {/* Right: Title and Date Fields */}
-                            <div className="flex-1 flex flex-col gap-3">
-                              <div>
-                                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 block">
-                                  Title
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          categories: newCategories,
+                                        }));
+                                      }
+                                    }}
+                                  />
                                 </label>
-                                <input
-                                  type="text"
-                                  placeholder="Enter a title"
-                                  value={item.title}
-                                  onChange={(e) => {
-                                    const newCategories = [
-                                      ...formData.categories,
-                                    ];
-                                    newCategories[catIndex].items[
-                                      itemIndex
-                                    ].title = e.target.value;
-                                    setFormData((prev) => ({
-                                      ...prev,
-                                      categories: newCategories,
-                                    }));
-                                  }}
-                                  className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                                />
                               </div>
 
-                              <div>
-                                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 block">
-                                  {category.id === "memories"
-                                    ? "Date"
-                                    : "Description"}
-                                </label>
-                                {category.id === "memories" ? (
-                                  <input
-                                    type="date"
-                                    value={item.date}
-                                    onChange={(e) => {
-                                      const newCategories = [
-                                        ...formData.categories,
-                                      ];
-                                      newCategories[catIndex].items[
-                                        itemIndex
-                                      ].date = e.target.value;
-                                      setFormData((prev) => ({
-                                        ...prev,
-                                        categories: newCategories,
-                                      }));
-                                    }}
-                                    className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                                  />
-                                ) : (
+                              {/* Right: Title and Date Fields */}
+                              <div className="flex-1 flex flex-col gap-3">
+                                <div>
+                                  <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 block">
+                                    Title
+                                  </label>
                                   <input
                                     type="text"
-                                    placeholder="Describe this quality"
-                                    value={item.date}
+                                    placeholder="Enter a title"
+                                    value={item.title}
                                     onChange={(e) => {
                                       const newCategories = [
                                         ...formData.categories,
                                       ];
                                       newCategories[catIndex].items[
                                         itemIndex
-                                      ].date = e.target.value;
+                                      ].title = e.target.value;
                                       setFormData((prev) => ({
                                         ...prev,
                                         categories: newCategories,
@@ -1101,37 +1066,82 @@ const EditConfessionPage = () => {
                                     }}
                                     className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
                                   />
-                                )}
+                                </div>
+
+                                <div>
+                                  <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 block">
+                                    {category.id === "memories"
+                                      ? "Date"
+                                      : "Description"}
+                                  </label>
+                                  {category.id === "memories" ? (
+                                    <input
+                                      type="date"
+                                      value={item.date}
+                                      onChange={(e) => {
+                                        const newCategories = [
+                                          ...formData.categories,
+                                        ];
+                                        newCategories[catIndex].items[
+                                          itemIndex
+                                        ].date = e.target.value;
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          categories: newCategories,
+                                        }));
+                                      }}
+                                      className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                    />
+                                  ) : (
+                                    <input
+                                      type="text"
+                                      placeholder="Describe this quality"
+                                      value={item.date}
+                                      onChange={(e) => {
+                                        const newCategories = [
+                                          ...formData.categories,
+                                        ];
+                                        newCategories[catIndex].items[
+                                          itemIndex
+                                        ].date = e.target.value;
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          categories: newCategories,
+                                        }));
+                                      }}
+                                      className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                    />
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
 
-                      {category.items.length === 0 && (
-                        <div className="col-span-full py-8 text-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-zinc-800 rounded-2xl">
-                          <p className="text-sm italic">
-                            No items added to {category.name} yet.
-                          </p>
-                        </div>
-                      )}
+                        {category.items.length === 0 && (
+                          <div className="col-span-full py-8 text-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-zinc-800 rounded-2xl">
+                            <p className="text-sm italic">
+                              No items added to {category.name} yet.
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
 
-              {/* Save & Preview Design Button */}
-              <div className="flex justify-end pt-4">
-                <button
-                  onClick={() => setCategoriesSaved(true)}
-                  className="px-6 py-3 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-full font-medium shadow-lg transition-all flex items-center gap-2"
-                >
-                  <Check size={18} />
-                  Save & Preview Design
-                </button>
-              </div>
+                {/* Save & Preview Design Button */}
+                <div className="flex justify-end pt-4">
+                  <button
+                    onClick={() => setCategoriesSaved(true)}
+                    className="px-6 py-3 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-full font-medium shadow-lg transition-all flex items-center gap-2"
+                  >
+                    <Check size={18} />
+                    Save & Preview Design
+                  </button>
+                </div>
               </>
-            )}  
+            )}
           </div>
         )}
 
@@ -1206,9 +1216,7 @@ const EditConfessionPage = () => {
               <div>
                 <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
                   🎵 Add Music{" "}
-                  <span className="text-gray-400 font-normal">
-                    (Optional)
-                  </span>
+                  <span className="text-gray-400 font-normal">(Optional)</span>
                 </h3>
                 <input
                   type="url"
@@ -1343,7 +1351,11 @@ const EditConfessionPage = () => {
 
           <button
             onClick={nextStep}
-            disabled={saving || (currentStep === 3 && wantsPhotos === null) || (currentStep === 3 && wantsPhotos === true && !categoriesSaved)}
+            disabled={
+              saving ||
+              (currentStep === 3 && wantsPhotos === null) ||
+              (currentStep === 3 && wantsPhotos === true && !categoriesSaved)
+            }
             className="flex items-center gap-2 px-6 py-3 rounded-full bg-linear-to-r from-rose-500 to-pink-500 text-white font-medium hover:shadow-lg hover:shadow-rose-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {currentStep === totalSteps - 1 ? (

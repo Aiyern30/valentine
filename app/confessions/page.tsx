@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { NavigationSidebar } from "@/components/NavigationSidebar";
-import { Edit2, Trash2, Plus, Heart, Copy, Check } from "lucide-react";
+import { Edit2, Trash2, Plus, Heart, Copy, Check, Loader2 } from "lucide-react";
 import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
 import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
 import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
@@ -31,6 +31,7 @@ const ConfessionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
     fetchConfessions();
@@ -49,10 +50,6 @@ const ConfessionsPage = () => {
   };
 
   const handleDelete = async (confessionId: string) => {
-    if (!confirm("Are you sure you want to delete this confession?")) {
-      return;
-    }
-
     setDeletingId(confessionId);
     try {
       const response = await fetch(`/api/confessions/${confessionId}`, {
@@ -61,6 +58,7 @@ const ConfessionsPage = () => {
 
       if (response.ok) {
         setConfessions(confessions.filter((c) => c.id !== confessionId));
+        setShowDeleteConfirm(null);
       } else {
         alert("Failed to delete confession");
       }
@@ -274,7 +272,7 @@ const ConfessionsPage = () => {
                       {/* Copy Link Button */}
                       <button
                         onClick={() => handleCopyLink(confession.link_token)}
-                        className="w-full flex items-center justify-center gap-1 bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 text-gray-900 dark:text-white px-3 py-2 rounded-lg transition-all text-xs font-medium"
+                        className="w-full flex items-center justify-center gap-1 bg-rose-100 dark:bg-rose-900/30 hover:bg-rose-200 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 px-3 py-2 rounded-lg transition-all text-xs font-medium"
                       >
                         {copiedId === confession.link_token ? (
                           <>
@@ -291,17 +289,16 @@ const ConfessionsPage = () => {
                       <div className="flex gap-2">
                         <Link
                           href={`/confessions/${confession.id}/edit`}
-                          className="flex-1 flex items-center justify-center gap-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg transition-all text-xs font-medium"
+                          className="flex-1 flex items-center justify-center gap-1 bg-rose-500 hover:bg-rose-600 text-white px-3 py-2 rounded-lg transition-all text-xs font-medium"
                         >
                           <Edit2 size={14} /> Edit
                         </Link>
                         <button
-                          onClick={() => handleDelete(confession.id)}
+                          onClick={() => setShowDeleteConfirm(confession.id)}
                           disabled={deletingId === confession.id}
-                          className="flex-1 flex items-center justify-center gap-1 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white px-3 py-2 rounded-lg transition-all text-xs font-medium"
+                          className="flex-1 flex items-center justify-center gap-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white px-3 py-2 rounded-lg transition-all text-xs font-medium"
                         >
-                          <Trash2 size={14} />
-                          {deletingId === confession.id ? "..." : "Del"}
+                          <Trash2 size={14} /> Delete
                         </button>
                       </div>
                     </div>
@@ -312,6 +309,54 @@ const ConfessionsPage = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowDeleteConfirm(null)}
+          />
+          <div className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-zinc-800 max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                  Delete Confession
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Are you sure you want to delete this confession? This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={() => setShowDeleteConfirm(null)}
+                  disabled={deletingId !== null}
+                  className="flex-1 px-4 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 font-medium transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(showDeleteConfirm)}
+                  disabled={deletingId !== null}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {deletingId !== null ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </NavigationSidebar>
   );
 };
