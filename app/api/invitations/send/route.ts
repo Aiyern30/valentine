@@ -71,20 +71,6 @@ export async function POST(req: Request) {
   const invitationToken = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-  // Get any existing pending relationship for the inviter to link to the invitation
-  const { data: relationship } = await supabase
-    .from("relationships")
-    .select("id")
-    .eq("partner1_id", user.id)
-    .eq("status", "pending")
-    .is("partner2_id", null)
-    .maybeSingle();
-
-  console.log(
-    "🔗 Linking invitation to relationship:",
-    relationship?.id || "None found",
-  );
-
   // Create invitation record
   const { data: invitation, error: inviteError } = await supabase
     .from("relationship_invitations")
@@ -93,7 +79,6 @@ export async function POST(req: Request) {
       invitee_email: inviteeEmail,
       invitation_token: invitationToken,
       expires_at: expiresAt.toISOString(),
-      relationship_id: relationship?.id || null,
     })
     .select()
     .single();
