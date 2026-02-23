@@ -13,9 +13,7 @@ export async function GET(request: Request) {
     }
 
     // Fetch all confessions for the current user
-    const { data: confessions, error } = await (
-      await supabase
-    )
+    const { data: confessions, error } = await (await supabase)
       .from("confessions")
       .select("*")
       .eq("sender_id", user.id)
@@ -30,7 +28,7 @@ export async function GET(request: Request) {
     console.error("Error fetching confessions:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

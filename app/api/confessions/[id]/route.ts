@@ -3,9 +3,11 @@ import { NextResponse } from "next/server";
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id: confessionId } = await params;
+
     const supabase = createClient();
     const {
       data: { user },
@@ -29,8 +31,6 @@ export async function PUT(
     const musicUrl = formData.get("music_url") as string;
     const photosJson = formData.get("photos") as string;
     const categoriesJson = formData.get("categories") as string;
-
-    const confessionId = params.id;
 
     // Fetch existing confession to check ownership
     const { data: existingConfession, error: fetchError } = await (
@@ -96,9 +96,11 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id: confessionId } = await params;
+
     const supabase = createClient();
     const {
       data: { user },
@@ -107,8 +109,6 @@ export async function DELETE(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const confessionId = params.id;
 
     // Verify ownership before deleting
     const { data: confession, error: fetchError } = await (await supabase)
@@ -151,9 +151,11 @@ export async function DELETE(
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id: confessionId } = await params;
+
     const supabase = createClient();
     const {
       data: { user },
@@ -162,8 +164,6 @@ export async function GET(
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const confessionId = params.id;
 
     // Fetch specific confession
     const { data: confession, error } = await (await supabase)

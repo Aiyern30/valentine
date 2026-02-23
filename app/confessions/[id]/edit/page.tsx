@@ -3,22 +3,11 @@
 "use client";
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Upload,
-  Sparkles,
-  X,
-  Heart,
-  Check,
-  Copy,
-  Share2,
-  ArrowLeft,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Upload, Check, Heart, Sparkles, X } from "lucide-react";
+import Image from "next/image";
 import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
 import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
 import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
-import Image from "next/image";
 
 interface PagePhoto {
   file: File | null;
@@ -77,6 +66,7 @@ const EditConfessionPage = () => {
   const [saving, setSaving] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [wantsPhotos, setWantsPhotos] = useState<boolean | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -86,7 +76,10 @@ const EditConfessionPage = () => {
     relationshipStatus: "",
     message: "",
     pagePhotos: {},
-    categories: [],
+    categories: [
+      { id: "memories", name: "Special Memories", items: [] },
+      { id: "qualities", name: "Special Qualities", items: [] },
+    ],
     theme: "Life",
     envelopeStyle: "Romantic",
     musicUrl: "",
@@ -116,7 +109,10 @@ const EditConfessionPage = () => {
   const themes = ["Life", "Fall", "Christmas", "Birthday"];
 
   useEffect(() => {
-    fetchConfession();
+    const loadData = async () => {
+      await fetchConfession();
+    };
+    loadData();
   }, [confessionId]);
 
   const fetchConfession = async () => {
@@ -193,17 +189,6 @@ const EditConfessionPage = () => {
         },
       }));
     }
-  };
-
-  const removePhoto = (pageIndex: number) => {
-    setFormData((prev) => {
-      const newPagePhotos = { ...prev.pagePhotos };
-      delete newPagePhotos[pageIndex];
-      return {
-        ...prev,
-        pagePhotos: newPagePhotos,
-      };
-    });
   };
 
   const getEnvelopeComponent = () => {
@@ -299,6 +284,17 @@ const EditConfessionPage = () => {
   };
 
   const nextStep = () => {
+    if (currentStep === 3 && wantsPhotos === null) {
+      // Categories step requires a choice
+      return;
+    }
+    if (currentStep === 3 && wantsPhotos === false) {
+      // Skip categories and go to Step 4
+      setCurrentStep(4);
+      setWantsPhotos(null);
+      return;
+    }
+    
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -307,6 +303,13 @@ const EditConfessionPage = () => {
   };
 
   const prevStep = () => {
+    if (currentStep === 4 && wantsPhotos === false) {
+      // Going back from Step 4 (after skipping categories) go to Step 3 with reset
+      setCurrentStep(3);
+      setWantsPhotos(null);
+      return;
+    }
+    
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     } else {
@@ -339,7 +342,6 @@ const EditConfessionPage = () => {
       });
 
       if (response.ok) {
-        const result = await response.json();
         router.push("/confessions");
       } else {
         const error = await response.json();
@@ -368,372 +370,958 @@ const EditConfessionPage = () => {
 
   return (
     <div className="min-h-screen bg-transparent p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header with back button */}
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-rose-600 dark:text-rose-400 hover:text-rose-700 mb-6 font-medium"
-        >
-          <ArrowLeft size={20} /> Back to Confessions
-        </button>
+      <div className="max-w-4xl mx-auto">
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-linear-to-r from-rose-500 to-pink-500 transition-all duration-300"
+              style={{
+                width: `${((currentStep + 1) / totalSteps) * 100}%`,
+              }}
+            />
+          </div>
+          <div className="text-center text-sm text-gray-400 mt-2">
+            Step {currentStep + 1} of {totalSteps}
+          </div>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Form Section */}
-          <div className="lg:col-span-2">
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  Edit Confession
-                </h2>
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Step {currentStep + 1} of {totalSteps}
+        {/* Step 0: Basic Information */}
+        {currentStep === 0 && (
+          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Front Page Title <span className="text-pink-400">*</span>{" "}
+                  <span className="text-xs font-normal text-gray-500 ml-1">
+                    (Appears on Front Cover)
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  placeholder="e.g., A Love Letter, For You, etc."
+                  maxLength={50}
+                  className="w-full bg-gray-50 dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all"
+                />
+                <span className="text-right text-xs text-gray-400 block mt-1">
+                  {(formData.title || "").length}/50
                 </span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                <div
-                  className="bg-linear-to-r from-rose-500 to-pink-500 h-3 rounded-full transition-all duration-300"
-                  style={{
-                    width: `${((currentStep + 1) / totalSteps) * 100}%`,
-                  }}
-                ></div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Loved One's Name <span className="text-pink-400">*</span>{" "}
+                  <span className="text-xs font-normal text-gray-500 ml-1">
+                    (Appears on Front Cover)
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  name="lovedOneName"
+                  value={formData.lovedOneName}
+                  onChange={handleInputChange}
+                  placeholder="Enter name"
+                  maxLength={150}
+                  className="w-full bg-gray-50 dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all"
+                />
+                <span className="text-right text-xs text-gray-400 block mt-1">
+                  {(formData.lovedOneName || "").length}/150
+                </span>
               </div>
-            </div>
 
-            {/* Form Steps */}
-            <div className="bg-white dark:bg-zinc-800 rounded-3xl shadow-xl p-8 mb-8">
-              {currentStep === 0 && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Basic Information
-                  </h3>
+              <div className="border-t border-gray-700 pt-6">
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Front Page Title *
-                    </label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleInputChange}
-                      placeholder="e.g., A Love Letter, For You, etc."
-                      maxLength={50}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none transition"
-                    />
-                    <p className="text-sm text-gray-500 mt-1">
-                      {formData.title.length}/50
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Loved One's Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="lovedOneName"
-                      value={formData.lovedOneName}
-                      onChange={handleInputChange}
-                      placeholder="Enter name"
-                      maxLength={150}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none transition"
-                    />
-                    <p className="text-sm text-gray-500 mt-1">
-                      {formData.lovedOneName.length}/150
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 1 && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Relationship Status *
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {relationshipOptions.map((option) => (
-                      <button
-                        key={option.label}
-                        onClick={() =>
-                          handleInputChange({
-                            target: {
-                              name: "relationshipStatus",
-                              value: option.label,
-                            },
-                          } as any)
-                        }
-                        className={`p-4 rounded-xl border-2 transition font-medium text-center ${
-                          formData.relationshipStatus === option.label
-                            ? "border-rose-500 bg-rose-50 dark:bg-rose-900/20"
-                            : "border-gray-200 dark:border-gray-700 hover:border-rose-300"
-                        }`}
-                      >
-                        <div className="text-2xl mb-2">{option.icon}</div>
-                        <div className="text-sm">{option.label}</div>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Your Name
-                    </label>
-                    <input
-                      type="text"
-                      name="yourName"
-                      value={formData.yourName}
-                      onChange={handleInputChange}
-                      placeholder="Enter your name (optional)"
-                      maxLength={100}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none transition"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Pet Name / Nickname
+                    <label className="block text-sm font-medium mb-2">
+                      Pet Name
                     </label>
                     <input
                       type="text"
                       name="petName"
                       value={formData.petName}
                       onChange={handleInputChange}
-                      placeholder="Special nickname for them (optional)"
-                      maxLength={100}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none transition"
+                      placeholder="What do you call your love?"
+                      maxLength={50}
+                      className="w-full bg-gray-50 dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500"
                     />
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 2 && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Your Message *
-                  </h3>
-                  <div>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      placeholder="Write your heartfelt confession here... You can use <<<PAGE_BREAK>>> to create page breaks"
-                      rows={12}
-                      maxLength={5000}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none transition resize-none"
-                    ></textarea>
-                    <p className="text-sm text-gray-500 mt-2">
-                      {formData.message.length}/5000
-                    </p>
-                    <p className="text-xs text-gray-400 mt-2">
-                      💡 Tip: Use {"<<<PAGE_BREAK>>>"} to create page breaks in
-                      your message
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 3 && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Theme & Style
-                  </h3>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Select Theme
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {themes.map((theme) => (
-                        <button
-                          key={theme}
-                          onClick={() =>
-                            handleInputChange({
-                              target: { name: "theme", value: theme },
-                            } as any)
-                          }
-                          className={`p-4 rounded-xl border-2 transition font-medium text-center ${
-                            formData.theme === theme
-                              ? "border-rose-500 bg-rose-50 dark:bg-rose-900/20"
-                              : "border-gray-200 dark:border-gray-700 hover:border-rose-300"
-                          }`}
-                        >
-                          {theme}
-                        </button>
-                      ))}
+                    <div className="text-right text-xs text-gray-400 mt-1">
+                      {(formData.petName || "").length}/50
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Envelope Style
-                    </label>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {envelopeOptions.map((option) => (
-                        <button
-                          key={option.id}
-                          onClick={() =>
-                            handleInputChange({
-                              target: {
-                                name: "envelopeStyle",
-                                value: option.id,
-                              },
-                            } as any)
-                          }
-                          className={`p-4 rounded-xl border-2 transition font-medium text-center ${
-                            formData.envelopeStyle === option.id
-                              ? "border-rose-500 bg-rose-50 dark:bg-rose-900/20"
-                              : "border-gray-200 dark:border-gray-700 hover:border-rose-300"
-                          }`}
-                        >
-                          <div className="text-3xl mb-2">{option.preview}</div>
-                          <div className="text-sm">{option.name}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Background Music URL (optional)
+                    <label className="block text-sm font-medium mb-2">
+                      Your Name{" "}
+                      <span className="text-xs font-normal text-gray-500 ml-1">
+                        (Appears on Back Cover)
+                      </span>
                     </label>
                     <input
-                      type="url"
-                      name="musicUrl"
-                      value={formData.musicUrl}
+                      type="text"
+                      name="yourName"
+                      value={formData.yourName}
                       onChange={handleInputChange}
-                      placeholder="https://music.youtube.com/watch?v=..."
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-rose-500 outline-none transition"
+                      placeholder="Your name or leave blank for anonymous"
+                      maxLength={50}
+                      className="w-full bg-gray-50 dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500"
                     />
-                    <p className="text-xs text-gray-400 mt-2">
-                      Supports YouTube, Spotify, Apple Music, etc.
-                    </p>
+                    <div className="text-right text-xs text-gray-400 mt-1">
+                      {(formData.yourName || "").length}/50
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
+            </div>
+          </div>
+        )}
 
-              {currentStep === 4 && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Add Photos (Optional)
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    You can add photos to accompany your message on different
-                    pages.
-                  </p>
-                  <div className="bg-gray-50 dark:bg-zinc-700/50 p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-center">
-                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Photo upload functionality can be added here
-                    </p>
-                  </div>
+        {/* Step 1: Relationship Status */}
+        {currentStep === 1 && (
+          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                  Relationship Status <span className="text-rose-500">*</span>
+                </h2>
+                <div className="grid grid-cols-3 gap-4">
+                  {relationshipOptions.map((option) => (
+                    <button
+                      key={option.label}
+                      onClick={() =>
+                        handleInputChange({
+                          target: {
+                            name: "relationshipStatus",
+                            value: option.label,
+                          },
+                        } as any)
+                      }
+                      className={`p-6 rounded-2xl border-2 transition-all ${
+                        formData.relationshipStatus === option.label
+                          ? "border-rose-500 bg-rose-500/10 scale-105"
+                          : "border-rose-50 dark:border-rose-900/20 bg-gray-50 dark:bg-zinc-900/50 hover:border-rose-200 hover:scale-102"
+                      }`}
+                    >
+                      <div className="text-3xl mb-2">{option.icon}</div>
+                      <div className="text-sm font-medium">{option.label}</div>
+                    </button>
+                  ))}
                 </div>
-              )}
+              </div>
 
-              {currentStep === 5 && (
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Review Your Confession
-                  </h3>
-                  <div className="bg-gray-50 dark:bg-zinc-700/50 p-6 rounded-lg space-y-4">
-                    <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                        Title
-                      </p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {formData.title}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                        For
-                      </p>
-                      <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {formData.lovedOneName}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                          Theme
-                        </p>
-                        <p className="text-sm text-gray-900 dark:text-white font-medium">
-                          {formData.theme}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                          Style
-                        </p>
-                        <p className="text-sm text-gray-900 dark:text-white font-medium">
-                          {formData.envelopeStyle}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                          Relationship
-                        </p>
-                        <p className="text-sm text-gray-900 dark:text-white font-medium">
-                          {formData.relationshipStatus}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+              <div className="text-sm text-gray-400 mt-4">Select status</div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Message */}
+        {currentStep === 2 && (
+          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
+            <div className="space-y-6">
+              {formData.relationshipStatus && (
+                <div className="flex items-center justify-between mb-4">
                   <button
-                    onClick={() => setIsPreviewOpen(!isPreviewOpen)}
-                    className="w-full bg-rose-100 dark:bg-rose-900/20 hover:bg-rose-200 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-300 font-medium py-3 rounded-lg transition"
+                    onClick={() => setCurrentStep(1)}
+                    className="px-4 py-2 rounded-full border border-pink-500 text-pink-400 text-sm hover:bg-pink-500/10 transition flex items-center gap-2"
                   >
-                    {isPreviewOpen ? "Hide" : "Show"} Preview
+                    {formData.relationshipStatus}
+                    <span className="text-xs">✏️</span>
                   </button>
                 </div>
               )}
-            </div>
 
-            {/* Navigation Buttons */}
-            <div className="flex gap-4">
-              <button
-                onClick={prevStep}
-                className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-900 dark:text-white transition"
-              >
-                <ChevronLeft size={20} /> Previous
-              </button>
-              <button
-                onClick={nextStep}
-                disabled={saving}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium bg-linear-to-r from-rose-500 to-pink-500 hover:shadow-lg text-white transition disabled:opacity-50"
-              >
-                {currentStep === totalSteps - 1 ? (
-                  saving ? (
-                    "Saving..."
-                  ) : (
-                    <>
-                      <Check size={20} /> Save Changes
-                    </>
-                  )
-                ) : (
-                  <>
-                    Next <ChevronRight size={20} />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+              <div className="text-center text-sm text-gray-400 mb-4">
+                Tap to change the status or keep writing your message below.
+              </div>
 
-          {/* Preview Section */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-8 bg-white dark:bg-zinc-800 rounded-3xl shadow-xl p-6 overflow-hidden">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Preview
-              </h3>
-              <div className="flex justify-center items-center bg-linear-to-br from-rose-50 to-pink-50 dark:from-zinc-700 dark:to-zinc-800 rounded-2xl p-4 min-h-96">
-                <div className="scale-75 origin-top">
-                  {getEnvelopeComponent()}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Your Message <span className="text-pink-400">*</span>
+                </label>
+                <div className="space-y-6">
+                  {(() => {
+                    const delimiter = "<<<PAGE_BREAK>>>";
+                    const pages = formData.message
+                      ? formData.message.split(delimiter)
+                      : [""];
+
+                    return pages.map((pageText, index) => (
+                      <div key={index} className="relative group">
+                        <div className="flex items-center justify-between mb-3">
+                          <label className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                            Page {index + 1}
+                          </label>
+                          {pages.length > 1 && (
+                            <button
+                              onClick={() => {
+                                const newPages = pages.filter(
+                                  (_: string, i: number) => i !== index,
+                                );
+                                const newPhotos = {
+                                  ...formData.pagePhotos,
+                                };
+                                delete newPhotos[index];
+                                const reindexedPhotos: {
+                                  [key: number]: PagePhoto;
+                                } = {};
+                                Object.keys(newPhotos).forEach((key) => {
+                                  const oldIndex = parseInt(key);
+                                  const newIndex =
+                                    oldIndex > index
+                                      ? oldIndex - 1
+                                      : oldIndex;
+                                  reindexedPhotos[newIndex] =
+                                    newPhotos[oldIndex];
+                                });
+                                handleInputChange({
+                                  target: {
+                                    name: "message",
+                                    value: newPages.join(delimiter),
+                                  },
+                                } as any);
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  pagePhotos: reindexedPhotos,
+                                }));
+                              }}
+                              className="text-xs text-red-400 hover:text-red-500 hover:underline flex items-center gap-1"
+                            >
+                              <span>🗑️</span> Remove Page
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Main Content Area - Side by Side Layout */}
+                        <div className="p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20">
+                          <div className="flex gap-6">
+                            {/* Left Side: Photo Upload */}
+                            <div className="shrink-0 w-64 flex flex-col">
+                              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                Upload Image
+                              </label>
+                              <label className="block cursor-pointer flex-1">
+                                <div
+                                  className={`h-full min-h-70 rounded-xl border-2 border-dashed transition-all relative overflow-hidden ${
+                                    formData.pagePhotos[index]?.url
+                                      ? "border-transparent"
+                                      : "border-rose-200 dark:border-rose-800 hover:border-rose-400"
+                                  }`}
+                                >
+                                  {formData.pagePhotos[index]?.url ? (
+                                    <div className="relative w-full h-full group/image">
+                                      <img
+                                        src={formData.pagePhotos[index]?.url}
+                                        alt={`Page ${index + 1} photo`}
+                                        className="w-full h-full object-cover"
+                                      />
+                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center">
+                                        <div className="text-center">
+                                          <span className="text-3xl mb-2 block">
+                                            📷
+                                          </span>
+                                          <span className="text-xs text-white font-medium">
+                                            Change Photo
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <button
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          const newPhotos = {
+                                            ...formData.pagePhotos,
+                                          };
+                                          delete newPhotos[index];
+                                          setFormData((prev) => ({
+                                            ...prev,
+                                            pagePhotos: newPhotos,
+                                          }));
+                                        }}
+                                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold shadow-lg transition-all z-10"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <div className="flex flex-col items-center justify-center h-full">
+                                      <span className="text-5xl mb-3">
+                                        📷
+                                      </span>
+                                      <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                        Upload Photo
+                                      </span>
+                                      <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                        (Optional)
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const url = URL.createObjectURL(file);
+                                      const newPhotos = {
+                                        ...formData.pagePhotos,
+                                      };
+                                      newPhotos[index] = {
+                                        file,
+                                        position: "left",
+                                        url,
+                                      };
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        pagePhotos: newPhotos,
+                                      }));
+                                    }
+                                  }}
+                                />
+                              </label>
+
+                              {/* Photo Position Buttons */}
+                              {formData.pagePhotos[index]?.url && (
+                                <div className="mt-4 space-y-2">
+                                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                                    Position:
+                                  </p>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newPhotos = {
+                                          ...formData.pagePhotos,
+                                        };
+                                        newPhotos[index] = {
+                                          ...newPhotos[index],
+                                          position: "left",
+                                        };
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          pagePhotos: newPhotos,
+                                        }));
+                                      }}
+                                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                                        formData.pagePhotos[index]
+                                          ?.position === "left"
+                                          ? "bg-rose-500 text-white shadow-md"
+                                          : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-rose-300"
+                                      }`}
+                                    >
+                                      ← Left
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newPhotos = {
+                                          ...formData.pagePhotos,
+                                        };
+                                        newPhotos[index] = {
+                                          ...newPhotos[index],
+                                          position: "right",
+                                        };
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          pagePhotos: newPhotos,
+                                        }));
+                                      }}
+                                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                                        formData.pagePhotos[index]
+                                          ?.position === "right"
+                                          ? "bg-rose-500 text-white shadow-md"
+                                          : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-rose-300"
+                                      }`}
+                                    >
+                                      Right →
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Right Side: Message Textarea */}
+                            <div className="flex-1 flex flex-col">
+                              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                Your Message
+                              </label>
+                              <textarea
+                                value={pageText}
+                                onChange={(e) => {
+                                  const newPages = [...pages];
+                                  newPages[index] = e.target.value;
+                                  handleInputChange({
+                                    target: {
+                                      name: "message",
+                                      value: newPages.join(delimiter),
+                                    },
+                                  } as any);
+                                }}
+                                placeholder={`Write your heartfelt message for page ${index + 1}...`}
+                                className="flex-1 bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none transition-all min-h-70"
+                                maxLength={500}
+                              />
+                              <div className="flex justify-end mt-2">
+                                <span
+                                  className={`text-xs font-medium ${pageText.length >= 450 ? "text-yellow-500" : pageText.length >= 400 ? "text-orange-400" : "text-gray-400"}`}
+                                >
+                                  {pageText.length}/500 characters
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ));
+                  })()}
+
+                  {/* Add Another Page Button */}
+                  <button
+                    onClick={() => {
+                      const delimiter = "<<<PAGE_BREAK>>>";
+                      const current = formData.message
+                        ? formData.message
+                        : "";
+                      handleInputChange({
+                        target: {
+                          name: "message",
+                          value: current + delimiter + "",
+                        },
+                      } as any);
+                    }}
+                    className="w-full py-4 border-2 border-dashed border-rose-200 dark:border-rose-800 rounded-2xl text-rose-400 hover:border-rose-400 hover:text-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-900/10 transition-all flex items-center justify-center gap-2 font-medium"
+                  >
+                    <span className="text-xl">+</span>
+                    <span>Add Another Page</span>
+                  </button>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
-                Click the envelope to preview the full design
-              </p>
             </div>
           </div>
+        )}
+
+        {/* Step 3: Categories (Special Memories / Special Qualities) */}
+        {currentStep === 3 && (
+          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
+            {wantsPhotos === null ? (
+              <div className="space-y-8 text-center">
+                <div className="mx-auto w-20 h-20 bg-linear-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center transform rotate-12">
+                  <Upload className="text-white" size={40} />
+                </div>
+
+                <div>
+                  <h2 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white">
+                    Would you like to add special categories?
+                  </h2>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Add special memories and qualities to make it more
+                    personal.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+                  <button
+                    onClick={() => setWantsPhotos(true)}
+                    className="flex-1 px-8 py-4 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl transition-all shadow-lg font-medium"
+                  >
+                    Yes, let's add some
+                  </button>
+                  <button
+                    onClick={() => {
+                      setWantsPhotos(false);
+                      setTimeout(() => {
+                        setCurrentStep(4);
+                        setWantsPhotos(null);
+                      }, 300);
+                    }}
+                    className="flex-1 px-8 py-4 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-300 rounded-2xl transition-all font-medium border border-gray-200 dark:border-gray-700"
+                  >
+                    No, skip this
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-10">
+                {formData.categories.map((category, catIndex) => (
+                  <div key={category.id} className="space-y-6">
+                    <div className="flex items-center justify-between border-b border-rose-100 dark:border-rose-900/20 pb-4">
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        {category.id === "memories" ? (
+                          <Heart className="text-rose-500" size={24} />
+                        ) : (
+                          <Sparkles className="text-amber-500" size={24} />
+                        )}
+                        {category.name}
+                      </h2>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            const newCategories = [...formData.categories];
+                            newCategories[catIndex].items.push({
+                              file: null,
+                              url: "",
+                              title: "",
+                              date: "",
+                            });
+                            setFormData((prev) => ({
+                              ...prev,
+                              categories: newCategories,
+                            }));
+                          }}
+                          className="px-4 py-2 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-lg text-sm font-medium hover:bg-rose-100 transition-colors"
+                        >
+                          + Add One
+                        </button>
+                        <label className="px-4 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600 transition-colors cursor-pointer flex items-center gap-2">
+                          <Upload size={16} />
+                          Upload Multiple
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => {
+                              const files = Array.from(
+                                e.target.files || [],
+                              );
+                              if (files.length > 0) {
+                                const newCategories = [
+                                  ...formData.categories,
+                                ];
+                                files.forEach((file) => {
+                                  const url = URL.createObjectURL(file);
+                                  newCategories[catIndex].items.push({
+                                    file,
+                                    url,
+                                    title: "",
+                                    date: "",
+                                  });
+                                });
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  categories: newCategories,
+                                }));
+                              }
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {category.items.map((item, itemIndex) => (
+                        <div
+                          key={itemIndex}
+                          className="relative p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20 group"
+                        >
+                          <button
+                            onClick={() => {
+                              const newCategories = [
+                                ...formData.categories,
+                              ];
+                              newCategories[catIndex].items = newCategories[
+                                catIndex
+                              ].items.filter((_, i) => i !== itemIndex);
+                              setFormData((prev) => ({
+                                ...prev,
+                                categories: newCategories,
+                              }));
+                            }}
+                            className="absolute top-2 right-2 text-gray-400 hover:text-red-500 transition-colors z-10"
+                          >
+                            <X size={18} />
+                          </button>
+
+                          {/* Horizontal Layout: Image Left, Fields Right */}
+                          <div className="flex gap-4">
+                            {/* Left: Upload Image */}
+                            <div className="shrink-0 w-32 flex flex-col">
+                              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                Upload Image
+                              </label>
+                              <label className="block cursor-pointer flex-1">
+                                <div
+                                  className={`h-full min-h-35 rounded-xl border-2 border-dashed transition-colors relative overflow-hidden ${
+                                    item.url
+                                      ? "border-transparent"
+                                      : "border-rose-200 dark:border-rose-800 hover:border-rose-400"
+                                  }`}
+                                >
+                                  {item.url ? (
+                                    <>
+                                      <Image
+                                        src={item.url}
+                                        alt="Detail"
+                                        fill
+                                        className="object-cover"
+                                      />
+                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <div className="text-center">
+                                          <Upload
+                                            className="text-white mx-auto mb-1"
+                                            size={20}
+                                          />
+                                          <span className="text-xs text-white font-medium">
+                                            Change
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <div className="flex flex-col items-center justify-center h-full">
+                                      <Upload
+                                        className="text-rose-300 mb-2"
+                                        size={28}
+                                      />
+                                      <span className="text-xs text-gray-400 text-center px-2">
+                                        Upload Photo
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const url = URL.createObjectURL(file);
+                                      const newCategories = [
+                                        ...formData.categories,
+                                      ];
+                                      newCategories[catIndex].items[
+                                        itemIndex
+                                      ] = {
+                                        ...newCategories[catIndex].items[
+                                          itemIndex
+                                        ],
+                                        file,
+                                        url,
+                                      };
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        categories: newCategories,
+                                      }));
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+
+                            {/* Right: Title and Date Fields */}
+                            <div className="flex-1 flex flex-col gap-3">
+                              <div>
+                                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 block">
+                                  Title
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Enter a title"
+                                  value={item.title}
+                                  onChange={(e) => {
+                                    const newCategories = [
+                                      ...formData.categories,
+                                    ];
+                                    newCategories[catIndex].items[
+                                      itemIndex
+                                    ].title = e.target.value;
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      categories: newCategories,
+                                    }));
+                                  }}
+                                  className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 block">
+                                  {category.id === "memories"
+                                    ? "Date"
+                                    : "Description"}
+                                </label>
+                                {category.id === "memories" ? (
+                                  <input
+                                    type="date"
+                                    value={item.date}
+                                    onChange={(e) => {
+                                      const newCategories = [
+                                        ...formData.categories,
+                                      ];
+                                      newCategories[catIndex].items[
+                                        itemIndex
+                                      ].date = e.target.value;
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        categories: newCategories,
+                                      }));
+                                    }}
+                                    className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                  />
+                                ) : (
+                                  <input
+                                    type="text"
+                                    placeholder="Describe this quality"
+                                    value={item.date}
+                                    onChange={(e) => {
+                                      const newCategories = [
+                                        ...formData.categories,
+                                      ];
+                                      newCategories[catIndex].items[
+                                        itemIndex
+                                      ].date = e.target.value;
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        categories: newCategories,
+                                      }));
+                                    }}
+                                    className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {category.items.length === 0 && (
+                        <div className="col-span-full py-8 text-center text-gray-400 border-2 border-dashed border-gray-100 dark:border-zinc-800 rounded-2xl">
+                          <p className="text-sm italic">
+                            No items added to {category.name} yet.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Step 4: Theme & Style */}
+        {currentStep === 4 && (
+          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-6">Theme & Style</h2>
+
+                <div className="mb-8">
+                  <label className="block text-sm font-medium mb-4">
+                    Select Theme
+                  </label>
+                  <div className="grid grid-cols-4 gap-3">
+                    {themes.map((theme) => (
+                      <button
+                        key={theme}
+                        onClick={() =>
+                          handleInputChange({
+                            target: { name: "theme", value: theme },
+                          } as any)
+                        }
+                        className={`p-4 rounded-2xl border-2 transition-all font-medium ${
+                          formData.theme === theme
+                            ? "border-rose-500 bg-rose-500/10"
+                            : "border-rose-50 dark:border-rose-900/20 bg-gray-50 dark:bg-zinc-900/50 hover:border-rose-200"
+                        }`}
+                      >
+                        {theme}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mb-8">
+                  <label className="block text-sm font-medium mb-4">
+                    Envelope Style
+                  </label>
+                  <div className="grid grid-cols-4 gap-3">
+                    {envelopeOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() =>
+                          handleInputChange({
+                            target: { name: "envelopeStyle", value: option.id },
+                          } as any)
+                        }
+                        className={`p-4 rounded-2xl border-2 transition-all text-center ${
+                          formData.envelopeStyle === option.id
+                            ? "border-rose-500 bg-rose-500/10"
+                            : "border-rose-50 dark:border-rose-900/20 bg-gray-50 dark:bg-zinc-900/50 hover:border-rose-200"
+                        }`}
+                      >
+                        <div className="text-3xl mb-2">{option.preview}</div>
+                        <div className="text-xs font-medium">{option.name}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Background Music URL{" "}
+                    <span className="text-xs font-normal text-gray-500 ml-1">
+                      (optional)
+                    </span>
+                  </label>
+                  <input
+                    type="url"
+                    name="musicUrl"
+                    value={formData.musicUrl}
+                    onChange={handleInputChange}
+                    placeholder="https://music.youtube.com/watch?v=..."
+                    className="w-full bg-gray-50 dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  />
+                  <p className="text-xs text-gray-400 mt-2">
+                    Supports YouTube, Spotify, Apple Music, etc.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 5: Review */}
+        {currentStep === 5 && (
+          <div className="space-y-8 animate-in fade-in zoom-in duration-500">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Final Preview
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400">
+                This is exactly what your loved one will see. Click the
+                envelope to preview the animation.
+              </p>
+            </div>
+
+            {/* Preview Stage */}
+            <div className="relative w-full max-w-2xl mx-auto flex items-center justify-center min-h-125">
+              {/* Background Glow based on Theme */}
+              <div
+                className={`absolute inset-0 opacity-20 blur-[100px] transition-all duration-700 ${
+                  formData.envelopeStyle === "Romantic"
+                    ? "bg-rose-500"
+                    : formData.envelopeStyle === "Vintage"
+                      ? "bg-amber-600"
+                      : formData.envelopeStyle === "Midnight"
+                        ? "bg-blue-600"
+                        : "bg-white"
+                }`}
+              />
+
+              <div className="scale-75 md:scale-100 origin-center transition-transform duration-500">
+                {getEnvelopeComponent()}
+              </div>
+
+              {isPreviewOpen && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsPreviewOpen(false);
+                  }}
+                  className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-zinc-500 underline underline-offset-4 hover:text-white transition-colors z-50"
+                >
+                  Close preview
+                </button>
+              )}
+            </div>
+
+            {/* Style Toggles for Preview Page */}
+            <div className="space-y-4 max-w-md mx-auto">
+              {/* Envelope Theme Selector */}
+              <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-4 border border-rose-100 dark:border-rose-900/20 shadow-lg">
+                <h3 className="text-xs font-semibold mb-3 text-center text-zinc-500 uppercase tracking-widest">
+                  Envelope Theme
+                </h3>
+                <div className="grid grid-cols-4 gap-2">
+                  {envelopeOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() =>
+                        handleInputChange({
+                          target: { name: "envelopeStyle", value: option.id },
+                        } as any)
+                      }
+                      className={`p-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${
+                        formData.envelopeStyle === option.id
+                          ? "border-rose-500 bg-rose-50 dark:bg-rose-500/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-rose-300 dark:hover:border-rose-600"
+                      }`}
+                    >
+                      <div className="text-xl">{option.preview}</div>
+                      <span className="text-xs font-medium text-center leading-tight">
+                        {option.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Theme Selector */}
+              <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-4 border border-rose-100 dark:border-rose-900/20 shadow-lg">
+                <h3 className="text-xs font-semibold mb-3 text-center text-zinc-500 uppercase tracking-widest">
+                  Background Theme
+                </h3>
+                <div className="grid grid-cols-4 gap-2">
+                  {themes.map((theme) => (
+                    <button
+                      key={theme}
+                      onClick={() =>
+                        handleInputChange({
+                          target: { name: "theme", value: theme },
+                        } as any)
+                      }
+                      className={`p-3 rounded-xl border text-sm font-medium transition-all ${
+                        formData.theme === theme
+                          ? "border-rose-500 bg-rose-50 dark:bg-rose-500/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-rose-300 dark:hover:border-rose-600"
+                      }`}
+                    >
+                      {theme}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation */}
+        <div className="flex gap-4 mt-8 justify-between">
+          <button
+            onClick={prevStep}
+            className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium hover:bg-gray-50 dark:hover:bg-zinc-900 transition-all"
+          >
+            <ChevronLeft size={18} />
+            Previous
+          </button>
+
+          <button
+            onClick={nextStep}
+            disabled={saving}
+            className="flex items-center gap-2 px-6 py-3 rounded-full bg-linear-to-r from-rose-500 to-pink-500 text-white font-medium hover:shadow-lg hover:shadow-rose-500/30 transition-all disabled:opacity-50"
+          >
+            {currentStep === totalSteps - 1 ? (
+              saving ? (
+                "Saving..."
+              ) : (
+                <>
+                  <Check size={18} />
+                  Save Changes
+                </>
+              )
+            ) : (
+              <>
+                Next
+                <ChevronRight size={18} />
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
