@@ -855,15 +855,15 @@ export default function CondolenceForm() {
 
                             {/* Main Content Area - Side by Side Layout */}
                             <div className="p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20">
-                              <div className="flex gap-6">
+                              <div className="flex flex-col lg:flex-row gap-6">
                                 {/* Left Side: Photo Upload */}
-                                <div className="shrink-0 w-64 flex flex-col">
+                                <div className="shrink-0 w-full lg:w-64 flex flex-col">
                                   <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
                                     Upload Image
                                   </label>
                                   <label className="block cursor-pointer flex-1">
                                     <div
-                                      className={`h-full min-h-70 rounded-xl border-2 border-dashed transition-all relative overflow-hidden ${
+                                      className={`h-full min-h-60 lg:min-h-70 rounded-xl border-2 border-dashed transition-all relative overflow-hidden ${
                                         formData.pagePhotos[index]?.file
                                           ? "border-transparent"
                                           : "border-rose-200 dark:border-rose-800 hover:border-rose-400"
@@ -1044,7 +1044,7 @@ export default function CondolenceForm() {
                                       );
                                     }}
                                     placeholder={`Write your heartfelt message for page ${index + 1}...`}
-                                    className={`flex-1 bg-white dark:bg-zinc-800 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none transition-all min-h-70 ${
+                                    className={`flex-1 bg-white dark:bg-zinc-800 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none transition-all min-h-60 lg:min-h-70 ${
                                       errors.message && index === 0
                                         ? "border-red-500"
                                         : "border-rose-100 dark:border-rose-900/30"
