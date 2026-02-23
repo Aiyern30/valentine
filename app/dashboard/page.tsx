@@ -55,11 +55,18 @@ export default async function DashboardPage() {
     relationship.status === "active" &&
     relationship.partner2_id !== null;
 
-  const partner = hasActivePartner
+  // Get partner ID
+  const partnerId = hasActivePartner
     ? relationship.partner1_id === user.id
-      ? relationship.partner2
-      : relationship.partner1
+      ? relationship.partner2_id
+      : relationship.partner1_id
     : null;
+
+  // Fetch partner profile separately to avoid RLS join issues
+  let partner = null;
+  if (partnerId) {
+    partner = await getProfile(partnerId);
+  }
 
   const displayName =
     profile?.display_name ||

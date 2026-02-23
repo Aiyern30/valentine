@@ -113,12 +113,6 @@ export async function POST(req: Request) {
 
   const inviteLink = `${baseUrl}/invite/${invitationToken}`;
 
-  // Debug logging
-  console.log("🔍 Environment check:");
-  console.log("  - NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
-  console.log("  - Detected baseUrl:", baseUrl);
-  console.log("  - Full invite link:", inviteLink);
-
   try {
     const sendSmtpEmail = new brevo.SendSmtpEmail();
 
@@ -210,10 +204,6 @@ export async function POST(req: Request) {
     };
 
     const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    console.log("✅ Email sent successfully");
-    console.log("📧 Invitation link:", inviteLink);
-    console.log("📧 To:", inviteeEmail);
-    console.log("📧 Inviter:", inviterName);
 
     return Response.json({
       success: true,

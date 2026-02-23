@@ -117,7 +117,7 @@ export async function createMilestone(formData: FormData) {
     return { error: "Title and date are required" };
   }
 
-  const { data: newMilestone, error } = await supabase
+  const { error } = await supabase
     .from("milestones")
     .insert({
       created_by: user.id,
@@ -142,8 +142,6 @@ export async function createMilestone(formData: FormData) {
     console.error("Error creating milestone:", error);
     return { error: "Failed to create milestone. Please try again." };
   }
-
-  console.log("Milestone created successfully:", newMilestone);
 
   revalidatePath("/dashboard");
   revalidatePath("/milestones");
@@ -321,7 +319,6 @@ export async function updateAnniversaryDate(newDate: string) {
       return { error: "Failed to update anniversary date" };
     }
 
-    console.log("✅ Anniversary date updated successfully");
     revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {
@@ -381,7 +378,6 @@ export async function removePartner() {
       .eq("inviter_id", user.id)
       .eq("status", "pending");
 
-    console.log("✅ Relationship ended successfully");
     revalidatePath("/dashboard");
     return { success: true };
   } catch (error) {

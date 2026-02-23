@@ -23,20 +23,16 @@ export default function InvitePage({
   // Unwrap params Promise
   useEffect(() => {
     params.then((p) => {
-      console.log("📍 Token from params:", p.token);
       setToken(p.token);
     });
   }, [params]);
 
   useEffect(() => {
     if (!token) {
-      console.log("⏳ Waiting for token...");
       return;
     }
 
     const verifyInvitation = async () => {
-      console.log("🔍 Verifying invitation with token:", token);
-
       const { data: invitation, error } = await supabase
         .from("relationship_invitations")
         .select(
@@ -49,9 +45,6 @@ export default function InvitePage({
         .eq("status", "pending")
         .single();
 
-      console.log("📧 Invitation data:", invitation);
-      console.log("❌ Error:", error);
-
       if (error || !invitation) {
         console.error("Invitation lookup error:", error);
         setStatus("error");
@@ -61,9 +54,6 @@ export default function InvitePage({
       // Check if expired
       const expiryDate = new Date(invitation.expires_at);
       const now = new Date();
-      console.log("⏰ Expiry date:", expiryDate);
-      console.log("⏰ Current date:", now);
-      console.log("⏰ Is expired?", expiryDate < now);
 
       if (expiryDate < now) {
         setStatus("expired");
@@ -75,7 +65,6 @@ export default function InvitePage({
         invitation.inviter?.username ||
         "Someone";
 
-      console.log("👤 Inviter name:", name);
       setInviterName(name);
       setStatus("valid");
     };
@@ -84,7 +73,6 @@ export default function InvitePage({
   }, [token, supabase]);
 
   async function acceptInvitation() {
-    console.log("✅ Accepting invitation...");
     setStatus("loading");
 
     // Get current user
@@ -92,10 +80,7 @@ export default function InvitePage({
       data: { user },
     } = await supabase.auth.getUser();
 
-    console.log("👤 Current user:", user);
-
     if (!user) {
-      console.log("❌ No user, redirecting to signup");
       router.push(`/auth/signup?redirect=/invite/${token}`);
       return;
     }
@@ -118,8 +103,7 @@ export default function InvitePage({
         return;
       }
 
-      console.log("🎉 Success! Relationship created:", result.relationshipId);
-      console.log("🎉 Redirecting to dashboard...");
+      router.refresh();
       router.push("/dashboard?welcome=true");
     } catch (error) {
       console.error("❌ Network error accepting invitation:", error);

@@ -52,19 +52,13 @@ export async function getRelationship(userId: string) {
   // ✅ Fix: First try to get ACTIVE relationships (prioritize these)
   const { data: activeRel, error: activeError } = await supabase
     .from("relationships")
-    .select(
-      `
-      *,
-      partner1:profiles!partner1_id(*),
-      partner2:profiles!partner2_id(*)
-    `,
-    )
+    .select("*")
     .or(`partner1_id.eq.${userId},partner2_id.eq.${userId}`)
     .eq("status", "active")
     .maybeSingle();
 
   if (activeError) {
-    console.error("Error fetching active relationship:", activeError);
+    console.error("❌ Error fetching active relationship:", activeError);
   }
 
   // If we found an active relationship, return it
@@ -75,19 +69,13 @@ export async function getRelationship(userId: string) {
   // ✅ Fallback: If no active relationship, look for pending ones
   const { data: pendingRel, error: pendingError } = await supabase
     .from("relationships")
-    .select(
-      `
-      *,
-      partner1:profiles!partner1_id(*),
-      partner2:profiles!partner2_id(*)
-    `,
-    )
+    .select("*")
     .or(`partner1_id.eq.${userId},partner2_id.eq.${userId}`)
     .eq("status", "pending")
     .maybeSingle();
 
   if (pendingError) {
-    console.error("Error fetching pending relationship:", pendingError);
+    console.error("❌ Error fetching pending relationship:", pendingError);
     return null;
   }
 

@@ -1,11 +1,10 @@
 // app/api/invitations/accept/route.ts
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export async function POST(req: Request) {
   const { token } = await req.json();
   const supabase = await createClient();
-
-  console.log("🎯 Calling accept_invitation function for token:", token);
 
   const { data, error } = await supabase.rpc("accept_invitation", {
     p_token: token,
@@ -23,6 +22,7 @@ export async function POST(req: Request) {
     return Response.json({ error: data.error }, { status: 400 });
   }
 
-  console.log("🎉 Invitation accepted successfully!");
+  revalidatePath("/dashboard");
+
   return Response.json({ success: true, relationshipId: data.relationshipId });
 }
