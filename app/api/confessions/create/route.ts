@@ -29,9 +29,6 @@ export async function POST(request: NextRequest) {
     const theme = formData.get("theme") as string;
     const envelopeStyle = formData.get("envelopeStyle") as string;
     const musicUrl = formData.get("musicUrl") as string;
-    const fullName = formData.get("fullName") as string;
-    const email = formData.get("email") as string;
-    const phone = formData.get("phone") as string;
     const recipientEmail = formData.get("recipientEmail") as string;
 
     // Parse JSON fields
@@ -138,9 +135,6 @@ export async function POST(request: NextRequest) {
         relationship_status: relationshipStatus,
         music_url: musicUrl,
         photos: photosArray,
-        sender_full_name: fullName,
-        sender_email: email,
-        sender_phone: phone,
         envelope_style: envelopeStyle,
         categories: processedCategories,
         expires_at: expiresAt.toISOString(),

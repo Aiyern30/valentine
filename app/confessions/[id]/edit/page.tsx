@@ -3,7 +3,15 @@
 "use client";
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Upload, Check, Heart, Sparkles, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Upload,
+  Check,
+  Heart,
+  Sparkles,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
 import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
@@ -294,7 +302,7 @@ const EditConfessionPage = () => {
       setWantsPhotos(null);
       return;
     }
-    
+
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -309,7 +317,7 @@ const EditConfessionPage = () => {
       setWantsPhotos(null);
       return;
     }
-    
+
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     } else {
@@ -327,14 +335,14 @@ const EditConfessionPage = () => {
     try {
       const formDataToSend = new FormData();
       formDataToSend.append("title", formData.title);
-      formDataToSend.append("lovedOneName", formData.lovedOneName);
-      formDataToSend.append("petName", formData.petName);
-      formDataToSend.append("yourName", formData.yourName);
-      formDataToSend.append("relationshipStatus", formData.relationshipStatus);
+      formDataToSend.append("loved_one_name", formData.lovedOneName);
+      formDataToSend.append("pet_name", formData.petName);
+      formDataToSend.append("sender_name", formData.yourName);
+      formDataToSend.append("relationship_status", formData.relationshipStatus);
       formDataToSend.append("message", formData.message);
       formDataToSend.append("theme", formData.theme);
-      formDataToSend.append("envelopeStyle", formData.envelopeStyle);
-      formDataToSend.append("musicUrl", formData.musicUrl);
+      formDataToSend.append("envelope_style", formData.envelopeStyle);
+      formDataToSend.append("music_url", formData.musicUrl);
 
       const response = await fetch(`/api/confessions/${confessionId}`, {
         method: "PUT",
@@ -569,9 +577,7 @@ const EditConfessionPage = () => {
                                 Object.keys(newPhotos).forEach((key) => {
                                   const oldIndex = parseInt(key);
                                   const newIndex =
-                                    oldIndex > index
-                                      ? oldIndex - 1
-                                      : oldIndex;
+                                    oldIndex > index ? oldIndex - 1 : oldIndex;
                                   reindexedPhotos[newIndex] =
                                     newPhotos[oldIndex];
                                 });
@@ -646,9 +652,7 @@ const EditConfessionPage = () => {
                                     </div>
                                   ) : (
                                     <div className="flex flex-col items-center justify-center h-full">
-                                      <span className="text-5xl mb-3">
-                                        📷
-                                      </span>
+                                      <span className="text-5xl mb-3">📷</span>
                                       <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
                                         Upload Photo
                                       </span>
@@ -706,8 +710,8 @@ const EditConfessionPage = () => {
                                         }));
                                       }}
                                       className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                                        formData.pagePhotos[index]
-                                          ?.position === "left"
+                                        formData.pagePhotos[index]?.position ===
+                                        "left"
                                           ? "bg-rose-500 text-white shadow-md"
                                           : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-rose-300"
                                       }`}
@@ -730,8 +734,8 @@ const EditConfessionPage = () => {
                                         }));
                                       }}
                                       className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                                        formData.pagePhotos[index]
-                                          ?.position === "right"
+                                        formData.pagePhotos[index]?.position ===
+                                        "right"
                                           ? "bg-rose-500 text-white shadow-md"
                                           : "bg-white dark:bg-zinc-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-zinc-700 hover:border-rose-300"
                                       }`}
@@ -782,9 +786,7 @@ const EditConfessionPage = () => {
                   <button
                     onClick={() => {
                       const delimiter = "<<<PAGE_BREAK>>>";
-                      const current = formData.message
-                        ? formData.message
-                        : "";
+                      const current = formData.message ? formData.message : "";
                       handleInputChange({
                         target: {
                           name: "message",
@@ -817,8 +819,7 @@ const EditConfessionPage = () => {
                     Would you like to add special categories?
                   </h2>
                   <p className="text-gray-500 dark:text-gray-400">
-                    Add special memories and qualities to make it more
-                    personal.
+                    Add special memories and qualities to make it more personal.
                   </p>
                 </div>
 
@@ -884,13 +885,9 @@ const EditConfessionPage = () => {
                             multiple
                             className="hidden"
                             onChange={(e) => {
-                              const files = Array.from(
-                                e.target.files || [],
-                              );
+                              const files = Array.from(e.target.files || []);
                               if (files.length > 0) {
-                                const newCategories = [
-                                  ...formData.categories,
-                                ];
+                                const newCategories = [...formData.categories];
                                 files.forEach((file) => {
                                   const url = URL.createObjectURL(file);
                                   newCategories[catIndex].items.push({
@@ -920,9 +917,7 @@ const EditConfessionPage = () => {
                         >
                           <button
                             onClick={() => {
-                              const newCategories = [
-                                ...formData.categories,
-                              ];
+                              const newCategories = [...formData.categories];
                               newCategories[catIndex].items = newCategories[
                                 catIndex
                               ].items.filter((_, i) => i !== itemIndex);
@@ -994,15 +989,14 @@ const EditConfessionPage = () => {
                                       const newCategories = [
                                         ...formData.categories,
                                       ];
-                                      newCategories[catIndex].items[
-                                        itemIndex
-                                      ] = {
-                                        ...newCategories[catIndex].items[
-                                          itemIndex
-                                        ],
-                                        file,
-                                        url,
-                                      };
+                                      newCategories[catIndex].items[itemIndex] =
+                                        {
+                                          ...newCategories[catIndex].items[
+                                            itemIndex
+                                          ],
+                                          file,
+                                          url,
+                                        };
                                       setFormData((prev) => ({
                                         ...prev,
                                         categories: newCategories,
@@ -1194,8 +1188,8 @@ const EditConfessionPage = () => {
                 Final Preview
               </h2>
               <p className="text-gray-500 dark:text-gray-400">
-                This is exactly what your loved one will see. Click the
-                envelope to preview the animation.
+                This is exactly what your loved one will see. Click the envelope
+                to preview the animation.
               </p>
             </div>
 
