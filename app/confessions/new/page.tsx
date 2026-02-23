@@ -932,8 +932,16 @@ export default function CondolenceForm() {
                                         if (file) {
                                           try {
                                             // Compress image to reduce size
-                                            const compressedFile = await compressImage(file, 0.8, 1920);
-                                            const url = URL.createObjectURL(compressedFile);
+                                            const compressedFile =
+                                              await compressImage(
+                                                file,
+                                                0.8,
+                                                1920,
+                                              );
+                                            const url =
+                                              URL.createObjectURL(
+                                                compressedFile,
+                                              );
                                             const newPhotos = {
                                               ...formData.pagePhotos,
                                             };
@@ -947,8 +955,13 @@ export default function CondolenceForm() {
                                               newPhotos,
                                             );
                                           } catch (error) {
-                                            console.error('Error compressing image:', error);
-                                            alert('Failed to process image. Please try a smaller file.');
+                                            console.error(
+                                              "Error compressing image:",
+                                              error,
+                                            );
+                                            alert(
+                                              "Failed to process image. Please try a smaller file.",
+                                            );
                                           }
                                         }
                                       }}
@@ -1355,8 +1368,16 @@ export default function CondolenceForm() {
                                         if (file) {
                                           try {
                                             // Compress image to reduce size
-                                            const compressedFile = await compressImage(file, 0.8, 1920);
-                                            const url = URL.createObjectURL(compressedFile);
+                                            const compressedFile =
+                                              await compressImage(
+                                                file,
+                                                0.8,
+                                                1920,
+                                              );
+                                            const url =
+                                              URL.createObjectURL(
+                                                compressedFile,
+                                              );
                                             const newCategories = [
                                               ...formData.categories,
                                             ];
@@ -1374,8 +1395,13 @@ export default function CondolenceForm() {
                                               newCategories,
                                             );
                                           } catch (error) {
-                                            console.error('Error compressing image:', error);
-                                            alert('Failed to process image. Please try a smaller file.');
+                                            console.error(
+                                              "Error compressing image:",
+                                              error,
+                                            );
+                                            alert(
+                                              "Failed to process image. Please try a smaller file.",
+                                            );
                                           }
                                         }
                                       }}

@@ -190,7 +190,7 @@ export async function DELETE(
     // Delete entire confession folder from storage
     // New structure: confessions/{user_id}/{confession_id}/
     const confessionFolderPath = `confessions/${user.id}/${confessionId}`;
-    
+
     try {
       // List all files in the confession folder
       const { data: fileList, error: listError } = await supabase.storage
@@ -203,12 +203,12 @@ export async function DELETE(
       if (!listError && fileList && fileList.length > 0) {
         // Get all file paths recursively
         const filesToDelete: string[] = [];
-        
+
         // List files in photos subfolder
         const { data: photoFiles } = await supabase.storage
           .from("photos")
           .list(`${confessionFolderPath}/photos`);
-        
+
         if (photoFiles) {
           photoFiles.forEach((file) => {
             filesToDelete.push(`${confessionFolderPath}/photos/${file.name}`);
@@ -219,10 +219,12 @@ export async function DELETE(
         const { data: categoryFiles } = await supabase.storage
           .from("photos")
           .list(`${confessionFolderPath}/categories`);
-        
+
         if (categoryFiles) {
           categoryFiles.forEach((file) => {
-            filesToDelete.push(`${confessionFolderPath}/categories/${file.name}`);
+            filesToDelete.push(
+              `${confessionFolderPath}/categories/${file.name}`,
+            );
           });
         }
 
