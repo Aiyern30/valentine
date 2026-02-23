@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { NavigationSidebar } from "@/components/NavigationSidebar";
 
 export default async function DashboardLayout({
   children,
@@ -16,6 +17,8 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">{children}</div>
+    <NavigationSidebar>
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-950">{children}</div>
+    </NavigationSidebar>
   );
 }

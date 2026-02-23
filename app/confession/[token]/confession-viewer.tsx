@@ -43,7 +43,9 @@ interface ConfessionViewerProps {
   confession: Confession;
 }
 
-export default function ConfessionViewer({ confession }: ConfessionViewerProps) {
+export default function ConfessionViewer({
+  confession,
+}: ConfessionViewerProps) {
   const [isEnvelopeOpen, setIsEnvelopeOpen] = useState(false);
 
   // Get envelope colors based on style
@@ -93,20 +95,29 @@ export default function ConfessionViewer({ confession }: ConfessionViewerProps) 
   };
 
   // Convert photos array to pagePhotos object format
-  const pagePhotos = confession.photos?.reduce((acc, photo) => {
-    acc[photo.pageIndex] = {
-      file: null,
-      position: photo.position as "left" | "right",
-      url: photo.url,
-    };
-    return acc;
-  }, {} as { [key: number]: { file: File | null; position: "left" | "right"; url?: string } });
+  const pagePhotos = confession.photos?.reduce(
+    (acc, photo) => {
+      acc[photo.pageIndex] = {
+        file: null,
+        position: photo.position as "left" | "right",
+        url: photo.url,
+      };
+      return acc;
+    },
+    {} as {
+      [key: number]: {
+        file: File | null;
+        position: "left" | "right";
+        url?: string;
+      };
+    },
+  );
 
   // Convert categories to expected format
-  const categories = confession.categories?.map(category => ({
+  const categories = confession.categories?.map((category) => ({
     id: category.id,
     name: category.name,
-    items: category.items.map(item => ({
+    items: category.items.map((item) => ({
       file: null,
       url: item.url,
       title: item.title,
@@ -154,12 +165,12 @@ export default function ConfessionViewer({ confession }: ConfessionViewerProps) 
   };
 
   return (
-    <div className={`min-h-screen bg-linear-to-br ${getThemeStyles()} flex items-center justify-center p-4`}>
+    <div
+      className={`min-h-screen bg-linear-to-br ${getThemeStyles()} flex items-center justify-center p-4`}
+    >
       <div className="max-w-4xl w-full">
         {/* Envelope */}
-        <div className="flex justify-center">
-          {getEnvelopeComponent()}
-        </div>
+        <div className="flex justify-center">{getEnvelopeComponent()}</div>
       </div>
     </div>
   );

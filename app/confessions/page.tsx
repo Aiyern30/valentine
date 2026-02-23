@@ -1,7 +1,12 @@
 import React from "react";
+import { NavigationSidebar } from "@/components/NavigationSidebar";
 
-const page = () => {
-  return <div>page</div>;
+const ConfessionsPage = () => {
+  return (
+    <NavigationSidebar>
+      <div>Confessions List Page</div>
+    </NavigationSidebar>
+  );
 };
 
-export default page;
+export default ConfessionsPage;
