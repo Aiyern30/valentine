@@ -240,48 +240,87 @@ export function AnimatedEnvelope({
     }
 
     if (data.type === "memory") {
+      const isMemories = data.categoryName === "Special Memories";
+
       return (
         <div className="flex-1 flex flex-col h-full">
-          <div className="flex-1 bg-white/50 dark:bg-black/20 rounded-xl p-3 border border-black/5 shadow-inner flex flex-col min-h-0">
-            <div className="mb-2 text-center shrink-0">
-              <span
-                className="text-[10px] uppercase tracking-[0.2em] opacity-60 font-bold"
-                style={{ color: titleColor }}
-              >
-                {data.categoryName}
-              </span>
-            </div>
-            <div className="flex-1 relative rounded-lg overflow-hidden border border-black/10 min-h-0">
-              {data.url ? (
-                <Image
-                  src={data.url}
-                  alt={data.title}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center opacity-20 py-10">
-                  <Heart size={48} />
+          <div
+            className={`flex-1 rounded-xl p-3 border shadow-inner flex flex-col min-h-0 ${
+              isMemories
+                ? "bg-rose-50/70 border-rose-200/70"
+                : "bg-white/60 border-rose-200/70 border-dashed"
+            }`}
+          >
+            {isMemories ? (
+              <div className="flex-1 flex flex-col min-h-0 relative">
+                <div className="shrink-0 text-center absolute -top-10 left-1/2 -translate-x-1/2">
+                  <div className="inline-flex items-center justify-center px-4 py-1 rounded-md bg-rose-100/80 shadow-sm">
+                    <h3
+                      className="font-['Caveat'] text-xl font-bold whitespace-nowrap"
+                      style={{ color: titleColor }}
+                    >
+                      {data.title || "Special Memory"}
+                    </h3>
+                  </div>
                 </div>
-              )}
-            </div>
-            <div className="mt-3 text-center shrink-0">
-              <h3
-                className="font-['Caveat'] text-xl font-bold mb-1"
-                style={{ color: titleColor }}
-              >
-                {data.title ||
-                  (data.categoryName === "Special Memories"
-                    ? "Special Memory"
-                    : "Special Quality")}
-              </h3>
-              <p className="font-serif text-[9px] uppercase tracking-widest opacity-40 font-bold">
-                {data.date ||
-                  (data.categoryName === "Special Memories"
-                    ? "Secret Moment"
-                    : "Detail")}
-              </p>
-            </div>
+                <div className="flex-1" />
+                <div className="shrink-0 flex items-end justify-center">
+                  <div className="w-full max-w-55">
+                    <div className="relative bg-white rounded-md p-2 shadow-md border border-rose-200/70">
+                      <div className="absolute -top-2 left-6 h-4 w-12 bg-rose-200/70 rounded-sm shadow-sm rotate-[-4deg]" />
+                      <div className="relative w-full aspect-3/4 overflow-hidden rounded-md border border-black/5">
+                        {data.url ? (
+                          <Image
+                            src={data.url}
+                            alt={data.title}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center opacity-20">
+                            <Heart size={48} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col min-h-0 relative">
+                <div className="shrink-0 text-center absolute -top-10 left-1/2 -translate-x-1/2">
+                  <div className="inline-flex items-center justify-center px-4 py-1 rounded-md bg-rose-100/80 shadow-sm">
+                    <h3
+                      className="font-['Caveat'] text-xl font-bold whitespace-nowrap"
+                      style={{ color: titleColor }}
+                    >
+                      {data.title || "Special Quality"}
+                    </h3>
+                  </div>
+                </div>
+                <div className="flex-1" />
+                <div className="shrink-0 flex items-end justify-center">
+                  <div className="w-full max-w-55">
+                    <div className="relative bg-white rounded-md p-2 shadow-md border border-rose-200/70">
+                      <div className="relative w-full aspect-3/4 overflow-hidden rounded-md border border-black/5">
+                        {data.url ? (
+                          <Image
+                            src={data.url}
+                            alt={data.title}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center opacity-20">
+                            <Heart size={48} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <div
             className="mt-3 flex justify-between items-center text-xs opacity-40 font-bold tracking-widest shrink-0"
