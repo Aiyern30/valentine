@@ -587,8 +587,6 @@ export default function CondolenceForm() {
           </div>
         )}
         {/* Step 2: Message */}
-        import Image from "next/image";
-        {/* Step 2: Message */}
         {currentStep === 2 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
             <div className="space-y-6">
@@ -662,10 +660,13 @@ export default function CondolenceForm() {
                         <div className="p-6 bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl border border-rose-100/50 dark:border-rose-900/20">
                           <div className="flex gap-6">
                             {/* Left Side: Photo Upload */}
-                            <div className="shrink-0 w-64">
-                              <label className="block cursor-pointer">
+                            <div className="shrink-0 w-64 flex flex-col">
+                              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                Upload Image
+                              </label>
+                              <label className="block cursor-pointer flex-1">
                                 <div
-                                  className={`aspect-square rounded-xl border-2 border-dashed transition-all relative overflow-hidden ${
+                                  className={`h-full min-h-70 rounded-xl border-2 border-dashed transition-all relative overflow-hidden ${
                                     formData.pagePhotos[index]?.file
                                       ? "border-transparent"
                                       : "border-rose-200 dark:border-rose-800 hover:border-rose-400"
