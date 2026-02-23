@@ -89,8 +89,9 @@ export async function POST(request: NextRequest) {
           const fileName = `${user.id}/${nanoid()}.${fileExt}`;
           const filePath = `confessions/categories/${fileName}`;
 
-          const { error: uploadError } =
-            await supabase.storage.from("photos").upload(filePath, itemFile);
+          const { error: uploadError } = await supabase.storage
+            .from("photos")
+            .upload(filePath, itemFile);
 
           if (!uploadError) {
             const {

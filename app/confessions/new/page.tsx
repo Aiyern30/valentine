@@ -476,7 +476,8 @@ export default function CondolenceForm() {
       <div className="max-w-4xl mx-auto">
         {/* Success Screen */}
         {shareUrl ? (
-          <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 md:p-12 shadow-xl border border-rose-100 dark:border-rose-900/20">
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 md:p-12 shadow-xl border border-rose-100 dark:border-rose-900/20 w-full max-w-2xl">
             <div className="text-center space-y-6">
               {/* Success Icon */}
               <div className="flex justify-center">
@@ -568,6 +569,7 @@ export default function CondolenceForm() {
                 <p>• You'll be notified when they open your message</p>
               </div>
             </div>
+          </div>
           </div>
         ) : (
           <>
