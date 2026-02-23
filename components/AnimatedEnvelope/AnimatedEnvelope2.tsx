@@ -1,6 +1,8 @@
-import React, { useEffect, useState, useMemo } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence, easeInOut } from "framer-motion";
 import { Heart } from "lucide-react";
+import Image from "next/image";
 import { SparkleParticles } from "./SparkleParticles";
 
 interface PagePhoto {
@@ -207,9 +209,11 @@ export function AnimatedEnvelope({
                       : "float-left mr-4"
                   }`}
                 >
-                  <img
-                    src={pagePhotos[data.page - 1].url}
+                  <Image
+                    src={pagePhotos[data.page - 1].url!}
                     alt={`Page ${data.page}`}
+                    width={300}
+                    height={400}
                     className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4"
                   />
                 </div>
@@ -249,10 +253,11 @@ export function AnimatedEnvelope({
             </div>
             <div className="flex-1 relative rounded-lg overflow-hidden border border-black/10 min-h-0">
               {data.url ? (
-                <img
+                <Image
                   src={data.url}
                   alt={data.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center opacity-20 py-10">
