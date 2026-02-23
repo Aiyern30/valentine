@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
+  },
+  // Increase body size limit for API routes
+  serverExternalPackages: [],
 };
 
 export default nextConfig;

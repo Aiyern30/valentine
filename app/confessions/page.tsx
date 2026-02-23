@@ -31,7 +31,9 @@ const ConfessionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     fetchConfessions();
@@ -327,7 +329,8 @@ const ConfessionsPage = () => {
                   Delete Confession
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Are you sure you want to delete this confession? This action cannot be undone.
+                  Are you sure you want to delete this confession? This action
+                  cannot be undone.
                 </p>
               </div>
               <div className="flex items-center gap-3 pt-2">

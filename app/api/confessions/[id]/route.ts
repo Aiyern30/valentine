@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
@@ -8,10 +9,10 @@ export async function PUT(
   try {
     const { id: confessionId } = await params;
 
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
-    } = await (await supabase).auth.getUser();
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -33,9 +34,7 @@ export async function PUT(
     const categoriesJson = formData.get("categories") as string;
 
     // Fetch existing confession to check ownership
-    const { data: existingConfession, error: fetchError } = await (
-      await supabase
-    )
+    const { data: existingConfession, error: fetchError } = await supabase
       .from("confessions")
       .select("*")
       .eq("id", confessionId)
@@ -49,15 +48,78 @@ export async function PUT(
       );
     }
 
-    // Handle photo uploads if any
+    // Handle photo updates - delete old photos that were removed
     const updatedPhotos = photosJson
       ? JSON.parse(photosJson)
       : existingConfession.photos;
 
+    if (existingConfession.photos && Array.isArray(existingConfession.photos)) {
+      for (const oldPhoto of existingConfession.photos) {
+        // Check if this photo still exists in updated photos
+        const photoStillExists = updatedPhotos?.some(
+          (p: any) => p.url === oldPhoto.url,
+        );
+
+        // If photo was removed, delete it from storage
+        if (!photoStillExists && oldPhoto.url) {
+          try {
+            const urlParts = oldPhoto.url.split(
+              "/storage/v1/object/public/photos/",
+            );
+            if (urlParts.length === 2) {
+              const filePath = urlParts[1];
+              await supabase.storage.from("photos").remove([filePath]);
+            }
+          } catch (storageError) {
+            console.error("Error deleting photo from storage:", storageError);
+          }
+        }
+      }
+    }
+
+    // Handle category images updates - delete old category images that were removed
+    if (
+      existingConfession.categories &&
+      Array.isArray(existingConfession.categories)
+    ) {
+      const newCategories = categoriesJson
+        ? JSON.parse(categoriesJson)
+        : existingConfession.categories;
+
+      for (const oldCategory of existingConfession.categories) {
+        if (oldCategory.items && Array.isArray(oldCategory.items)) {
+          for (const oldItem of oldCategory.items) {
+            // Find corresponding new category
+            const newCategory = newCategories.find(
+              (c: any) => c.id === oldCategory.id,
+            );
+
+            // Check if this item still exists in new category
+            const itemStillExists = newCategory?.items?.some(
+              (item: any) => item.url === oldItem.url,
+            );
+
+            // If item was removed, delete it from storage
+            if (!itemStillExists && oldItem.url) {
+              try {
+                const urlParts = oldItem.url.split(
+                  "/storage/v1/object/public/photos/",
+                );
+                if (urlParts.length === 2) {
+                  const filePath = urlParts[1];
+                  await supabase.storage.from("photos").remove([filePath]);
+                }
+              } catch (storageError) {
+                console.error("Error deleting category image:", storageError);
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Update confession
-    const { error: updateError } = await (
-      await supabase
-    )
+    const { error: updateError } = await supabase
       .from("confessions")
       .update({
         title,
@@ -101,17 +163,17 @@ export async function DELETE(
   try {
     const { id: confessionId } = await params;
 
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
-    } = await (await supabase).auth.getUser();
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Verify ownership before deleting
-    const { data: confession, error: fetchError } = await (await supabase)
+    const { data: confession, error: fetchError } = await supabase
       .from("confessions")
       .select("*")
       .eq("id", confessionId)
@@ -125,8 +187,57 @@ export async function DELETE(
       );
     }
 
-    // Delete confession
-    const { error: deleteError } = await (await supabase)
+    // Delete entire confession folder from storage
+    // New structure: confessions/{user_id}/{confession_id}/
+    const confessionFolderPath = `confessions/${user.id}/${confessionId}`;
+    
+    try {
+      // List all files in the confession folder
+      const { data: fileList, error: listError } = await supabase.storage
+        .from("photos")
+        .list(confessionFolderPath, {
+          limit: 1000,
+          offset: 0,
+        });
+
+      if (!listError && fileList && fileList.length > 0) {
+        // Get all file paths recursively
+        const filesToDelete: string[] = [];
+        
+        // List files in photos subfolder
+        const { data: photoFiles } = await supabase.storage
+          .from("photos")
+          .list(`${confessionFolderPath}/photos`);
+        
+        if (photoFiles) {
+          photoFiles.forEach((file) => {
+            filesToDelete.push(`${confessionFolderPath}/photos/${file.name}`);
+          });
+        }
+
+        // List files in categories subfolder
+        const { data: categoryFiles } = await supabase.storage
+          .from("photos")
+          .list(`${confessionFolderPath}/categories`);
+        
+        if (categoryFiles) {
+          categoryFiles.forEach((file) => {
+            filesToDelete.push(`${confessionFolderPath}/categories/${file.name}`);
+          });
+        }
+
+        // Delete all files at once
+        if (filesToDelete.length > 0) {
+          await supabase.storage.from("photos").remove(filesToDelete);
+        }
+      }
+    } catch (storageError) {
+      console.error("Error deleting confession folder:", storageError);
+      // Continue with database deletion even if storage delete fails
+    }
+
+    // Delete confession from database
+    const { error: deleteError } = await supabase
       .from("confessions")
       .delete()
       .eq("id", confessionId)
@@ -138,7 +249,7 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: "Confession deleted successfully",
+      message: "Confession and all associated images deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting confession:", error);
@@ -156,17 +267,17 @@ export async function GET(
   try {
     const { id: confessionId } = await params;
 
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
-    } = await (await supabase).auth.getUser();
+    } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Fetch specific confession
-    const { data: confession, error } = await (await supabase)
+    const { data: confession, error } = await supabase
       .from("confessions")
       .select("*")
       .eq("id", confessionId)

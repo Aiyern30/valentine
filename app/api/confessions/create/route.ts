@@ -38,14 +38,17 @@ export async function POST(request: NextRequest) {
     const pagePhotos = pagePhotosData ? JSON.parse(pagePhotosData) : {};
     const categories = categoriesData ? JSON.parse(categoriesData) : [];
 
+    // Generate confession ID upfront for folder structure
+    const confessionId = crypto.randomUUID();
+
     // Upload page photos to storage
     const photosArray = [];
     for (const [pageIndex, photoData] of Object.entries(pagePhotos)) {
       const photoFile = formData.get(`pagePhoto_${pageIndex}`) as File;
       if (photoFile) {
         const fileExt = photoFile.name.split(".").pop();
-        const fileName = `${user.id}/${nanoid()}.${fileExt}`;
-        const filePath = `confessions/${fileName}`;
+        const fileName = `${nanoid()}.${fileExt}`;
+        const filePath = `confessions/${user.id}/${confessionId}/photos/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from("photos")
@@ -83,8 +86,8 @@ export async function POST(request: NextRequest) {
         let itemUrl = "";
         if (itemFile) {
           const fileExt = itemFile.name.split(".").pop();
-          const fileName = `${user.id}/${nanoid()}.${fileExt}`;
-          const filePath = `confessions/categories/${fileName}`;
+          const fileName = `${nanoid()}.${fileExt}`;
+          const filePath = `confessions/${user.id}/${confessionId}/categories/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
             .from("photos")
@@ -119,10 +122,11 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30);
 
-    // Insert confession into database
+    // Insert confession into database with pre-generated ID
     const { data: confession, error: confessionError } = await supabase
       .from("confessions")
       .insert({
+        id: confessionId,
         sender_id: user.id,
         recipient_email: recipientEmail,
         title,

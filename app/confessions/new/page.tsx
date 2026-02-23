@@ -16,6 +16,7 @@ import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnve
 import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
 import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
 import Image from "next/image";
+import { compressImage } from "@/lib/compress-image";
 // Type Definitions
 interface PagePhoto {
   file: File | null;
@@ -926,22 +927,29 @@ export default function CondolenceForm() {
                                       type="file"
                                       accept="image/*"
                                       className="hidden"
-                                      onChange={(e) => {
+                                      onChange={async (e) => {
                                         const file = e.target.files?.[0];
                                         if (file) {
-                                          const url = URL.createObjectURL(file);
-                                          const newPhotos = {
-                                            ...formData.pagePhotos,
-                                          };
-                                          newPhotos[index] = {
-                                            file,
-                                            position: "left",
-                                            url,
-                                          };
-                                          updateFormData(
-                                            "pagePhotos",
-                                            newPhotos,
-                                          );
+                                          try {
+                                            // Compress image to reduce size
+                                            const compressedFile = await compressImage(file, 0.8, 1920);
+                                            const url = URL.createObjectURL(compressedFile);
+                                            const newPhotos = {
+                                              ...formData.pagePhotos,
+                                            };
+                                            newPhotos[index] = {
+                                              file: compressedFile,
+                                              position: "left",
+                                              url,
+                                            };
+                                            updateFormData(
+                                              "pagePhotos",
+                                              newPhotos,
+                                            );
+                                          } catch (error) {
+                                            console.error('Error compressing image:', error);
+                                            alert('Failed to process image. Please try a smaller file.');
+                                          }
                                         }
                                       }}
                                     />
@@ -1342,26 +1350,33 @@ export default function CondolenceForm() {
                                       type="file"
                                       accept="image/*"
                                       className="hidden"
-                                      onChange={(e) => {
+                                      onChange={async (e) => {
                                         const file = e.target.files?.[0];
                                         if (file) {
-                                          const url = URL.createObjectURL(file);
-                                          const newCategories = [
-                                            ...formData.categories,
-                                          ];
-                                          newCategories[catIndex].items[
-                                            itemIndex
-                                          ] = {
-                                            ...newCategories[catIndex].items[
+                                          try {
+                                            // Compress image to reduce size
+                                            const compressedFile = await compressImage(file, 0.8, 1920);
+                                            const url = URL.createObjectURL(compressedFile);
+                                            const newCategories = [
+                                              ...formData.categories,
+                                            ];
+                                            newCategories[catIndex].items[
                                               itemIndex
-                                            ],
-                                            file,
-                                            url,
-                                          };
-                                          updateFormData(
-                                            "categories",
-                                            newCategories,
-                                          );
+                                            ] = {
+                                              ...newCategories[catIndex].items[
+                                                itemIndex
+                                              ],
+                                              file: compressedFile,
+                                              url,
+                                            };
+                                            updateFormData(
+                                              "categories",
+                                              newCategories,
+                                            );
+                                          } catch (error) {
+                                            console.error('Error compressing image:', error);
+                                            alert('Failed to process image. Please try a smaller file.');
+                                          }
                                         }
                                       }}
                                     />
