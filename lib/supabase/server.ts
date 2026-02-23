@@ -1,3 +1,5 @@
+"use server";
+
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
@@ -31,7 +33,7 @@ export async function createClient() {
  * Creates a Supabase client with the service role key to bypass RLS.
  * This should ONLY be used in server-side code (API routes, Server Actions).
  */
-export function createAdminClient() {
+export async function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 

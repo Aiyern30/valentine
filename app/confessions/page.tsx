@@ -177,20 +177,22 @@ const ConfessionsPage = () => {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-2">
                 <Heart className="text-rose-500" size={32} />
-                My Confessions
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Manage and view your love confessions
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  My Confessions
+                </h1>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400">
+                View and manage all your love confessions
               </p>
             </div>
             <Link
               href="/confessions/new"
-              className="flex items-center gap-2 bg-linear-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all"
+              className="flex items-center gap-2 bg-linear-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all font-medium"
             >
-              <Plus size={20} />
-              Create New
+              <Plus size={18} />
+              New Confession
             </Link>
           </div>
 

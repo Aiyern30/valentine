@@ -75,6 +75,7 @@ const EditConfessionPage = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [wantsPhotos, setWantsPhotos] = useState<boolean | null>(null);
+  const [categoriesSaved, setCategoriesSaved] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -108,63 +109,89 @@ const EditConfessionPage = () => {
   ];
 
   const envelopeOptions = [
-    { id: "Romantic", name: "Soft Heart", preview: "💌" },
-    { id: "Vintage", name: "Classic Wax", preview: "📜" },
-    { id: "Midnight", name: "Neon Night", preview: "✨" },
-    { id: "Modern", name: "Glassmorphism", preview: "💎" },
+    {
+      id: "Romantic",
+      name: "Soft Heart",
+      preview: "💌",
+      colors:
+        "from-rose-100 to-pink-200 dark:from-rose-900/40 dark:to-pink-900/40",
+    },
+    {
+      id: "Vintage",
+      name: "Classic Wax",
+      preview: "📜",
+      colors:
+        "from-orange-50 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30",
+    },
+    {
+      id: "Midnight",
+      name: "Neon Night",
+      preview: "✨",
+      colors: "bg-zinc-900",
+    },
+    {
+      id: "Modern",
+      name: "Glassmorphism",
+      preview: "💎",
+      colors: "bg-white/20 backdrop-blur-md border-white/30",
+    },
   ];
 
   const themes = ["Life", "Fall", "Christmas", "Birthday"];
 
   useEffect(() => {
-    const loadData = async () => {
-      await fetchConfession();
-    };
-    loadData();
-  }, [confessionId]);
+    const fetchConfession = async () => {
+      try {
+        const response = await fetch(`/api/confessions/${confessionId}`);
+        const data = await response.json();
 
-  const fetchConfession = async () => {
-    try {
-      const response = await fetch(`/api/confessions/${confessionId}`);
-      const data = await response.json();
+        if (data.confession) {
+          const confession = data.confession;
+          const pagePhotos = (confession.photos || []).reduce(
+            (
+              acc: { [x: string]: { file: null; position: any; url: any } },
+              photo: { pageIndex: string | number; position: any; url: any },
+            ) => {
+              acc[photo.pageIndex] = {
+                file: null,
+                position: photo.position,
+                url: photo.url,
+              };
+              return acc;
+            },
+            {},
+          );
 
-      if (data.confession) {
-        const confession = data.confession;
-        const pagePhotos = (confession.photos || []).reduce(
-          (
-            acc: { [x: string]: { file: null; position: any; url: any } },
-            photo: { pageIndex: string | number; position: any; url: any },
-          ) => {
-            acc[photo.pageIndex] = {
-              file: null,
-              position: photo.position,
-              url: photo.url,
-            };
-            return acc;
-          },
-          {},
-        );
+          setFormData({
+            title: confession.title,
+            lovedOneName: confession.loved_one_name,
+            petName: confession.pet_name || "",
+            yourName: confession.sender_name || "",
+            relationshipStatus: confession.relationship_status,
+            message: confession.message,
+            pagePhotos: pagePhotos,
+            categories: confession.categories || [],
+            theme: confession.theme,
+            envelopeStyle: confession.envelope_style,
+            musicUrl: confession.music_url || "",
+          });
 
-        setFormData({
-          title: confession.title,
-          lovedOneName: confession.loved_one_name,
-          petName: confession.pet_name || "",
-          yourName: confession.sender_name || "",
-          relationshipStatus: confession.relationship_status,
-          message: confession.message,
-          pagePhotos: pagePhotos,
-          categories: confession.categories || [],
-          theme: confession.theme,
-          envelopeStyle: confession.envelope_style,
-          musicUrl: confession.music_url || "",
-        });
+          // If confession already has category items, auto-show them
+          const hasCategories = confession.categories && confession.categories.some((cat: any) => cat.items && cat.items.length > 0);
+          if (hasCategories) {
+            setWantsPhotos(true);
+            setCategoriesSaved(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching confession:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching confession:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchConfession();
+  }, [confessionId]);
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
@@ -174,29 +201,6 @@ const EditConfessionPage = () => {
       ...prev,
       [name]: value,
     }));
-  };
-
-  const handlePhotoUpload = (
-    pageIndex: number,
-    files: FileList,
-    position: "left" | "right",
-  ) => {
-    if (files && files[0]) {
-      const file = files[0];
-      const url = URL.createObjectURL(file);
-
-      setFormData((prev) => ({
-        ...prev,
-        pagePhotos: {
-          ...prev.pagePhotos,
-          [pageIndex]: {
-            file,
-            position,
-            url,
-          },
-        },
-      }));
-    }
   };
 
   const getEnvelopeComponent = () => {
@@ -302,6 +306,16 @@ const EditConfessionPage = () => {
       setWantsPhotos(null);
       return;
     }
+    if (currentStep === 3 && wantsPhotos === true) {
+      // Categories form shown - user must click "Save & Preview Design" first
+      if (!categoriesSaved) {
+        return;
+      }
+      // Proceed to step 4
+      setCurrentStep(4);
+      setCategoriesSaved(false);
+      return;
+    }
 
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
@@ -315,6 +329,13 @@ const EditConfessionPage = () => {
       // Going back from Step 4 (after skipping categories) go to Step 3 with reset
       setCurrentStep(3);
       setWantsPhotos(null);
+      return;
+    }
+
+    if (currentStep === 4 && wantsPhotos === true) {
+      // Going back from Step 4 (after saving categories) - reset categoriesSaved to show button again
+      setCurrentStep(3);
+      setCategoriesSaved(false);
       return;
     }
 
@@ -617,10 +638,11 @@ const EditConfessionPage = () => {
                                 >
                                   {formData.pagePhotos[index]?.url ? (
                                     <div className="relative w-full h-full group/image">
-                                      <img
-                                        src={formData.pagePhotos[index]?.url}
+                                      <Image
+                                        src={formData.pagePhotos[index]?.url || ""}
                                         alt={`Page ${index + 1} photo`}
-                                        className="w-full h-full object-cover"
+                                        fill
+                                        className="object-cover"
                                       />
                                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center">
                                         <div className="text-center">
@@ -808,7 +830,7 @@ const EditConfessionPage = () => {
         {/* Step 3: Categories (Special Memories / Special Qualities) */}
         {currentStep === 3 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
-            {wantsPhotos === null ? (
+            {wantsPhotos === null && !formData.categories.some((cat) => cat.items.length > 0) ? (
               <div className="space-y-8 text-center">
                 <div className="mx-auto w-20 h-20 bg-linear-to-br from-rose-400 to-pink-500 rounded-2xl flex items-center justify-center transform rotate-12">
                   <Upload className="text-white" size={40} />
@@ -825,7 +847,9 @@ const EditConfessionPage = () => {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
                   <button
-                    onClick={() => setWantsPhotos(true)}
+                    onClick={() => {
+                      setWantsPhotos(true);
+                    }}
                     className="flex-1 px-8 py-4 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl transition-all shadow-lg font-medium"
                   >
                     Yes, let's add some
@@ -845,7 +869,8 @@ const EditConfessionPage = () => {
                 </div>
               </div>
             ) : (
-              <div className="space-y-10">
+              <>
+                <div className="space-y-10">
                 {formData.categories.map((category, catIndex) => (
                   <div key={category.id} className="space-y-6">
                     <div className="flex items-center justify-between border-b border-rose-100 dark:border-rose-900/20 pb-4">
@@ -1094,87 +1119,108 @@ const EditConfessionPage = () => {
                   </div>
                 ))}
               </div>
-            )}
+
+              {/* Save & Preview Design Button */}
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => setCategoriesSaved(true)}
+                  className="px-6 py-3 bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-full font-medium shadow-lg transition-all flex items-center gap-2"
+                >
+                  <Check size={18} />
+                  Save & Preview Design
+                </button>
+              </div>
+              </>
+            )}  
           </div>
         )}
 
         {/* Step 4: Theme & Style */}
         {currentStep === 4 && (
           <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-8 shadow-xl border border-rose-100 dark:border-rose-900/20">
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div>
-                <h2 className="text-xl font-semibold mb-6">Theme & Style</h2>
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                  <Sparkles className="text-rose-500" size={20} />
+                  Theme
+                </h2>
+                <div className="grid grid-cols-4 gap-4">
+                  {themes.map((theme) => (
+                    <button
+                      key={theme}
+                      onClick={() =>
+                        handleInputChange({
+                          target: { name: "theme", value: theme },
+                        } as any)
+                      }
+                      className={`py-3 px-4 rounded-xl border-2 transition-all ${
+                        formData.theme === theme
+                          ? "border-rose-500 bg-rose-500/10 scale-105"
+                          : "border-rose-50 dark:border-rose-900/20 bg-gray-50 dark:bg-zinc-900/50 hover:border-rose-200"
+                      }`}
+                    >
+                      {theme}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                <div className="mb-8">
-                  <label className="block text-sm font-medium mb-4">
-                    Select Theme
-                  </label>
-                  <div className="grid grid-cols-4 gap-3">
-                    {themes.map((theme) => (
-                      <button
-                        key={theme}
-                        onClick={() =>
-                          handleInputChange({
-                            target: { name: "theme", value: theme },
-                          } as any)
-                        }
-                        className={`p-4 rounded-2xl border-2 transition-all font-medium ${
-                          formData.theme === theme
-                            ? "border-rose-500 bg-rose-500/10"
-                            : "border-rose-50 dark:border-rose-900/20 bg-gray-50 dark:bg-zinc-900/50 hover:border-rose-200"
-                        }`}
+              <div>
+                <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                  <Upload className="text-rose-500" size={20} />
+                  Envelope Style
+                </h2>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {envelopeOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() =>
+                        handleInputChange({
+                          target: { name: "envelopeStyle", value: option.id },
+                        } as any)
+                      }
+                      className={`relative group overflow-hidden rounded-2xl border-2 transition-all p-4 ${
+                        formData.envelopeStyle === option.id
+                          ? "border-rose-500 bg-rose-50 dark:bg-rose-950/30 scale-105"
+                          : "border-rose-100 dark:border-rose-900/20 bg-gray-50 dark:bg-zinc-900/50 hover:border-rose-300"
+                      }`}
+                    >
+                      <div
+                        className={`aspect-4/3 rounded-xl mb-3 flex items-center justify-center text-4xl shadow-sm transition-transform group-hover:scale-110 bg-linear-to-br ${option.colors}`}
                       >
-                        {theme}
-                      </button>
-                    ))}
-                  </div>
+                        {option.preview}
+                      </div>
+                      <div className="text-sm font-semibold text-center truncate">
+                        {option.name}
+                      </div>
+                      {formData.envelopeStyle === option.id && (
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center text-[10px] text-white animate-in zoom-in">
+                          ✓
+                        </div>
+                      )}
+                    </button>
+                  ))}
                 </div>
+              </div>
 
-                <div className="mb-8">
-                  <label className="block text-sm font-medium mb-4">
-                    Envelope Style
-                  </label>
-                  <div className="grid grid-cols-4 gap-3">
-                    {envelopeOptions.map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() =>
-                          handleInputChange({
-                            target: { name: "envelopeStyle", value: option.id },
-                          } as any)
-                        }
-                        className={`p-4 rounded-2xl border-2 transition-all text-center ${
-                          formData.envelopeStyle === option.id
-                            ? "border-rose-500 bg-rose-500/10"
-                            : "border-rose-50 dark:border-rose-900/20 bg-gray-50 dark:bg-zinc-900/50 hover:border-rose-200"
-                        }`}
-                      >
-                        <div className="text-3xl mb-2">{option.preview}</div>
-                        <div className="text-xs font-medium">{option.name}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Background Music URL{" "}
-                    <span className="text-xs font-normal text-gray-500 ml-1">
-                      (optional)
-                    </span>
-                  </label>
-                  <input
-                    type="url"
-                    name="musicUrl"
-                    value={formData.musicUrl}
-                    onChange={handleInputChange}
-                    placeholder="https://music.youtube.com/watch?v=..."
-                    className="w-full bg-gray-50 dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  />
-                  <p className="text-xs text-gray-400 mt-2">
-                    Supports YouTube, Spotify, Apple Music, etc.
-                  </p>
-                </div>
+              <div>
+                <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                  🎵 Add Music{" "}
+                  <span className="text-gray-400 font-normal">
+                    (Optional)
+                  </span>
+                </h3>
+                <input
+                  type="url"
+                  name="musicUrl"
+                  value={formData.musicUrl}
+                  onChange={handleInputChange}
+                  placeholder="Paste a URL from YouTube, Spotify, Apple Music..."
+                  className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                />
+                <p className="text-xs text-gray-400 mt-2">
+                  Supports YouTube, Spotify, Apple Music, etc.
+                </p>
               </div>
             </div>
           </div>
@@ -1297,8 +1343,8 @@ const EditConfessionPage = () => {
 
           <button
             onClick={nextStep}
-            disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 rounded-full bg-linear-to-r from-rose-500 to-pink-500 text-white font-medium hover:shadow-lg hover:shadow-rose-500/30 transition-all disabled:opacity-50"
+            disabled={saving || (currentStep === 3 && wantsPhotos === null) || (currentStep === 3 && wantsPhotos === true && !categoriesSaved)}
+            className="flex items-center gap-2 px-6 py-3 rounded-full bg-linear-to-r from-rose-500 to-pink-500 text-white font-medium hover:shadow-lg hover:shadow-rose-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {currentStep === totalSteps - 1 ? (
               saving ? (
