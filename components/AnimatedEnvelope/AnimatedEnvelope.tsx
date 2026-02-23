@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import { easeInOut, easeOut, motion, spring } from "framer-motion";
 import { Heart } from "lucide-react";
@@ -139,7 +140,7 @@ export function AnimatedEnvelope({
       total: totalPages,
     })),
     ...categories.flatMap((cat) =>
-      cat.items.map((item, i) => ({
+      cat.items.map((item) => ({
         type: "memory",
         ...item,
         categoryName: cat.name,
@@ -410,12 +411,12 @@ export function AnimatedEnvelope({
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-[700px] perspective-1000">
+    <div className="relative flex flex-col items-center justify-center min-h-175 perspective-1000">
       {/* Interaction Wrapper - Made bigger */}
       <motion.div
         variants={envelopeWrapperVariants}
         animate={isOpen ? "open" : "closed"}
-        className="relative w-[420px] h-[290px] cursor-pointer group"
+        className="relative w-105 h-72.5 cursor-pointer group"
         onClick={handleOpen}
       >
         {/* Hover Scale Effect (only when closed) */}
@@ -495,7 +496,7 @@ export function AnimatedEnvelope({
                     : "open"
                 : "closed"
             }
-            className="absolute left-0 top-5 w-[360px] h-[460px] origin-bottom perspective-1000"
+            className="absolute left-0 top-5 w-90 h-115 origin-bottom perspective-1000"
             style={{ left: "50%", x: "-50%" }}
           >
             <div
@@ -698,7 +699,7 @@ export function AnimatedEnvelope({
             variants={flapVariants}
             initial="closed"
             animate={isOpen ? "open" : "closed"}
-            className="absolute top-0 left-0 w-full h-[145px] z-30 origin-top"
+            className="absolute top-0 left-0 w-full h-36.25 z-30 origin-top"
             style={{
               transformStyle: "preserve-3d",
             }}
@@ -732,7 +733,7 @@ export function AnimatedEnvelope({
           {/* Shadow under the card when it rises */}
           <motion.div
             variants={shadowVariants}
-            className="absolute bottom-[-20px] left-1/2 w-[90%] h-[20px] bg-black blur-xl rounded-full z-0"
+            className="absolute -bottom-5 left-1/2 w-[90%] h-5 bg-black blur-xl rounded-full z-0"
             style={{
               x: "-50%",
             }}
