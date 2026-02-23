@@ -815,7 +815,7 @@ export default function CondolenceForm() {
                                   );
                                 }}
                                 placeholder={`Write your heartfelt message for page ${index + 1}...`}
-                                className={`flex-1 bg-white dark:bg-zinc-800 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none transition-all min-h-[280px] ${
+                                className={`flex-1 bg-white dark:bg-zinc-800 border rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none transition-all min-h-70 ${
                                   errors.message && index === 0
                                     ? "border-red-500"
                                     : "border-rose-100 dark:border-rose-900/30"
@@ -871,7 +871,7 @@ export default function CondolenceForm() {
                             onClick={() =>
                               updateFormData("message", suggestion.text)
                             }
-                            className="text-left p-4 bg-gradient-to-br from-rose-50 to-pink-50 dark:from-zinc-900 dark:to-rose-950/20 rounded-xl hover:shadow-md transition-all border border-rose-100 dark:border-rose-900/30 group"
+                            className="text-left p-4 bg-linear-to-br from-rose-50 to-pink-50 dark:from-zinc-900 dark:to-rose-950/20 rounded-xl hover:shadow-md transition-all border border-rose-100 dark:border-rose-900/30 group"
                           >
                             <div className="flex items-start gap-3">
                               <span className="text-2xl">💕</span>
@@ -890,7 +890,7 @@ export default function CondolenceForm() {
                                     suggestion.text,
                                   );
                                 }}
-                                className="flex-shrink-0 text-gray-400 hover:text-rose-500 transition p-1"
+                                className="shrink-0 text-gray-400 hover:text-rose-500 transition p-1"
                                 title="Copy to clipboard"
                               >
                                 📋
@@ -1005,21 +1005,51 @@ export default function CondolenceForm() {
                         )}
                         {category.name}
                       </h2>
-                      <button
-                        onClick={() => {
-                          const newCategories = [...formData.categories];
-                          newCategories[catIndex].items.push({
-                            file: null,
-                            url: "",
-                            title: "",
-                            date: "",
-                          });
-                          updateFormData("categories", newCategories);
-                        }}
-                        className="px-4 py-2 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-lg text-sm font-medium hover:bg-rose-100 transition-colors"
-                      >
-                        + Add to {category.name}
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            const newCategories = [...formData.categories];
+                            newCategories[catIndex].items.push({
+                              file: null,
+                              url: "",
+                              title: "",
+                              date: "",
+                            });
+                            updateFormData("categories", newCategories);
+                          }}
+                          className="px-4 py-2 bg-rose-50 dark:bg-rose-900/20 text-rose-500 rounded-lg text-sm font-medium hover:bg-rose-100 transition-colors"
+                        >
+                          + Add One
+                        </button>
+                        <label className="px-4 py-2 bg-rose-500 text-white rounded-lg text-sm font-medium hover:bg-rose-600 transition-colors cursor-pointer flex items-center gap-2">
+                          <Upload size={16} />
+                          Upload Multiple
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => {
+                              const files = Array.from(e.target.files || []);
+                              if (files.length > 0) {
+                                const newCategories = [...formData.categories];
+                                files.forEach((file) => {
+                                  const url = URL.createObjectURL(file);
+                                  newCategories[catIndex].items.push({
+                                    file,
+                                    url,
+                                    title: "",
+                                    date: "",
+                                  });
+                                });
+                                updateFormData("categories", newCategories);
+                              }
+                              // Reset input
+                              e.target.value = "";
+                            }}
+                          />
+                        </label>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1041,90 +1071,151 @@ export default function CondolenceForm() {
                             <X size={18} />
                           </button>
 
-                          <div className="space-y-4">
-                            <label className="block">
-                              <div
-                                className={`aspect-square rounded-xl border-2 border-dashed border-rose-200 dark:border-rose-800 flex flex-col items-center justify-center cursor-pointer hover:border-rose-400 transition-colors relative overflow-hidden ${item.url ? "border-none" : ""}`}
-                              >
-                                {item.url ? (
-                                  <>
-                                    <img
-                                      src={item.url}
-                                      alt="Detail"
-                                      className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                      <Upload
-                                        className="text-white"
-                                        size={24}
+                          {/* Horizontal Layout: Image Left, Fields Right */}
+                          <div className="flex gap-4">
+                            {/* Left: Upload Image */}
+                            <div className="shrink-0 w-32 flex flex-col">
+                              <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                Upload Image
+                              </label>
+                              <label className="block cursor-pointer flex-1">
+                                <div
+                                  className={`h-full min-h-35 rounded-xl border-2 border-dashed transition-colors relative overflow-hidden ${
+                                    item.url
+                                      ? "border-transparent"
+                                      : "border-rose-200 dark:border-rose-800 hover:border-rose-400"
+                                  }`}
+                                >
+                                  {item.url ? (
+                                    <>
+                                      <Image
+                                        src={item.url}
+                                        alt="Detail"
+                                        fill
+                                        className="object-cover"
                                       />
+                                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <div className="text-center">
+                                          <Upload
+                                            className="text-white mx-auto mb-1"
+                                            size={20}
+                                          />
+                                          <span className="text-xs text-white font-medium">
+                                            Change
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <div className="flex flex-col items-center justify-center h-full">
+                                      <Upload
+                                        className="text-rose-300 mb-2"
+                                        size={28}
+                                      />
+                                      <span className="text-xs text-gray-400 text-center px-2">
+                                        Upload Photo
+                                      </span>
                                     </div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Upload
-                                      className="text-rose-300 mb-2"
-                                      size={24}
-                                    />
-                                    <span className="text-xs text-gray-400">
-                                      Upload Photo
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    const url = URL.createObjectURL(file);
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const url = URL.createObjectURL(file);
+                                      const newCategories = [
+                                        ...formData.categories,
+                                      ];
+                                      newCategories[catIndex].items[itemIndex] =
+                                        {
+                                          ...newCategories[catIndex].items[
+                                            itemIndex
+                                          ],
+                                          file,
+                                          url,
+                                        };
+                                      updateFormData(
+                                        "categories",
+                                        newCategories,
+                                      );
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+
+                            {/* Right: Title and Date Fields */}
+                            <div className="flex-1 flex flex-col gap-3">
+                              <div>
+                                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 block">
+                                  Title
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Enter a title"
+                                  value={item.title}
+                                  onChange={(e) => {
                                     const newCategories = [
                                       ...formData.categories,
                                     ];
-                                    newCategories[catIndex].items[itemIndex] = {
-                                      ...newCategories[catIndex].items[
-                                        itemIndex
-                                      ],
-                                      file,
-                                      url,
-                                    };
+                                    newCategories[catIndex].items[
+                                      itemIndex
+                                    ].title = e.target.value;
                                     updateFormData("categories", newCategories);
-                                  }
-                                }}
-                              />
-                            </label>
+                                  }}
+                                  className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                />
+                              </div>
 
-                            <input
-                              type="text"
-                              placeholder="Title"
-                              value={item.title}
-                              onChange={(e) => {
-                                const newCategories = [...formData.categories];
-                                newCategories[catIndex].items[itemIndex].title =
-                                  e.target.value;
-                                updateFormData("categories", newCategories);
-                              }}
-                              className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                            />
-
-                            <input
-                              type="text"
-                              placeholder={
-                                category.id === "memories"
-                                  ? "Date (e.g. Summer 2023)"
-                                  : "Description"
-                              }
-                              value={item.date}
-                              onChange={(e) => {
-                                const newCategories = [...formData.categories];
-                                newCategories[catIndex].items[itemIndex].date =
-                                  e.target.value;
-                                updateFormData("categories", newCategories);
-                              }}
-                              className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                            />
+                              <div>
+                                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 block">
+                                  {category.id === "memories"
+                                    ? "Date"
+                                    : "Description"}
+                                </label>
+                                {category.id === "memories" ? (
+                                  <input
+                                    type="date"
+                                    value={item.date}
+                                    onChange={(e) => {
+                                      const newCategories = [
+                                        ...formData.categories,
+                                      ];
+                                      newCategories[catIndex].items[
+                                        itemIndex
+                                      ].date = e.target.value;
+                                      updateFormData(
+                                        "categories",
+                                        newCategories,
+                                      );
+                                    }}
+                                    className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                  />
+                                ) : (
+                                  <input
+                                    type="text"
+                                    placeholder="Describe this quality"
+                                    value={item.date}
+                                    onChange={(e) => {
+                                      const newCategories = [
+                                        ...formData.categories,
+                                      ];
+                                      newCategories[catIndex].items[
+                                        itemIndex
+                                      ].date = e.target.value;
+                                      updateFormData(
+                                        "categories",
+                                        newCategories,
+                                      );
+                                    }}
+                                    className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                                  />
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       ))}
