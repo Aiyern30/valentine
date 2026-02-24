@@ -34,6 +34,7 @@ export function ImageEditor({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
   if (!isOpen) return null;
@@ -72,15 +73,22 @@ export function ImageEditor({
     if (!onSave) return;
 
     try {
+      setError(null);
       setIsSaving(true);
       const blob = previewBlob || (await applyEdits());
 
-      if (blob) {
-        onSave(blob);
-        onClose();
+      if (!blob) {
+        setError("Failed to process image. Please try again.");
+        return;
       }
-    } catch (error) {
-      console.error("Save failed:", error);
+
+      console.log("Sending blob to save, size:", (blob.size / 1024 / 1024).toFixed(2), "MB");
+      onSave(blob);
+      onClose();
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Unknown error occurred";
+      console.error("Save failed:", errorMsg);
+      setError(errorMsg);
     } finally {
       setIsSaving(false);
     }
@@ -142,29 +150,46 @@ export function ImageEditor({
   };
 
   const handleCropAction = async () => {
-    if (isCropping) {
-      const blob = await applyEdits();
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        clearPreview();
-        setPreviewBlob(blob);
-        setPreviewUrl(url);
-        setIsCropping(false);
+    try {
+      setError(null);
+      
+      if (isCropping) {
+        const blob = await applyEdits();
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          clearPreview();
+          setPreviewBlob(blob);
+          setPreviewUrl(url);
+          setIsCropping(false);
+        } else {
+          setError("Failed to apply crop. Please try again.");
+        }
+        return;
       }
-      return;
-    }
 
-    if (previewUrl) {
-      clearPreview();
+      if (previewUrl) {
+        clearPreview();
+        setIsCropping(true);
+        return;
+      }
+
       setIsCropping(true);
-      return;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Unknown error occurred";
+      console.error("Crop action failed:", errorMsg);
+      setError(errorMsg);
     }
-
-    setIsCropping(true);
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col">
+      {/* Error Banner */}
+      {error && (
+        <div className="bg-red-500/20 border-b border-red-500/50 text-red-200 px-4 py-2 text-sm">
+          {error}
+        </div>
+      )}
+
       {/* Header */}
       <div className="z-10 bg-zinc-900/50 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center justify-between p-4">

@@ -54,13 +54,21 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
   const handleImageSave = async (blob: Blob) => {
     if (!selectedPhoto) return;
 
-    const result = await updatePhotoImage(selectedPhoto.id, blob);
-    if (result.success) {
-      router.refresh();
-      setEditorOpen(false);
-      setSelectedPhoto(null);
-    } else {
-      alert(result.error || "Failed to save image");
+    try {
+      console.log("Saving image, blob size:", (blob.size / 1024 / 1024).toFixed(2), "MB");
+      const result = await updatePhotoImage(selectedPhoto.id, blob);
+      if (result.success) {
+        console.log("Image saved successfully");
+        router.refresh();
+        setEditorOpen(false);
+        setSelectedPhoto(null);
+      } else {
+        console.error("Save failed:", result.error);
+        alert(result.error || "Failed to save image");
+      }
+    } catch (error) {
+      console.error("Unexpected error during image save:", error);
+      alert("An unexpected error occurred while saving the image");
     }
   };
 

@@ -603,6 +603,7 @@ export async function deletePhoto(photoId: string) {
 export async function updatePhotoImage(photoId: string, blob: Blob) {
   try {
     const supabase = await createClient();
+    const adminClient = await createAdminClient();
 
     const {
       data: { user },
@@ -654,10 +655,16 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
       return { error: "Could not determine file path" };
     }
 
-    // Convert Blob to File-like for upload
-    const file = new File([blob], "edited-photo.jpg", { type: "image/jpeg" });
+    // Convert Blob to File and compress
+    const editedFile = new File([blob], "edited-photo.jpg", { type: "image/jpeg" });
+    
+    // Convert Blob to File for upload
+    // Note: The blob is already processed on the client (cropped/rotated)
+    // and is typically small, so no need for server-side compression
+    const compressedFile = editedFile;
+    console.log("File ready for upload, size:", (compressedFile.size / 1024 / 1024).toFixed(2), "MB");
 
-    // Delete the old file first - wait for completion
+    // Delete the old file first with admin client (bypass RLS)
     const deletePaths = new Set<string>();
     deletePaths.add(oldPath);
     if (!oldPath.startsWith("gallery/")) {
@@ -665,32 +672,37 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     }
 
     const deleteTargets = Array.from(deletePaths);
-    let deleteError = null as Error | null;
+    let finalDeleteError = null;
+    
     if (deleteTargets.length > 0) {
-      const { error } = await supabase.storage
+      // Try with admin client first (more reliable with RLS policies)
+      const { error: adminDeleteError } = await adminClient.storage
         .from("photos")
         .remove(deleteTargets);
-      deleteError = error || null;
 
-      if (deleteError) {
-        const adminClient = await createAdminClient();
-        const { error: adminError } = await adminClient.storage
+      if (adminDeleteError) {
+        console.warn("Admin delete failed, trying user client:", adminDeleteError);
+        // Fallback to user client
+        const { error: userDeleteError } = await supabase.storage
           .from("photos")
           .remove(deleteTargets);
-        deleteError = adminError || null;
+        finalDeleteError = userDeleteError;
+      }
+
+      if (!adminDeleteError || !finalDeleteError) {
+        console.log("Old file(s) deleted successfully:", deleteTargets);
       }
     }
 
     // Generate new filename in gallery structure
-    const fileExt = "jpg";
-    const newFileName = `gallery/${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const newFileName = `gallery/${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
 
-    console.log("Uploading new file to:", newFileName);
+    console.log("Uploading new file to:", newFileName, "Size:", (compressedFile.size / 1024 / 1024).toFixed(2), "MB");
 
-    // Upload new file with fresh path
-    const { error: uploadError } = await supabase.storage
+    // Upload new file with admin client to bypass RLS
+    const { error: uploadError } = await adminClient.storage
       .from("photos")
-      .upload(newFileName, file, {
+      .upload(newFileName, compressedFile, {
         cacheControl: "0",
         upsert: false,
       });
@@ -702,29 +714,23 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
 
     console.log("New file uploaded successfully");
 
-    // Retry delete once after upload if needed
-    if (deleteError && deleteTargets.length > 0) {
-      const adminClient = await createAdminClient();
-      const { error: retryError } = await adminClient.storage
-        .from("photos")
-        .remove(deleteTargets);
-      if (retryError) {
-        console.log("Note: Old file still could not be deleted:", retryError);
-      }
-    }
-
     // Get public URL for the new file
     const {
       data: { publicUrl: newPublicUrl },
     } = supabase.storage.from("photos").getPublicUrl(newFileName);
 
     // Update the database record with the new URL
-    await supabase
+    const { error: updateError } = await supabase
       .from("photos")
       .update({ photo_url: newPublicUrl })
       .eq("id", photoId);
 
-    // Refresh database record just in case
+    if (updateError) {
+      console.error("Error updating photo URL in database:", updateError);
+      return { error: "Failed to update photo. Please try again." };
+    }
+
+    // Revalidate paths
     revalidatePath("/gallery");
     revalidatePath("/dashboard");
 
