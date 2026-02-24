@@ -635,12 +635,7 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     // Extract storage path from URL (remove query params if any)
     const baseUrl = photo.photo_url.split("?")[0];
     const urlParts = baseUrl.split("/photos/");
-    let oldPath = urlParts[1];
-
-    // If path doesn't start with gallery/, prepend it (for migrating old photos)
-    if (oldPath && !oldPath.startsWith("gallery/")) {
-      oldPath = `gallery/${oldPath}`;
-    }
+    const oldPath = urlParts[1];
 
     if (!oldPath) {
       return { error: "Could not determine file path" };
@@ -649,12 +644,26 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     // Convert Blob to File-like for upload
     const file = new File([blob], "edited-photo.jpg", { type: "image/jpeg" });
 
-    // Upload with same path (overwrite)
+    // Delete the old file first
+    if (oldPath) {
+      await supabase.storage
+        .from("photos")
+        .remove([oldPath])
+        .catch(() => {
+          // Silently fail if file doesn't exist or can't be deleted
+        });
+    }
+
+    // Generate new filename in gallery structure
+    const fileExt = "jpg";
+    const newFileName = `gallery/${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+    // Upload new file with fresh path
     const { error: uploadError } = await supabase.storage
       .from("photos")
-      .upload(oldPath, file, {
+      .upload(newFileName, file, {
         cacheControl: "0",
-        upsert: true,
+        upsert: false,
       });
 
     if (uploadError) {
@@ -662,11 +671,15 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
       return { error: "Failed to upload edited photo. Please try again." };
     }
 
-    // Update the database record with a cache-busting timestamp
-    const newUrl = `${baseUrl}?v=${Date.now()}`;
+    // Get public URL for the new file
+    const {
+      data: { publicUrl: newPublicUrl },
+    } = supabase.storage.from("photos").getPublicUrl(newFileName);
+
+    // Update the database record with the new URL
     await supabase
       .from("photos")
-      .update({ photo_url: newUrl })
+      .update({ photo_url: newPublicUrl })
       .eq("id", photoId);
 
     // Refresh database record just in case
