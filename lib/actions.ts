@@ -427,7 +427,7 @@ export async function uploadPhoto(formData: FormData) {
 
     // Generate unique filename
     const fileExt = file.name.split(".").pop();
-    const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const fileName = `gallery/${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
     // Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage
@@ -436,6 +436,11 @@ export async function uploadPhoto(formData: FormData) {
         cacheControl: "3600",
         upsert: false,
       });
+
+    // Create gallery folder structure if it doesn't exist
+    if (!uploadError) {
+      // Folder structure is automatically created with the upload
+    }
 
     if (uploadError) {
       console.error("Error uploading file:", uploadError);
@@ -630,7 +635,12 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     // Extract storage path from URL (remove query params if any)
     const baseUrl = photo.photo_url.split("?")[0];
     const urlParts = baseUrl.split("/photos/");
-    const oldPath = urlParts[1];
+    let oldPath = urlParts[1];
+
+    // If path doesn't start with gallery/, prepend it (for migrating old photos)
+    if (oldPath && !oldPath.startsWith("gallery/")) {
+      oldPath = `gallery/${oldPath}`;
+    }
 
     if (!oldPath) {
       return { error: "Could not determine file path" };
