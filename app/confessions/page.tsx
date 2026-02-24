@@ -7,6 +7,7 @@ import { Edit2, Trash2, Plus, Heart, Copy, Check, Loader2 } from "lucide-react";
 import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
 import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
 import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 
 interface Confession {
   id: string;
@@ -174,27 +175,20 @@ const ConfessionsPage = () => {
     <NavigationSidebar>
       <div className="min-h-screen bg-linear-to-br from-rose-50 to-pink-50 dark:from-zinc-900 dark:to-rose-950 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <Heart className="text-rose-500" size={32} />
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  My Confessions
-                </h1>
-              </div>
-              <p className="text-gray-600 dark:text-gray-400">
-                View and manage all your love confessions
-              </p>
-            </div>
-            <Link
-              href="/confessions/new"
-              className="flex items-center gap-2 bg-linear-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all font-medium"
-            >
-              <Plus size={18} />
-              New Confession
-            </Link>
-          </div>
+          <SectionHeader
+            icon={<Heart className="w-6 h-6 text-white" />}
+            title={<>My Confessions</>}
+            description={"View and manage all your love confessions"}
+            button={
+              <Link
+                href="/confessions/new"
+                className="flex items-center gap-2 bg-linear-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-lg hover:shadow-lg transition-all font-medium"
+              >
+                <Plus size={18} />
+                New Confession
+              </Link>
+            }
+          />
 
           {/* Loading State */}
           {loading && (
