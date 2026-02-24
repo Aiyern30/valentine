@@ -129,7 +129,7 @@ export default async function DiariesPage() {
           ))}
         </div>
       ) : (
-        <div className="min-h-100 flex flex-col items-center justify-center bg-white dark:bg-zinc-900 rounded-[48px] border-2 border-dashed border-gray-100 dark:border-zinc-800 p-12 text-center">
+        <div className="min-h-[calc(100vh-250px)] flex flex-col items-center justify-center bg-white dark:bg-zinc-900 rounded-[48px] border-2 border-dashed border-gray-100 dark:border-zinc-800 p-12 px-4 text-center">
           <div className="w-24 h-24 bg-rose-50 dark:bg-rose-900/20 rounded-full flex items-center justify-center mb-6">
             <BookOpen className="w-10 h-10 text-rose-500" />
           </div>
