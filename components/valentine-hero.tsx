@@ -2,17 +2,17 @@
 
 import type { CSSProperties } from "react";
 
-const HEART_STYLES: CSSProperties[] = Array.from({ length: 6 }, () => ({
-  left: `${20 + Math.random() * 60}%`,
-  top: `${20 + Math.random() * 60}%`,
-  animationDuration: `${3 + Math.random() * 2}s`,
-  animationDelay: `${Math.random()}s`,
-  transform: `scale(${0.5 + Math.random() * 0.5})`,
-}));
+const HEART_STYLES: CSSProperties[] = [
+  { left: "10%", top: "12%", animationDuration: "3.6s", animationDelay: "0.1s", transform: "scale(0.55)" },
+  { left: "82%", top: "10%", animationDuration: "4.1s", animationDelay: "0.4s", transform: "scale(0.5)" },
+  { left: "6%", top: "62%", animationDuration: "3.2s", animationDelay: "0.2s", transform: "scale(0.45)" },
+  { left: "86%", top: "58%", animationDuration: "3.8s", animationDelay: "0.6s", transform: "scale(0.5)" },
+  { left: "50%", top: "6%", animationDuration: "4.4s", animationDelay: "0.3s", transform: "scale(0.4)" },
+];
 
 export default function ValentineHero() {
   return (
-    <div className="relative w-full h-full min-h-125 flex items-center justify-center overflow-hidden bg-rose-50/50 dark:bg-rose-950/20">
+    <div className="relative w-full h-full min-h-80 sm:min-h-125 flex items-center justify-center overflow-hidden bg-rose-50/50 dark:bg-rose-950/20">
       {/* Decorative Background Blobs */}
       <div className="absolute top-[50%] left-[40%] w-125 h-125 bg-pink-300/20 rounded-full blur-3xl animate-pulse delay-700" />
       <div className="absolute bottom-[-20%] right-[-10%] w-100 h-100 bg-red-300/20 rounded-full blur-3xl animate-pulse" />
@@ -34,7 +34,7 @@ export default function ValentineHero() {
             <h2 className="text-2xl md:text-3xl font-script text-rose-600 dark:text-rose-400 -rotate-6 transform">
               Happy
             </h2>
-            <h1 className="text-5xl md:text-7xl font-bold bg-linear-to-r from-rose-500 via-red-500 to-pink-600 bg-clip-text text-transparent drop-shadow-sm pb-2">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold bg-linear-to-r from-rose-500 via-red-500 to-pink-600 bg-clip-text text-transparent drop-shadow-sm pb-2">
               Valentines Day
             </h1>
           </div>
@@ -81,11 +81,11 @@ export default function ValentineHero() {
             </div>
           </div>
 
-          <div className="flex gap-4 justify-center">
+        <div className="flex gap-3 sm:gap-4 justify-center">
             {["L", "O", "V", "E"].map((letter, i) => (
               <div
                 key={i}
-                className="w-12 h-12 flex items-center justify-center bg-linear-to-br from-yellow-300 to-yellow-600 rounded-lg text-white font-bold text-xl shadow-lg transform hover:-translate-y-2 transition-transform duration-300"
+              className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-linear-to-br from-yellow-300 to-yellow-600 rounded-lg text-white font-bold text-lg sm:text-xl shadow-lg transform hover:-translate-y-2 transition-transform duration-300"
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
                 {letter}

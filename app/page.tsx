@@ -14,19 +14,19 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center p-4 md:p-8">
-      <div className="w-full max-w-300 min-h-150 bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-pink-100 dark:border-pink-900/30">
+    <main className="min-h-screen bg-background flex items-center justify-center p-3 sm:p-4 md:p-8">
+      <div className="w-full max-w-300 min-h-150 bg-white dark:bg-zinc-900 rounded-[1.75rem] sm:rounded-[2.5rem] shadow-xl sm:shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-pink-100 dark:border-pink-900/30">
         {/* Left Side - Hero/Decorative */}
-        <div className="w-full lg:w-1/2 bg-rose-50 dark:bg-zinc-900/50 p-6 lg:p-0 relative flex items-center justify-center">
+        <div className="w-full lg:w-1/2 bg-rose-50 dark:bg-zinc-900/50 p-4 sm:p-6 lg:p-0 relative flex items-center justify-center">
           <ValentineHero />
         </div>
 
         {/* Right Side - Login */}
-        <div className="w-full lg:w-1/2 p-8 lg:p-16 flex flex-col justify-center items-center bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm">
-          <div className="w-full max-w-sm space-y-8">
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-16 flex flex-col justify-center items-center bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm">
+          <div className="w-full max-w-sm space-y-6 sm:space-y-8">
+            <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="text-center space-y-2">
-                <h2 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
                   Sign in
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400">
@@ -34,7 +34,7 @@ export default async function Home() {
                 </p>
               </div>
 
-              <div className="pt-8">
+              <div className="pt-4 sm:pt-8">
                 <LoginButton />
               </div>
 
@@ -49,7 +49,7 @@ export default async function Home() {
                 </div>
               </div>
 
-              <p className="text-center text-sm text-gray-400 max-w-xs mx-auto">
+              <p className="text-center text-xs sm:text-sm text-gray-400 max-w-xs mx-auto">
                 By continuing, you agree to spread love and joy on this special
                 day.
               </p>
