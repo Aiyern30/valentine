@@ -1,18 +1,22 @@
 // Create this file at /lib/image-utils.ts
 
 /**
- * Compresses an image file to reduce its size
+ * Compresses an image file to reduce its size while preserving quality.
  * @param file - The original image file
- * @param maxWidth - Maximum width of the compressed image (default: 1920)
- * @param maxHeight - Maximum height of the compressed image (default: 1080)
- * @param quality - Compression quality 0-1 (default: 0.8)
+ * @param maxSizeMB - Maximum size in MB (default: 10MB)
+ * @param maxWidth - Maximum width of the compressed image (default: 3840)
+ * @param maxHeight - Maximum height of the compressed image (default: 2160)
+ * @param initialQuality - Starting JPEG quality 0-1 (default: 0.95)
+ * @param minQuality - Minimum JPEG quality 0-1 (default: 0.7)
  * @returns Compressed image file
  */
 export async function compressImage(
   file: File,
-  maxWidth = 1920,
-  maxHeight = 1080,
-  quality = 0.8,
+  maxSizeMB = 10,
+  maxWidth = 3840,
+  maxHeight = 2160,
+  initialQuality = 0.95,
+  minQuality = 0.7,
 ): Promise<File> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -37,38 +41,70 @@ export async function compressImage(
           }
         }
 
-        // Create canvas and draw resized image
         const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-
         const ctx = canvas.getContext("2d");
         if (!ctx) {
           reject(new Error("Failed to get canvas context"));
           return;
         }
 
-        ctx.drawImage(img, 0, 0, width, height);
+        const maxSizeBytes = maxSizeMB * 1024 * 1024;
+        let currentWidth = width;
+        let currentHeight = height;
+        let currentQuality = initialQuality;
 
-        // Convert canvas to blob
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              reject(new Error("Failed to compress image"));
-              return;
+        const render = () => {
+          canvas.width = currentWidth;
+          canvas.height = currentHeight;
+          ctx.clearRect(0, 0, currentWidth, currentHeight);
+          ctx.drawImage(img, 0, 0, currentWidth, currentHeight);
+        };
+
+        const toBlobAsync = (quality: number) =>
+          new Promise<Blob | null>((resolveBlob) => {
+            canvas.toBlob(
+              (blob) => resolveBlob(blob),
+              "image/jpeg",
+              quality,
+            );
+          });
+
+        const compressLoop = async () => {
+          render();
+          let blob = await toBlobAsync(currentQuality);
+
+          while (blob && blob.size > maxSizeBytes) {
+            if (currentQuality > minQuality) {
+              currentQuality = Math.max(minQuality, currentQuality - 0.05);
+              blob = await toBlobAsync(currentQuality);
+              continue;
             }
 
-            // Create new file from blob
-            const compressedFile = new File([blob], file.name, {
-              type: "image/jpeg",
-              lastModified: Date.now(),
-            });
+            if (currentWidth <= 640 || currentHeight <= 640) {
+              break;
+            }
 
-            resolve(compressedFile);
-          },
-          "image/jpeg",
-          quality,
-        );
+            currentWidth = Math.floor(currentWidth * 0.9);
+            currentHeight = Math.floor(currentHeight * 0.9);
+            currentQuality = initialQuality;
+            render();
+            blob = await toBlobAsync(currentQuality);
+          }
+
+          if (!blob) {
+            reject(new Error("Failed to compress image"));
+            return;
+          }
+
+          const compressedFile = new File([blob], file.name, {
+            type: "image/jpeg",
+            lastModified: Date.now(),
+          });
+
+          resolve(compressedFile);
+        };
+
+        compressLoop().catch((error) => reject(error));
       };
 
       img.onerror = () => {
