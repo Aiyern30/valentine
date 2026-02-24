@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   Image,
@@ -10,9 +10,11 @@ import {
   MessageCircle,
   BookOpen,
   Menu,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { createClient } from "@/lib/supabase/client";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -37,6 +39,16 @@ function SidebarContent({
   pathname,
   setSidebarOpen,
 }: SidebarContentProps) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setSidebarOpen(false);
+    router.push("/");
+    router.refresh();
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Logo/Header */}
@@ -85,7 +97,14 @@ function SidebarContent({
       </nav>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+      <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 space-y-3">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 rounded-lg border border-rose-100 dark:border-rose-900/30 px-3 py-2 text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors"
+        >
+          <LogOut className="h-4 w-4" />
+          Log out
+        </button>
         <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
           Made with ❤️ for couples
         </p>
