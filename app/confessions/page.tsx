@@ -208,7 +208,7 @@ const ConfessionsPage = () => {
 
           {/* Empty State */}
           {!loading && confessions.length === 0 && (
-            <div className="text-center py-12 bg-white dark:bg-zinc-800/50 rounded-3xl border border-rose-100 dark:border-rose-900/20">
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] bg-white dark:bg-zinc-800/50 rounded-3xl border border-rose-100 dark:border-rose-900/20 py-12 px-4">
               <Heart className="w-16 h-16 text-rose-300 mx-auto mb-4" />
               <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
                 No confessions yet
