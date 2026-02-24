@@ -3,11 +3,41 @@
 import type { CSSProperties } from "react";
 
 const HEART_STYLES: CSSProperties[] = [
-  { left: "10%", top: "12%", animationDuration: "3.6s", animationDelay: "0.1s", transform: "scale(0.55)" },
-  { left: "82%", top: "10%", animationDuration: "4.1s", animationDelay: "0.4s", transform: "scale(0.5)" },
-  { left: "6%", top: "62%", animationDuration: "3.2s", animationDelay: "0.2s", transform: "scale(0.45)" },
-  { left: "86%", top: "58%", animationDuration: "3.8s", animationDelay: "0.6s", transform: "scale(0.5)" },
-  { left: "50%", top: "6%", animationDuration: "4.4s", animationDelay: "0.3s", transform: "scale(0.4)" },
+  {
+    left: "10%",
+    top: "12%",
+    animationDuration: "3.6s",
+    animationDelay: "0.1s",
+    transform: "scale(0.55)",
+  },
+  {
+    left: "82%",
+    top: "10%",
+    animationDuration: "4.1s",
+    animationDelay: "0.4s",
+    transform: "scale(0.5)",
+  },
+  {
+    left: "6%",
+    top: "62%",
+    animationDuration: "3.2s",
+    animationDelay: "0.2s",
+    transform: "scale(0.45)",
+  },
+  {
+    left: "86%",
+    top: "58%",
+    animationDuration: "3.8s",
+    animationDelay: "0.6s",
+    transform: "scale(0.5)",
+  },
+  {
+    left: "50%",
+    top: "6%",
+    animationDuration: "4.4s",
+    animationDelay: "0.3s",
+    transform: "scale(0.4)",
+  },
 ];
 
 export default function ValentineHero() {
@@ -20,13 +50,13 @@ export default function ValentineHero() {
       {/* Central 3D-ish Composition */}
       <div className="relative flex flex-col items-center transition-all duration-1000 transform translate-y-0 opacity-100">
         {/* Floating Hearts */}
-        <div className="absolute inset-0 pointer-events-none">
+        {/* <div className="absolute inset-0 pointer-events-none">
           {HEART_STYLES.map((style, i) => (
             <div key={i} className="absolute animate-bounce" style={style}>
               <span className="text-4xl drop-shadow-lg">❤️</span>
             </div>
           ))}
-        </div>
+        </div> */}
 
         {/* Main "Heart" and Text */}
         <div className="z-10 p-12 text-center">
@@ -34,7 +64,7 @@ export default function ValentineHero() {
             <h2 className="text-2xl md:text-3xl font-script text-rose-600 dark:text-rose-400 -rotate-6 transform">
               Happy
             </h2>
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold bg-linear-to-r from-rose-500 via-red-500 to-pink-600 bg-clip-text text-transparent drop-shadow-sm pb-2">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold bg-linear-to-r from-rose-500 via-red-500 to-pink-600 bg-clip-text text-transparent drop-shadow-sm pb-2">
               Valentines Day
             </h1>
           </div>
@@ -81,11 +111,11 @@ export default function ValentineHero() {
             </div>
           </div>
 
-        <div className="flex gap-3 sm:gap-4 justify-center">
+          <div className="flex gap-3 sm:gap-4 justify-center">
             {["L", "O", "V", "E"].map((letter, i) => (
               <div
                 key={i}
-              className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-linear-to-br from-yellow-300 to-yellow-600 rounded-lg text-white font-bold text-lg sm:text-xl shadow-lg transform hover:-translate-y-2 transition-transform duration-300"
+                className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-linear-to-br from-yellow-300 to-yellow-600 rounded-lg text-white font-bold text-lg sm:text-xl shadow-lg transform hover:-translate-y-2 transition-transform duration-300"
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
                 {letter}
