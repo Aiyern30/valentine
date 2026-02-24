@@ -1,8 +1,9 @@
+"use client";
+
 import { Bell } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { ProfileDropdown } from "../ProfileDropdown";
-import { getProfile, getUser } from "@/lib/data";
-import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 interface SectionHeaderProps {
   icon: ReactNode;
@@ -11,20 +12,56 @@ interface SectionHeaderProps {
   button?: ReactNode;
 }
 
-export async function SectionHeader({
+type Profile = {
+  display_name: string | null;
+  avatar_url: string | null;
+};
+
+type User = {
+  id: string;
+  user_metadata?: {
+    avatar_url?: string | null;
+  };
+};
+
+export function SectionHeader({
   icon,
   title,
   description,
   button,
 }: SectionHeaderProps) {
-  const user = await getUser();
-  if (!user) {
-    redirect("/");
-  }
-  const profile = await getProfile(user.id);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const supabase = createClient();
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+
+      if (!authUser) {
+        setUser(null);
+        setProfile(null);
+        return;
+      }
+
+      setUser(authUser as User);
+
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name, avatar_url")
+        .eq("id", authUser.id)
+        .single();
+
+      setProfile((data as Profile) || null);
+    };
+
+    loadUser();
+  }, []);
 
   const avatarUrl =
-    profile?.avatar_url || user.user_metadata?.avatar_url || null;
+    profile?.avatar_url || user?.user_metadata?.avatar_url || null;
 
   return (
     <header className="flex items-center justify-between">
@@ -43,13 +80,15 @@ export async function SectionHeader({
         <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
           <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         </button>
-        <ProfileDropdown
-          user={{
-            ...user,
-            display_name: profile?.display_name,
-            avatar_url: avatarUrl,
-          }}
-        />
+        {user && (
+          <ProfileDropdown
+            user={{
+              ...user,
+              display_name: profile?.display_name,
+              avatar_url: avatarUrl,
+            }}
+          />
+        )}
         {button && <div>{button}</div>}
       </div>
     </header>
