@@ -645,17 +645,21 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     const file = new File([blob], "edited-photo.jpg", { type: "image/jpeg" });
 
     // Delete the old file first - wait for completion
-    if (oldPath) {
-      console.log("Deleting old file:", oldPath);
-      const { error: deleteError } = await supabase.storage
-        .from("photos")
-        .remove([oldPath]);
+    const deletePaths = new Set<string>();
+    deletePaths.add(oldPath);
+    if (!oldPath.startsWith("gallery/")) {
+      deletePaths.add(`gallery/${oldPath}`);
+    }
 
+    console.log("Deleting old file:", Array.from(deletePaths));
+    let deleteError = null as Error | null;
+    if (deletePaths.size > 0) {
+      const { error } = await supabase.storage
+        .from("photos")
+        .remove(Array.from(deletePaths));
+      deleteError = error || null;
       if (deleteError) {
-        console.log(
-          "Note: Could not delete old file (this may be normal):",
-          deleteError,
-        );
+        console.log("Note: Could not delete old file:", deleteError);
       } else {
         console.log("Old file deleted successfully");
       }
@@ -681,6 +685,16 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     }
 
     console.log("New file uploaded successfully");
+
+    // Retry delete once after upload if needed
+    if (deleteError && deletePaths.size > 0) {
+      const { error: retryError } = await supabase.storage
+        .from("photos")
+        .remove(Array.from(deletePaths));
+      if (retryError) {
+        console.log("Note: Old file still could not be deleted:", retryError);
+      }
+    }
 
     // Get public URL for the new file
     const {
