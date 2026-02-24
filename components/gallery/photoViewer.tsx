@@ -210,6 +210,15 @@ export function PhotoViewer({
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
+      {/* Close Button - Desktop */}
+      <button
+        onClick={onClose}
+        className="hidden lg:block absolute top-6 right-6 z-50 p-2.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all text-white"
+        title="Close"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
       {/* Info Button - Mobile Only */}
       <button
         onClick={() => setIsDetailsOpen(true)}
@@ -295,14 +304,6 @@ export function PhotoViewer({
                 </button>
               )}
 
-              {/* Close */}
-              <button
-                onClick={onClose}
-                className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-                title="Close"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </div>
           </div>
         </div>

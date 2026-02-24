@@ -62,11 +62,7 @@ export async function compressImage(
 
         const toBlobAsync = (quality: number) =>
           new Promise<Blob | null>((resolveBlob) => {
-            canvas.toBlob(
-              (blob) => resolveBlob(blob),
-              "image/jpeg",
-              quality,
-            );
+            canvas.toBlob((blob) => resolveBlob(blob), "image/jpeg", quality);
           });
 
         const compressLoop = async () => {

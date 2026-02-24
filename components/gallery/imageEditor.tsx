@@ -287,11 +287,7 @@ export function ImageEditor({
             >
               <CropIcon className="w-6 h-6" />
               <span className="text-[10px] sm:text-xs font-medium">
-                {isCropping
-                  ? "Done Cropping"
-                  : previewUrl
-                    ? "Revert"
-                    : "Crop"}
+                {isCropping ? "Done Cropping" : previewUrl ? "Revert" : "Crop"}
               </span>
             </button>
 

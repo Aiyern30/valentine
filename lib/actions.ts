@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 // Upload avatar to Supabase Storage
@@ -632,10 +632,23 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
       return { error: "Unauthorized" };
     }
 
-    // Extract storage path from URL (remove query params if any)
-    const baseUrl = photo.photo_url.split("?")[0];
-    const urlParts = baseUrl.split("/photos/");
-    const oldPath = urlParts[1];
+    const getStoragePath = (publicUrl: string): string | null => {
+      const baseUrl = publicUrl.split("?")[0];
+      try {
+        const url = new URL(baseUrl);
+        const marker = "/photos/";
+        const index = url.pathname.indexOf(marker);
+        if (index === -1) return null;
+        return url.pathname.slice(index + marker.length).replace(/^\/+/, "");
+      } catch {
+        const marker = "/photos/";
+        const index = baseUrl.indexOf(marker);
+        if (index === -1) return null;
+        return baseUrl.slice(index + marker.length).replace(/^\/+/, "");
+      }
+    };
+
+    const oldPath = getStoragePath(photo.photo_url);
 
     if (!oldPath) {
       return { error: "Could not determine file path" };
@@ -651,17 +664,20 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
       deletePaths.add(`gallery/${oldPath}`);
     }
 
-    console.log("Deleting old file:", Array.from(deletePaths));
+    const deleteTargets = Array.from(deletePaths);
     let deleteError = null as Error | null;
-    if (deletePaths.size > 0) {
+    if (deleteTargets.length > 0) {
       const { error } = await supabase.storage
         .from("photos")
-        .remove(Array.from(deletePaths));
+        .remove(deleteTargets);
       deleteError = error || null;
+
       if (deleteError) {
-        console.log("Note: Could not delete old file:", deleteError);
-      } else {
-        console.log("Old file deleted successfully");
+        const adminClient = await createAdminClient();
+        const { error: adminError } = await adminClient.storage
+          .from("photos")
+          .remove(deleteTargets);
+        deleteError = adminError || null;
       }
     }
 
@@ -687,10 +703,11 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     console.log("New file uploaded successfully");
 
     // Retry delete once after upload if needed
-    if (deleteError && deletePaths.size > 0) {
-      const { error: retryError } = await supabase.storage
+    if (deleteError && deleteTargets.length > 0) {
+      const adminClient = await createAdminClient();
+      const { error: retryError } = await adminClient.storage
         .from("photos")
-        .remove(Array.from(deletePaths));
+        .remove(deleteTargets);
       if (retryError) {
         console.log("Note: Old file still could not be deleted:", retryError);
       }
