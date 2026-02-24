@@ -1,6 +1,8 @@
+/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -45,6 +47,14 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const wordCount = useMemo(() => {
+    const trimmed = content.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).length;
+  }, [content]);
+
+  const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -136,7 +146,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
 
   return (
     <div
-      className={`min-h-screen bg-white dark:bg-zinc-950 pb-20 transition-all duration-500 ${isFullscreen ? "fixed inset-0 z-100 pb-0 overflow-y-auto" : ""}`}
+      className={`min-h-screen bg-linear-to-br from-rose-50/80 via-white to-rose-50/30 dark:from-zinc-950 dark:via-zinc-950 dark:to-rose-950/20 pb-20 transition-all duration-500 ${isFullscreen ? "fixed inset-0 z-100 pb-0 overflow-y-auto" : ""}`}
     >
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-zinc-800">
@@ -230,10 +240,22 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                   />
                 </div>
               </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="px-4 py-1.5 rounded-full bg-rose-50 text-rose-600 text-[11px] font-bold uppercase tracking-widest">
+                  {wordCount} words
+                </div>
+                <div className="px-4 py-1.5 rounded-full bg-zinc-50 text-zinc-600 text-[11px] font-bold uppercase tracking-widest">
+                  ~{readingTime} min read
+                </div>
+                <div className="px-4 py-1.5 rounded-full bg-pink-50 text-pink-600 text-[11px] font-bold uppercase tracking-widest">
+                  {photos.length} photos
+                </div>
+              </div>
             </div>
 
             {/* Markdown Editor - Notion-like Configuration */}
-            <div className="bg-white dark:bg-zinc-950 rounded-[48px] overflow-hidden border border-gray-100 dark:border-zinc-900/50 shadow-xs focus-within:shadow-2xl transition-all duration-500 min-h-[700px]">
+            <div className="bg-white/90 dark:bg-zinc-950 rounded-3xl p-3 border border-gray-100 dark:border-zinc-900/50 shadow-xs focus-within:shadow-2xl transition-all duration-500 min-h-[700px]">
               <MdEditor
                 modelValue={content}
                 onChange={setContent}
@@ -275,7 +297,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
 
           {!isFullscreen && (
             /* Sidebar: Photos & Stats */
-            <div className="space-y-10">
+            <div className="space-y-10 lg:sticky lg:top-24">
               {/* Photos Panel */}
               <div className="bg-gray-50/50 dark:bg-zinc-900/50 rounded-[40px] p-8 border border-gray-100 dark:border-zinc-800/50 space-y-6">
                 <div className="flex items-center justify-between px-2">
@@ -356,67 +378,6 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
           )}
         </div>
       </main>
-
-      <style jsx global>{`
-        .notion-editor {
-          --md-bk-color: transparent !important;
-          border: none !important;
-        }
-        .md-editor-toolbar-wrapper {
-          background-color: transparent !important;
-          border-bottom: 1px solid #f8fafc !important;
-          padding: 12px 24px !important;
-        }
-        .dark .md-editor-toolbar-wrapper {
-          border-bottom: 1px solid #18181b !important;
-        }
-        .md-editor-content {
-          padding: 16px !important;
-        }
-        .md-editor-preview-wrapper {
-          font-family: var(--font-geist-sans) !important;
-          padding: 40px !important;
-          font-size: 1.125rem !important;
-          line-height: 1.8 !important;
-        }
-        .md-editor-preview-wrapper h1 {
-          font-family: var(--font-dancing-script) !important;
-          font-size: 3rem !important;
-          color: #e11d48 !important;
-          margin-bottom: 2rem !important;
-          border-bottom: none !important;
-        }
-        .md-editor-preview-wrapper h2 {
-          font-family: var(--font-dancing-script) !important;
-          font-size: 2.25rem !important;
-          color: #f43f5e !important;
-          margin-top: 2rem !important;
-          border-bottom: none !important;
-        }
-        .md-editor-preview-wrapper blockquote {
-          border-left: 4px solid #fecdd3 !important;
-          background: #fff1f2 !important;
-          padding: 1.5rem !important;
-          border-radius: 1rem !important;
-          font-style: italic !important;
-        }
-        .dark .md-editor-preview-wrapper blockquote {
-          background: rgba(225, 29, 72, 0.05) !important;
-          border-left-color: #e11d48 !important;
-        }
-        .md-editor-input-wrapper {
-          font-size: 1.125rem !important;
-          line-height: 1.8 !important;
-          padding: 40px !important;
-        }
-        .md-editor-input-wrapper textarea {
-          font-family: var(--font-geist-sans) !important;
-          color: #3f3f46 !important;
-        }
-        .dark .md-editor-input-wrapper textarea {
-          color: #d4d4d8 !important;
-        }
-      `}</style>
     </div>
   );
 }
