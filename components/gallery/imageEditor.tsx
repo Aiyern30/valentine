@@ -82,11 +82,16 @@ export function ImageEditor({
         return;
       }
 
-      console.log("Sending blob to save, size:", (blob.size / 1024 / 1024).toFixed(2), "MB");
+      console.log(
+        "Sending blob to save, size:",
+        (blob.size / 1024 / 1024).toFixed(2),
+        "MB",
+      );
       onSave(blob);
       onClose();
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Unknown error occurred";
+      const errorMsg =
+        err instanceof Error ? err.message : "Unknown error occurred";
       console.error("Save failed:", errorMsg);
       setError(errorMsg);
     } finally {
@@ -152,7 +157,7 @@ export function ImageEditor({
   const handleCropAction = async () => {
     try {
       setError(null);
-      
+
       if (isCropping) {
         const blob = await applyEdits();
         if (blob) {
@@ -175,7 +180,8 @@ export function ImageEditor({
 
       setIsCropping(true);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Unknown error occurred";
+      const errorMsg =
+        err instanceof Error ? err.message : "Unknown error occurred";
       console.error("Crop action failed:", errorMsg);
       setError(errorMsg);
     }

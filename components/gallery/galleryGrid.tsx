@@ -55,7 +55,11 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
     if (!selectedPhoto) return;
 
     try {
-      console.log("Saving image, blob size:", (blob.size / 1024 / 1024).toFixed(2), "MB");
+      console.log(
+        "Saving image, blob size:",
+        (blob.size / 1024 / 1024).toFixed(2),
+        "MB",
+      );
       const result = await updatePhotoImage(selectedPhoto.id, blob);
       if (result.success) {
         console.log("Image saved successfully");

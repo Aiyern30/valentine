@@ -656,13 +656,19 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     }
 
     // Convert Blob to File and compress
-    const editedFile = new File([blob], "edited-photo.jpg", { type: "image/jpeg" });
-    
+    const editedFile = new File([blob], "edited-photo.jpg", {
+      type: "image/jpeg",
+    });
+
     // Convert Blob to File for upload
     // Note: The blob is already processed on the client (cropped/rotated)
     // and is typically small, so no need for server-side compression
     const compressedFile = editedFile;
-    console.log("File ready for upload, size:", (compressedFile.size / 1024 / 1024).toFixed(2), "MB");
+    console.log(
+      "File ready for upload, size:",
+      (compressedFile.size / 1024 / 1024).toFixed(2),
+      "MB",
+    );
 
     // Delete the old file first with admin client (bypass RLS)
     const deletePaths = new Set<string>();
@@ -673,7 +679,7 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
 
     const deleteTargets = Array.from(deletePaths);
     let finalDeleteError = null;
-    
+
     if (deleteTargets.length > 0) {
       // Try with admin client first (more reliable with RLS policies)
       const { error: adminDeleteError } = await adminClient.storage
@@ -681,7 +687,10 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
         .remove(deleteTargets);
 
       if (adminDeleteError) {
-        console.warn("Admin delete failed, trying user client:", adminDeleteError);
+        console.warn(
+          "Admin delete failed, trying user client:",
+          adminDeleteError,
+        );
         // Fallback to user client
         const { error: userDeleteError } = await supabase.storage
           .from("photos")
@@ -697,7 +706,13 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     // Generate new filename in gallery structure
     const newFileName = `gallery/${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
 
-    console.log("Uploading new file to:", newFileName, "Size:", (compressedFile.size / 1024 / 1024).toFixed(2), "MB");
+    console.log(
+      "Uploading new file to:",
+      newFileName,
+      "Size:",
+      (compressedFile.size / 1024 / 1024).toFixed(2),
+      "MB",
+    );
 
     // Upload new file with admin client to bypass RLS
     const { error: uploadError } = await adminClient.storage
