@@ -644,19 +644,28 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     // Convert Blob to File-like for upload
     const file = new File([blob], "edited-photo.jpg", { type: "image/jpeg" });
 
-    // Delete the old file first
+    // Delete the old file first - wait for completion
     if (oldPath) {
-      await supabase.storage
+      console.log("Deleting old file:", oldPath);
+      const { error: deleteError } = await supabase.storage
         .from("photos")
-        .remove([oldPath])
-        .catch(() => {
-          // Silently fail if file doesn't exist or can't be deleted
-        });
+        .remove([oldPath]);
+
+      if (deleteError) {
+        console.log(
+          "Note: Could not delete old file (this may be normal):",
+          deleteError,
+        );
+      } else {
+        console.log("Old file deleted successfully");
+      }
     }
 
     // Generate new filename in gallery structure
     const fileExt = "jpg";
     const newFileName = `gallery/${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+    console.log("Uploading new file to:", newFileName);
 
     // Upload new file with fresh path
     const { error: uploadError } = await supabase.storage
@@ -670,6 +679,8 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
       console.error("Error uploading edited file:", uploadError);
       return { error: "Failed to upload edited photo. Please try again." };
     }
+
+    console.log("New file uploaded successfully");
 
     // Get public URL for the new file
     const {

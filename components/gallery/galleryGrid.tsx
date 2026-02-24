@@ -224,6 +224,7 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
 
       {/* Photo Viewer (Lightbox) */}
       <PhotoViewer
+        key={viewerOpen ? viewerIndex : "closed"}
         photos={filteredPhotos}
         currentIndex={viewerIndex}
         isOpen={viewerOpen}

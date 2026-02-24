@@ -31,6 +31,8 @@ export function ImageEditor({
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [isCropping, setIsCropping] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -47,7 +49,7 @@ export function ImageEditor({
   const handleDownload = async () => {
     try {
       setIsSaving(true);
-      const blob = await applyEdits();
+      const blob = previewBlob || (await applyEdits());
 
       if (blob) {
         const url = URL.createObjectURL(blob);
@@ -71,7 +73,7 @@ export function ImageEditor({
 
     try {
       setIsSaving(true);
-      const blob = await applyEdits();
+      const blob = previewBlob || (await applyEdits());
 
       if (blob) {
         onSave(blob);
@@ -131,6 +133,36 @@ export function ImageEditor({
     });
   };
 
+  const clearPreview = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(null);
+    setPreviewBlob(null);
+  };
+
+  const handleCropAction = async () => {
+    if (isCropping) {
+      const blob = await applyEdits();
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        clearPreview();
+        setPreviewBlob(blob);
+        setPreviewUrl(url);
+        setIsCropping(false);
+      }
+      return;
+    }
+
+    if (previewUrl) {
+      clearPreview();
+      setIsCropping(true);
+      return;
+    }
+
+    setIsCropping(true);
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm flex flex-col">
       {/* Header */}
@@ -142,6 +174,11 @@ export function ImageEditor({
               <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-white/70 text-xs">
                 <span className="animate-pulse w-2 h-2 bg-rose-500 rounded-full" />
                 Cropping Mode
+              </div>
+            )}
+            {previewUrl && !isCropping && (
+              <div className="flex items-center gap-2 bg-emerald-500/20 px-3 py-1 rounded-full text-emerald-200 text-xs">
+                Preview
               </div>
             )}
           </div>
@@ -201,6 +238,12 @@ export function ImageEditor({
                 style={{ transform: `rotate(${rotation}deg)` }}
               />
             </ReactCrop>
+          ) : previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="Edited preview"
+              className="max-h-[70vh] object-contain shadow-2xl"
+            />
           ) : (
             <div
               className="relative transition-transform duration-300"
@@ -232,17 +275,23 @@ export function ImageEditor({
             </button>
 
             <button
-              onClick={() => setIsCropping(!isCropping)}
+              onClick={handleCropAction}
               className={`flex flex-col items-center gap-2 px-8 sm:px-12 py-3 rounded-xl transition-all duration-300 border-2 ${
                 isCropping
                   ? "bg-rose-500 border-rose-400 text-white scale-110 shadow-lg shadow-rose-500/20"
-                  : "bg-white/10 border-transparent hover:bg-white/20 text-white"
+                  : previewUrl
+                    ? "bg-emerald-500/30 border-emerald-400 text-emerald-100"
+                    : "bg-white/10 border-transparent hover:bg-white/20 text-white"
               }`}
               title="Crop"
             >
               <CropIcon className="w-6 h-6" />
               <span className="text-[10px] sm:text-xs font-medium">
-                {isCropping ? "Done Cropping" : "Crop"}
+                {isCropping
+                  ? "Done Cropping"
+                  : previewUrl
+                    ? "Revert"
+                    : "Crop"}
               </span>
             </button>
 

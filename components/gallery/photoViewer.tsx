@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import {
   X,
@@ -47,113 +47,31 @@ interface PhotoViewerProps {
   currentUserId: string;
 }
 
-export function PhotoViewer({
+interface PhotoDetailsProps {
+  currentPhoto: Photo;
+  isOwner: boolean;
+  onImageEdit?: (photo: Photo) => void;
+  onEdit?: (photo: Photo) => void;
+  onDelete?: (photo: Photo) => void;
+  handleDownload: () => void;
+  photos: Photo[];
+  currentIndex: number;
+  isDrawer?: boolean;
+}
+
+function PhotoDetailsComponent({
+  currentPhoto,
   photos,
   currentIndex,
-  isOpen,
-  onClose,
-  onEdit,
-  onDelete,
-  onImageEdit,
-  currentUserId,
-}: PhotoViewerProps) {
-  const [index, setIndex] = useState(currentIndex);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      setIndex(currentIndex);
-    }
-  }, [currentIndex, isOpen]);
-
-  if (!isOpen || photos.length === 0) return null;
-
-  const currentPhoto = photos[index];
-  const isOwner = currentPhoto.uploaded_by === currentUserId;
-
-  const goToPrevious = () => {
-    setIndex((prevIndex) =>
-      prevIndex === 0 ? photos.length - 1 : prevIndex - 1,
-    );
-  };
-
-  const goToNext = () => {
-    setIndex((prevIndex) =>
-      prevIndex === photos.length - 1 ? 0 : prevIndex + 1,
-    );
-  };
-
-  const handleDownload = async () => {
-    try {
-      const response = await fetch(currentPhoto.photo_url);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `photo-${currentPhoto.id}.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error("Download failed:", error);
-    }
-  };
-
-  // Keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "ArrowLeft") goToPrevious();
-    if (e.key === "ArrowRight") goToNext();
-    if (e.key === "Escape") onClose();
-  };
-
-  const PhotoDetails = ({ isDrawer = false }: { isDrawer?: boolean }) => (
+  isDrawer = false,
+}: PhotoDetailsProps) {
+  return (
     <div className={isDrawer ? "px-6 pb-12 pt-0 space-y-6" : "p-6 space-y-6"}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-white lg:text-white font-semibold text-lg dark:text-white">
           Photo Details
         </h3>
-        <div className="flex items-center gap-2">
-          {/* Image Edit Button */}
-          {isOwner && onImageEdit && (
-            <button
-              onClick={() => onImageEdit(currentPhoto)}
-              className="p-2 rounded-lg hover:bg-purple-500/20 text-purple-400 transition-colors"
-              title="Edit Image"
-            >
-              <Wand2 className="w-4 h-4" />
-            </button>
-          )}
-
-          <button
-            onClick={handleDownload}
-            className="p-2 rounded-lg hover:bg-white/10 text-white transition-colors"
-            title="Download"
-          >
-            <Download className="w-4 h-4" />
-          </button>
-
-          {isOwner && onEdit && (
-            <button
-              onClick={() => onEdit(currentPhoto)}
-              className="p-2 rounded-lg hover:bg-white/10 text-white transition-colors"
-              title="Edit Details"
-            >
-              <Edit2 className="w-4 h-4" />
-            </button>
-          )}
-
-          {isOwner && onDelete && (
-            <button
-              onClick={() => onDelete(currentPhoto)}
-              className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
-              title="Delete"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Caption */}
@@ -224,12 +142,67 @@ export function PhotoViewer({
       {photos.length > 1 && (
         <div className="pt-4 border-t border-white/10">
           <p className="text-center text-gray-400 text-sm">
-            {index + 1} of {photos.length} photos
+            {currentIndex + 1} of {photos.length} photos
           </p>
         </div>
       )}
     </div>
   );
+}
+
+export function PhotoViewer({
+  photos,
+  currentIndex,
+  isOpen,
+  onClose,
+  onEdit,
+  onDelete,
+  onImageEdit,
+  currentUserId,
+}: PhotoViewerProps) {
+  const [index, setIndex] = useState(currentIndex);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  if (!isOpen || photos.length === 0) return null;
+
+  const currentPhoto = photos[index];
+  const isOwner = currentPhoto.uploaded_by === currentUserId;
+
+  const goToPrevious = () => {
+    setIndex((prevIndex) =>
+      prevIndex === 0 ? photos.length - 1 : prevIndex - 1,
+    );
+  };
+
+  const goToNext = () => {
+    setIndex((prevIndex) =>
+      prevIndex === photos.length - 1 ? 0 : prevIndex + 1,
+    );
+  };
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(currentPhoto.photo_url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `photo-${currentPhoto.id}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
+
+  // Keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft") goToPrevious();
+    if (e.key === "ArrowRight") goToNext();
+    if (e.key === "Escape") onClose();
+  };
 
   return (
     <div
@@ -237,20 +210,13 @@ export function PhotoViewer({
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
-      {/* Close Button */}
-      <button
-        onClick={onClose}
-        className="absolute top-6 right-6 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all text-white"
-      >
-        <X className="w-6 h-6" />
-      </button>
-
       {/* Info Button - Mobile Only */}
       <button
         onClick={() => setIsDetailsOpen(true)}
-        className="lg:hidden absolute bottom-6 right-6 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all text-white"
+        className="lg:hidden absolute top-6 right-6 z-50 p-2.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all text-white"
+        title="Photo Details"
       >
-        <Info className="w-6 h-6" />
+        <Info className="w-5 h-5" />
       </button>
 
       {/* Navigation Arrows */}
@@ -258,15 +224,17 @@ export function PhotoViewer({
         <>
           <button
             onClick={goToPrevious}
-            className="absolute left-6 top-1/2 -translate-y-1/2 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all text-white"
+            className="absolute left-6 top-1/2 -translate-y-1/2 z-50 p-2.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all text-white"
+            title="Previous"
           >
-            <ChevronLeft className="w-6 h-6" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={goToNext}
-            className="absolute right-6 top-1/2 -translate-y-1/2 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all text-white"
+            className="absolute right-6 top-1/2 -translate-y-1/2 z-50 p-2.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-all text-white"
+            title="Next"
           >
-            <ChevronRight className="w-6 h-6" />
+            <ChevronRight className="w-5 h-5" />
           </button>
         </>
       )}
@@ -283,12 +251,74 @@ export function PhotoViewer({
               className="object-contain"
               priority
             />
+            {/* Action Toolbar */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-full bg-black/50 backdrop-blur-md border border-white/10 px-3 py-2">
+              {/* Crop Image */}
+              {isOwner && onImageEdit && (
+                <button
+                  onClick={() => onImageEdit(currentPhoto)}
+                  className="p-2.5 rounded-full bg-purple-600/40 hover:bg-purple-600/60 text-purple-200 transition-colors border border-purple-500/50"
+                  title="Crop Image"
+                >
+                  <Wand2 className="w-5 h-5" />
+                </button>
+              )}
+
+              {/* Edit Title & Date */}
+              {isOwner && onEdit && (
+                <button
+                  onClick={() => onEdit(currentPhoto)}
+                  className="p-2.5 rounded-full bg-cyan-600/40 hover:bg-cyan-600/60 text-cyan-200 transition-colors border border-cyan-500/50"
+                  title="Edit Title & Date"
+                >
+                  <Edit2 className="w-5 h-5" />
+                </button>
+              )}
+
+              {/* Download */}
+              <button
+                onClick={handleDownload}
+                className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                title="Download"
+              >
+                <Download className="w-5 h-5" />
+              </button>
+
+              {/* Delete */}
+              {isOwner && onDelete && (
+                <button
+                  onClick={() => onDelete(currentPhoto)}
+                  className="p-2.5 rounded-full bg-red-600/40 hover:bg-red-600/60 text-red-200 transition-colors border border-red-500/50"
+                  title="Delete Photo"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              )}
+
+              {/* Close */}
+              <button
+                onClick={onClose}
+                className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Details Sidebar - Desktop Only */}
         <div className="hidden lg:block w-96 bg-zinc-900/50 backdrop-blur-xl border-l border-white/10 overflow-y-auto">
-          <PhotoDetails />
+          <PhotoDetailsComponent
+            currentPhoto={currentPhoto}
+            isOwner={isOwner}
+            onImageEdit={onImageEdit}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            handleDownload={handleDownload}
+            photos={photos}
+            currentIndex={index}
+          />
         </div>
       </div>
 
@@ -299,7 +329,17 @@ export function PhotoViewer({
             <DrawerTitle>Photo Details</DrawerTitle>
           </DrawerHeader>
           <div className="max-h-[80vh] overflow-y-auto">
-            <PhotoDetails isDrawer />
+            <PhotoDetailsComponent
+              currentPhoto={currentPhoto}
+              isOwner={isOwner}
+              onImageEdit={onImageEdit}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              handleDownload={handleDownload}
+              photos={photos}
+              currentIndex={index}
+              isDrawer
+            />
           </div>
         </DrawerContent>
       </Drawer>
