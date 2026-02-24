@@ -1,6 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 import React, { useState, ChangeEvent } from "react";
+import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
   ChevronRight,
@@ -114,6 +115,7 @@ interface ValidationErrors {
 
 // Main Component
 export default function CondolenceForm() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isFullscreenMessage, setIsFullscreenMessage] = useState(false);
@@ -332,6 +334,8 @@ export default function CondolenceForm() {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
       setErrors({});
+    } else if (currentStep === 0) {
+      router.push("/confessions");
     }
   };
 
@@ -557,6 +561,13 @@ export default function CondolenceForm() {
                     className="px-6 py-3 bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/30 text-gray-900 dark:text-white rounded-full font-medium hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all"
                   >
                     Create Another
+                  </button>
+                  <button
+                    onClick={() => router.push("/confessions")}
+                    className="px-6 py-3 bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/30 text-gray-900 dark:text-white rounded-full font-medium hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all flex items-center gap-2"
+                  >
+                    <ChevronLeft size={18} />
+                    Back to Confessions
                   </button>
                 </div>
 
@@ -1901,12 +1912,7 @@ export default function CondolenceForm() {
             <div className="flex items-center justify-between mt-8">
               <button
                 onClick={prevStep}
-                disabled={currentStep === 0}
-                className={`flex items-center gap-2 px-6 py-3 rounded-full transition ${
-                  currentStep === 0
-                    ? "bg-gray-200 dark:bg-zinc-800 text-gray-400 cursor-not-allowed"
-                    : "bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 text-gray-900 dark:text-white border border-rose-100 dark:border-rose-900/30"
-                }`}
+                className={`flex items-center gap-2 px-6 py-3 rounded-full transition bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-700 text-gray-900 dark:text-white border border-rose-100 dark:border-rose-900/30`}
               >
                 <ChevronLeft size={20} />
                 Back
@@ -1934,14 +1940,14 @@ export default function CondolenceForm() {
                 )}
               </button>
             </div>
-            {/* Back to homepage link */}
+            {/* Back to confessions link */}
             {currentStep > 0 && (
               <button
-                onClick={() => setCurrentStep(0)}
+                onClick={() => router.push("/confessions")}
                 className="mt-4 text-sm text-gray-400 hover:text-rose-500 transition-colors flex items-center gap-2 mx-auto"
               >
                 <ChevronLeft size={16} />
-                Back to the homepage
+                Back to Confessions
               </button>
             )}
           </>
