@@ -2,14 +2,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Save,
   Calendar as CalendarIcon,
-  Type,
-  Image as ImageIcon,
   Loader2,
   Trash2,
   Plus,
@@ -102,7 +100,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
       } else {
         alert(result.error);
       }
-    } catch (error) {
+    } catch {
       alert("Failed to delete diary entry");
     } finally {
       setIsDeleting(false);
@@ -255,7 +253,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
             </div>
 
             {/* Markdown Editor - Notion-like Configuration */}
-            <div className="bg-white/90 dark:bg-zinc-950 rounded-3xl p-3 border border-gray-100 dark:border-zinc-900/50 shadow-xs focus-within:shadow-2xl transition-all duration-500 min-h-[700px]">
+            <div className="bg-white/90 dark:bg-zinc-950 rounded-3xl p-3 border border-gray-100 dark:border-zinc-900/50 shadow-xs focus-within:shadow-2xl transition-all duration-500 min-h-175">
               <MdEditor
                 modelValue={content}
                 onChange={setContent}
@@ -299,21 +297,23 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
             /* Sidebar: Photos & Stats */
             <div className="space-y-10 lg:sticky lg:top-24">
               {/* Photos Panel */}
-              <div className="bg-gray-50/50 dark:bg-zinc-900/50 rounded-[40px] p-8 border border-gray-100 dark:border-zinc-800/50 space-y-6">
-                <div className="flex items-center justify-between px-2">
-                  <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-                    Memories Captured
-                  </h3>
-                  <span className="text-[10px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-900/20 px-3 py-1 rounded-full">
-                    {photos.length} photos
-                  </span>
+              <div className="bg-white/80 dark:bg-zinc-900/70 rounded-[40px] p-8 border border-rose-100/60 dark:border-zinc-800/60 shadow-[0_20px_60px_-30px_rgba(244,63,94,0.25)] space-y-6">
+                <div className="flex items-start justify-between px-1">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-rose-400 uppercase tracking-[0.3em]">
+                      Memories Captured
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Keep tiny moments with your words
+                    </p>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {photos.map((url, idx) => (
                     <div
                       key={idx}
-                      className="relative aspect-square rounded-3xl overflow-hidden group shadow-lg border-2 border-white dark:border-zinc-800"
+                      className="relative aspect-square rounded-3xl overflow-hidden group shadow-lg border border-white/60 dark:border-zinc-800/80 ring-1 ring-rose-100/40"
                     >
                       <Image
                         src={url}
@@ -335,16 +335,16 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="aspect-square rounded-3xl border-2 border-dashed border-gray-200 dark:border-zinc-800 flex flex-col items-center justify-center gap-3 hover:border-rose-500/50 hover:bg-white dark:hover:bg-zinc-800 transition-all group"
+                    className="aspect-4/5 sm:aspect-square rounded-2xl border-2 border-dashed border-rose-200/80 dark:border-zinc-800 flex flex-col items-center justify-center gap-2 bg-linear-to-br from-white to-rose-50/60 dark:from-zinc-900 dark:to-zinc-900 hover:border-rose-400/70 hover:shadow-md transition-all group"
                   >
                     {isUploading ? (
                       <Loader2 className="w-6 h-6 text-rose-500 animate-spin" />
                     ) : (
                       <>
-                        <div className="w-12 h-12 bg-gray-50 dark:bg-zinc-900 rounded-full flex items-center justify-center group-hover:scale-110 transition-all shadow-sm">
-                          <Plus className="w-6 h-6 text-gray-300 group-hover:text-rose-500" />
+                        <div className="w-10 h-10 bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center group-hover:scale-110 transition-all shadow-sm ring-1 ring-rose-100">
+                          <Plus className="w-5 h-5 text-rose-300 group-hover:text-rose-500" />
                         </div>
-                        <span className="text-[10px] font-bold text-gray-300 group-hover:text-rose-500 uppercase tracking-widest">
+                        <span className="text-[9px] font-bold text-rose-300 group-hover:text-rose-500 uppercase tracking-widest">
                           Add Memory
                         </span>
                       </>
@@ -358,6 +358,9 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                   onChange={handleFileSelect}
                   className="hidden"
                 />
+                <span className="text-[10px] font-bold text-rose-600 bg-rose-50 dark:bg-rose-900/20 px-3 py-1 rounded-full border border-rose-100 dark:border-rose-800/30">
+                  {photos.length} photos
+                </span>
               </div>
 
               {/* Info Card */}
