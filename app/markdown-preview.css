@@ -1,0 +1,220 @@
+/* MarkdownPreview – Rosy Diary Theme */
+
+/* Override md-editor-rt base */
+.diary-markdown-preview {
+  background: transparent !important;
+  font-family: "Georgia", "Times New Roman", serif;
+  color: #7c3f58;
+  line-height: 1.85;
+  padding: 0 !important;
+}
+
+/* ── Headings ─────────────────────────────────────────── */
+
+.diary-markdown-preview h1 {
+  font-size: 2.25rem;       /* 36px */
+  font-weight: 800;
+  color: #be185d;           /* deep rose */
+  letter-spacing: -0.02em;
+  margin: 1.75rem 0 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid #fce7f3;
+  line-height: 1.2;
+}
+
+.diary-markdown-preview h2 {
+  font-size: 1.75rem;       /* 28px */
+  font-weight: 700;
+  color: #db2777;           /* medium rose */
+  letter-spacing: -0.015em;
+  margin: 1.5rem 0 0.6rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #fce7f3;
+  line-height: 1.3;
+}
+
+.diary-markdown-preview h3 {
+  font-size: 1.375rem;      /* 22px */
+  font-weight: 700;
+  color: #ec4899;           /* pink */
+  margin: 1.25rem 0 0.5rem;
+  line-height: 1.35;
+}
+
+.diary-markdown-preview h4 {
+  font-size: 1.125rem;      /* 18px */
+  font-weight: 600;
+  color: #f472b6;           /* light pink */
+  margin: 1rem 0 0.4rem;
+  line-height: 1.4;
+}
+
+.diary-markdown-preview h5 {
+  font-size: 1rem;          /* 16px */
+  font-weight: 600;
+  color: #f9a8d4;           /* blush */
+  margin: 0.875rem 0 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.diary-markdown-preview h6 {
+  font-size: 0.875rem;      /* 14px */
+  font-weight: 600;
+  color: #fbcfe8;           /* very soft pink */
+  margin: 0.75rem 0 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── Body text ────────────────────────────────────────── */
+
+.diary-markdown-preview p {
+  color: #9d4e72;
+  font-size: 1rem;
+  margin: 0.85rem 0;
+}
+
+/* ── Links ────────────────────────────────────────────── */
+
+.diary-markdown-preview a {
+  color: #db2777;
+  text-decoration: underline;
+  text-decoration-color: #fbcfe8;
+  text-underline-offset: 3px;
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+
+.diary-markdown-preview a:hover {
+  color: #be185d;
+  text-decoration-color: #f472b6;
+}
+
+/* ── Bold & Italic ────────────────────────────────────── */
+
+.diary-markdown-preview strong {
+  color: #be185d;
+  font-weight: 700;
+}
+
+.diary-markdown-preview em {
+  color: #db2777;
+  font-style: italic;
+}
+
+/* ── Blockquote ───────────────────────────────────────── */
+
+.diary-markdown-preview blockquote {
+  border-left: 4px solid #f9a8d4;
+  background: linear-gradient(135deg, #fff0f7 0%, #fdf2f8 100%);
+  margin: 1.25rem 0;
+  padding: 0.9rem 1.25rem;
+  border-radius: 0 12px 12px 0;
+  color: #9d4e72;
+  font-style: italic;
+}
+
+.diary-markdown-preview blockquote p {
+  margin: 0;
+  color: inherit;
+}
+
+/* ── Code ─────────────────────────────────────────────── */
+
+.diary-markdown-preview code {
+  background: #fdf2f8;
+  color: #be185d;
+  padding: 0.15em 0.45em;
+  border-radius: 6px;
+  font-size: 0.875em;
+  font-family: "Courier New", monospace;
+  border: 1px solid #fce7f3;
+}
+
+.diary-markdown-preview pre {
+  background: linear-gradient(160deg, #fff0f7, #fdf2f8);
+  border: 1px solid #fce7f3;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  box-shadow: 0 4px 20px -8px rgba(244, 63, 94, 0.15);
+}
+
+.diary-markdown-preview pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #7c3f58;
+  font-size: 0.875rem;
+}
+
+/* ── Lists ────────────────────────────────────────────── */
+
+.diary-markdown-preview ul,
+.diary-markdown-preview ol {
+  color: #9d4e72;
+  padding-left: 1.5rem;
+  margin: 0.85rem 0;
+}
+
+.diary-markdown-preview ul li::marker {
+  color: #f472b6;
+}
+
+.diary-markdown-preview ol li::marker {
+  color: #db2777;
+  font-weight: 600;
+}
+
+.diary-markdown-preview li {
+  margin: 0.35rem 0;
+}
+
+/* ── Horizontal rule ──────────────────────────────────── */
+
+.diary-markdown-preview hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(to right, transparent, #f9a8d4, transparent);
+  margin: 2rem 0;
+  border-radius: 999px;
+}
+
+/* ── Table ────────────────────────────────────────────── */
+
+.diary-markdown-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.9375rem;
+}
+
+.diary-markdown-preview th {
+  background: linear-gradient(135deg, #fce7f3, #fdf2f8);
+  color: #be185d;
+  font-weight: 700;
+  padding: 0.65rem 1rem;
+  text-align: left;
+  border-bottom: 2px solid #f9a8d4;
+}
+
+.diary-markdown-preview td {
+  color: #9d4e72;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid #fce7f3;
+}
+
+.diary-markdown-preview tr:hover td {
+  background: #fff7fb;
+}
+
+/* ── Images ───────────────────────────────────────────── */
+
+.diary-markdown-preview img {
+  border-radius: 16px;
+  max-width: 100%;
+  box-shadow: 0 8px 30px -10px rgba(244, 63, 94, 0.25);
+  border: 2px solid #fce7f3;
+  margin: 0.5rem 0;
+}

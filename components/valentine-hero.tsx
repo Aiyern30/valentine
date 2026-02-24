@@ -1,45 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
+
+const HEART_STYLES: CSSProperties[] = Array.from({ length: 6 }, () => ({
+  left: `${20 + Math.random() * 60}%`,
+  top: `${20 + Math.random() * 60}%`,
+  animationDuration: `${3 + Math.random() * 2}s`,
+  animationDelay: `${Math.random()}s`,
+  transform: `scale(${0.5 + Math.random() * 0.5})`,
+}));
 
 export default function ValentineHero() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   return (
-    <div className="relative w-full h-full min-h-[500px] flex items-center justify-center overflow-hidden bg-rose-50/50 dark:bg-rose-950/20">
+    <div className="relative w-full h-full min-h-125 flex items-center justify-center overflow-hidden bg-rose-50/50 dark:bg-rose-950/20">
       {/* Decorative Background Blobs */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-pink-300/20 rounded-full blur-3xl animate-pulse delay-700" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-red-300/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute top-[50%] left-[40%] w-125 h-125 bg-pink-300/20 rounded-full blur-3xl animate-pulse delay-700" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-100 h-100 bg-red-300/20 rounded-full blur-3xl animate-pulse" />
 
       {/* Central 3D-ish Composition */}
-      <div
-        className={`relative flex flex-col items-center transition-all duration-1000 transform ${mounted ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"}`}
-      >
+      <div className="relative flex flex-col items-center transition-all duration-1000 transform translate-y-0 opacity-100">
         {/* Floating Hearts */}
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute animate-bounce"
-              style={{
-                left: `${20 + Math.random() * 60}%`,
-                top: `${20 + Math.random() * 60}%`,
-                animationDuration: `${3 + Math.random() * 2}s`,
-                animationDelay: `${Math.random()}s`,
-                transform: `scale(${0.5 + Math.random() * 0.5})`,
-              }}
-            >
+          {HEART_STYLES.map((style, i) => (
+            <div key={i} className="absolute animate-bounce" style={style}>
               <span className="text-4xl drop-shadow-lg">❤️</span>
             </div>
           ))}
         </div>
 
         {/* Main "Heart" and Text */}
-        <div className="z-10 bg-white/30 dark:bg-black/10 backdrop-blur-sm p-12 rounded-[3rem] shadow-xl border border-white/50 dark:border-white/10 text-center">
+        <div className="z-10 p-12 text-center">
           <div className="mb-6 relative inline-block">
             <h2 className="text-2xl md:text-3xl font-script text-rose-600 dark:text-rose-400 -rotate-6 transform">
               Happy

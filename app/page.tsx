@@ -15,7 +15,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-background flex items-center justify-center p-4 md:p-8">
-      <div className="w-full max-w-[1200px] min-h-[600px] bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-pink-100 dark:border-pink-900/30">
+      <div className="w-full max-w-300 min-h-150 bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-pink-100 dark:border-pink-900/30">
         {/* Left Side - Hero/Decorative */}
         <div className="w-full lg:w-1/2 bg-rose-50 dark:bg-zinc-900/50 p-6 lg:p-0 relative flex items-center justify-center">
           <ValentineHero />
