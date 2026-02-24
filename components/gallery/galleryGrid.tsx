@@ -150,7 +150,7 @@ export function GalleryGrid({ photos, currentUserId }: GalleryGridProps) {
 
       {/* Empty State or Photo Grid */}
       {filteredPhotos.length === 0 ? (
-        <div className="text-center py-20 bg-white dark:bg-zinc-800 rounded-3xl border border-gray-100 dark:border-zinc-700/50">
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-250px)] bg-white dark:bg-zinc-800 rounded-3xl border border-gray-100 dark:border-zinc-700/50 py-20 px-4">
           <div className="mx-auto w-20 h-20 bg-linear-to-br from-rose-500/10 to-pink-500/10 rounded-full flex items-center justify-center mb-6">
             <ImageIcon className="w-10 h-10 text-rose-500" />
           </div>
