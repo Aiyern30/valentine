@@ -4,6 +4,8 @@
 
 import { useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   ArrowLeft,
   Save,
@@ -228,13 +230,26 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
               </div>
 
               <div className="flex flex-wrap items-center gap-8 text-sm font-medium text-gray-400">
-                <div className="flex items-center gap-3 group">
+                <div className="flex items-center gap-3 group custom-datepicker-wrapper">
                   <CalendarIcon className="w-4 h-4 text-rose-500/40 group-hover:text-rose-500 transition-colors" />
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
+                  <DatePicker
+                    selected={date ? new Date(date) : null}
+                    onChange={(selectedDate: Date | null) => {
+                      if (selectedDate) {
+                        const year = selectedDate.getFullYear();
+                        const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+                        const day = String(selectedDate.getDate()).padStart(2, "0");
+                        setDate(`${year}-${month}-${day}`);
+                      } else {
+                        setDate("");
+                      }
+                    }}
+                    dateFormat="MM/dd/yyyy"
                     className="bg-transparent border-none p-0 focus:ring-0 outline-hidden text-gray-600 dark:text-zinc-400 font-bold uppercase tracking-widest cursor-pointer"
+                    calendarClassName="custom-calendar"
+                    showPopperArrow={false}
+                    popperPlacement="bottom-start"
+                    placeholderText="Select a date"
                   />
                 </div>
               </div>
