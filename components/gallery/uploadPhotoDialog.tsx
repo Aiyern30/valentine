@@ -4,7 +4,6 @@ import { useState, useRef } from "react";
 import { uploadPhoto } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import {
-  X,
   Loader2,
   Upload,
   Image as ImageIcon,
@@ -17,6 +16,13 @@ import {
   validateImageFile,
 } from "@/lib/image-utils";
 import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface UploadPhotoDialogProps {
   isOpen: boolean;
@@ -117,43 +123,31 @@ export function UploadPhotoDialog({ isOpen, onClose }: UploadPhotoDialogProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-        onClick={handleClose}
-      />
-
-      {/* Dialog */}
-      <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 border border-gray-100 dark:border-zinc-800">
-        <div className="p-8 pb-4 border-b border-gray-50 dark:border-zinc-800 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 italic font-dancing">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] p-0 gap-0 rounded-[32px] border-gray-100 dark:border-zinc-800 flex flex-col">
+        <DialogHeader className="p-6 sm:p-8 pb-4 border-b border-gray-50 dark:border-zinc-800 space-y-0 shrink-0">
+          <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100 italic font-dancing">
             Upload Memory
-          </h2>
-          <button
-            onClick={handleClose}
-            disabled={isLoading}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
-          >
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        <form action={handleSubmit} className="p-8 space-y-6">
-          {error && (
-            <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium border border-red-100 dark:border-red-900/30">
-              {error}
-            </div>
-          )}
+        <form action={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
+            {error && (
+              <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium border border-red-100 dark:border-red-900/30">
+                {error}
+              </div>
+            )}
 
-          {/* File Upload Area */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-              Photo
-            </label>
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className={`
+            {/* File Upload Area */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                Photo
+              </label>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className={`
                 relative rounded-2xl border-2 border-dashed transition-all cursor-pointer overflow-hidden
                 ${
                   previewUrl
@@ -162,98 +156,102 @@ export function UploadPhotoDialog({ isOpen, onClose }: UploadPhotoDialogProps) {
                 }
                 ${isCompressing ? "opacity-50 cursor-wait" : ""}
               `}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-                disabled={isLoading || isCompressing}
-              />
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  disabled={isLoading || isCompressing}
+                />
 
-              {previewUrl ? (
-                <div className="relative aspect-video w-full">
-                  <Image
-                    src={previewUrl}
-                    alt="Preview"
-                    fill
-                    className="object-contain"
-                  />
-                  <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm px-3 py-1.5 rounded-full text-white text-xs font-medium">
-                    {formatFileSize(originalSize)} →{" "}
-                    {formatFileSize(compressedSize)}
+                {previewUrl ? (
+                  <div className="relative aspect-video w-full">
+                    <Image
+                      src={previewUrl}
+                      alt="Preview"
+                      fill
+                      className="object-contain"
+                    />
+                    <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm px-3 py-1.5 rounded-full text-white text-xs font-medium">
+                      {formatFileSize(originalSize)} →{" "}
+                      {formatFileSize(compressedSize)}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="py-12 flex flex-col items-center justify-center">
-                  {isCompressing ? (
-                    <>
-                      <Loader2 className="w-12 h-12 text-rose-500 mb-4 animate-spin" />
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Compressing image...
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mb-4">
-                        <Upload className="w-8 h-8 text-rose-500" />
-                      </div>
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Click to upload photo
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        PNG, JPG, GIF up to 10MB (will be compressed)
-                      </p>
-                    </>
-                  )}
-                </div>
-              )}
+                ) : (
+                  <div className="py-12 flex flex-col items-center justify-center">
+                    {isCompressing ? (
+                      <>
+                        <Loader2 className="w-12 h-12 text-rose-500 mb-4 animate-spin" />
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Compressing image...
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mb-4">
+                          <Upload className="w-8 h-8 text-rose-500" />
+                        </div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Click to upload photo
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          PNG, JPG, GIF up to 10MB (will be compressed)
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Caption */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-gray-400" />
+                Caption (Optional)
+              </label>
+              <textarea
+                name="caption"
+                rows={3}
+                placeholder="Add a caption to this memory..."
+                className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all resize-none placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-gray-900 dark:text-gray-100"
+              />
+            </div>
+
+            {/* Date Taken */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                Date Taken (Optional)
+              </label>
+              <input
+                name="takenDate"
+                type="date"
+                defaultValue={new Date().toISOString().split("T")[0]}
+                className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+              />
             </div>
           </div>
 
-          {/* Caption */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-gray-400" />
-              Caption (Optional)
-            </label>
-            <textarea
-              name="caption"
-              rows={3}
-              placeholder="Add a caption to this memory..."
-              className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all resize-none placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-gray-900 dark:text-gray-100"
-            />
-          </div>
-
-          {/* Date Taken */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-400" />
-              Date Taken (Optional)
-            </label>
-            <input
-              name="takenDate"
-              type="date"
-              defaultValue={new Date().toISOString().split("T")[0]}
-              className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="pt-6 flex items-center justify-end gap-3">
-            <button
+          {/* Fixed Footer with Actions */}
+          <div className="p-6 sm:p-8 pt-4 border-t border-gray-50 dark:border-zinc-800 flex items-center justify-end gap-3 shrink-0">
+            <Button
               type="button"
+              variant="ghost"
+              size="lg"
               onClick={handleClose}
               disabled={isLoading}
-              className="px-6 py-3 rounded-2xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 font-bold transition-colors disabled:opacity-50"
+              className="rounded-2xl text-gray-600 dark:text-gray-400 font-bold"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="gradient"
+              size="xl"
               disabled={isLoading || !selectedFile || isCompressing}
-              className="px-8 py-3 rounded-2xl bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold shadow-lg shadow-rose-500/25 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
             >
               {isLoading ? (
                 <>
@@ -266,10 +264,10 @@ export function UploadPhotoDialog({ isOpen, onClose }: UploadPhotoDialogProps) {
                   Upload Photo
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

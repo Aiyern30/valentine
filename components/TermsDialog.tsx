@@ -176,4 +176,3 @@ export default function TermsDialog({ open }: TermsDialogProps) {
     </div>
   );
 }
-
