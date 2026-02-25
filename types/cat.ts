@@ -9,7 +9,15 @@ export type CatType =
   | "scottish_fold"
   | "abyssinian"
   | "american_shorthair"
-  | "orange"
-  | "black"
   | "gray"
-  | "calico";
+  | "calico"
+  | "norwegian_forest"
+  | "russian_blue"
+  | "oriental_shorthair"
+  | "turkish_angora"
+  | "birman"
+  | "exotic_shorthair"
+  | "cornish_rex"
+  | "balinese"
+  | "himalayan"
+  | "devon_rex";
