@@ -1,7 +1,8 @@
 "use client";
-import type { RoomScene } from "@/game/scenes/RoomScene";
+
 import { useEffect, useRef } from "react";
 import type Phaser from "phaser";
+import type { RoomScene } from "@/game/scenes/RoomScene";
 import { CatType } from "@/types/cat";
 
 interface PhaserGameProps {
@@ -13,30 +14,26 @@ export default function PhaserGame({ onCatPatted, catType }: PhaserGameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const sceneRef = useRef<RoomScene | null>(null);
-  // 🎮 Create game once
+  const initialCatTypeRef = useRef<CatType>(catType);
+
+  // ✅ 1️⃣ Create Phaser game (RUNS ONLY ONCE)
   useEffect(() => {
     if (!containerRef.current || gameRef.current) return;
 
-    const container = containerRef.current;
-
     const init = async () => {
       const { createGame } = await import("@/game/gameConfig");
-      const game = createGame(container);
+      const game = createGame(containerRef.current!);
       gameRef.current = game;
 
+      // Wait for the game to be ready, THEN get the scene
       game.events.once("ready", () => {
         const scene = game.scene.getScene("RoomScene") as RoomScene;
         sceneRef.current = scene;
 
-        // connect pat event
-        if (scene && onCatPatted) {
-          scene.events.on("catPatted", onCatPatted);
-        }
-
-        // 👇 set initial cat type
-        if (scene) {
-          scene.setCatType(catType);
-        }
+        // Wait for the scene to fully create before syncing catType
+        scene.events.once("create", () => {
+          scene.setCatType(initialCatTypeRef.current);
+        });
       });
     };
 
@@ -46,14 +43,35 @@ export default function PhaserGame({ onCatPatted, catType }: PhaserGameProps) {
       gameRef.current?.destroy(true);
       gameRef.current = null;
     };
-  }, [catType, onCatPatted]);
+  }, []);
 
-  // 🐱 React → Phaser sync
+  // ✅ 2️⃣ Sync catType changes
   useEffect(() => {
-    if (sceneRef.current) {
+    console.log("[PhaserGame] catType changed to:", catType);
+    if (sceneRef.current && sceneRef.current.isSceneReady()) {
+      console.log("[PhaserGame] Calling scene.setCatType...");
       sceneRef.current.setCatType(catType);
+    } else {
+      console.log("[PhaserGame] Scene not ready, catType:", catType);
     }
   }, [catType]);
+
+  // ✅ 3️⃣ Sync onCatPatted safely (prevents stale closure)
+  useEffect(() => {
+    if (!sceneRef.current) return;
+
+    const scene = sceneRef.current;
+
+    if (onCatPatted) {
+      scene.events.on("catPatted", onCatPatted);
+    }
+
+    return () => {
+      if (onCatPatted) {
+        scene.events.off("catPatted", onCatPatted);
+      }
+    };
+  }, [onCatPatted]);
 
   return (
     <div

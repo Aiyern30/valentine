@@ -12,6 +12,7 @@ export class RoomScene extends Phaser.Scene {
   private tailTween!: Phaser.Tweens.Tween;
   private particles!: Phaser.GameObjects.Group;
   private tooltipText!: Phaser.GameObjects.Container;
+  private isReady = false;
 
   constructor() {
     super({ key: "RoomScene" });
@@ -32,6 +33,8 @@ export class RoomScene extends Phaser.Scene {
     this.setupInteractions();
     this.startIdleAnimations();
     this.spawnSparkles(W, H);
+
+    this.isReady = true;
   }
 
   // ─── Room Background ───────────────────────────────────────────────────────
@@ -375,13 +378,16 @@ export class RoomScene extends Phaser.Scene {
     this.catTail = this.add.graphics();
 
     this.drawCatGraphics(this.catBody, this.catTail, this.currentCatType);
-    // ✅ CALL THE FUNCTION HERE
 
     this.cat.add([this.catTail, this.catBody]);
 
     const sparkle = this.add.text(-5, -68, "✨", { fontSize: "14px" });
     this.cat.add(sparkle);
 
+    this.setupCatInteraction();
+  }
+
+  private setupCatInteraction() {
     this.catBody.setInteractive(
       new Phaser.Geom.Circle(0, -15, 50),
       Phaser.Geom.Circle.Contains,
@@ -407,6 +413,7 @@ export class RoomScene extends Phaser.Scene {
     tail: Phaser.GameObjects.Graphics,
     type: CatType,
   ) {
+    console.log("[drawCatGraphics] Starting for type:", type);
     body.clear();
     tail.clear();
 
@@ -422,11 +429,13 @@ export class RoomScene extends Phaser.Scene {
         mainColor = 0xf5e6c8;
         patternColor = 0x6b4f3b;
         noseColor = 0x884444;
+        console.log("[drawCatGraphics] Set to SIAMESE colors");
         break;
 
       case "orange":
         mainColor = 0xffb347;
         patternColor = 0xff9933;
+        console.log("[drawCatGraphics] Set to ORANGE colors");
         break;
 
       case "black":
@@ -434,15 +443,18 @@ export class RoomScene extends Phaser.Scene {
         earInner = 0x444444;
         noseColor = 0xff77aa;
         eyeColor = 0xffffff;
+        console.log("[drawCatGraphics] Set to BLACK colors");
         break;
 
       case "gray":
         mainColor = 0xcfd2d6;
         patternColor = 0xb0b4ba;
+        console.log("[drawCatGraphics] Set to GRAY colors");
         break;
 
       case "calico":
         mainColor = 0xffffff;
+        console.log("[drawCatGraphics] Set to CALICO colors");
         break;
     }
 
@@ -526,11 +538,44 @@ export class RoomScene extends Phaser.Scene {
     body.lineBetween(38, -22, 18, -20);
   }
 
+  public isSceneReady(): boolean {
+    return this.isReady;
+  }
+
   public setCatType(type: CatType) {
+    console.log("[RoomScene] setCatType called with:", type);
     this.currentCatType = type;
 
-    if (this.catBody && this.catTail) {
+    if (this.cat && this.catBody && this.catTail) {
+      console.log("[RoomScene] Destroying old graphics...");
+
+      // Remove old graphics from container
+      this.cat.remove(this.catBody);
+      this.cat.remove(this.catTail);
+
+      // Destroy old graphics
+      this.catBody.destroy();
+      this.catTail.destroy();
+
+      console.log("[RoomScene] Creating new graphics...");
+      // Create new graphics objects
+      this.catBody = this.add.graphics();
+      this.catTail = this.add.graphics();
+
+      console.log("[RoomScene] Drawing cat graphics for type:", type);
+      // Draw the new cat
       this.drawCatGraphics(this.catBody, this.catTail, type);
+
+      console.log("[RoomScene] Adding graphics to container...");
+      // Add new graphics back to container
+      this.cat.add([this.catTail, this.catBody]);
+
+      // Re-setup interactive events on new graphics
+      this.setupCatInteraction();
+
+      console.log("[RoomScene] Cat graphics recreated for type:", type);
+    } else {
+      console.log("[RoomScene] Graphics not ready yet");
     }
   }
   // ─── Particles & Interactions ───────────────────────────────────────────────
