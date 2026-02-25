@@ -3,6 +3,8 @@
 "use client";
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   ChevronLeft,
   ChevronRight,
@@ -1075,23 +1077,47 @@ const EditConfessionPage = () => {
                                       : "Description"}
                                   </label>
                                   {category.id === "memories" ? (
-                                    <input
-                                      type="date"
-                                      value={item.date}
-                                      onChange={(e) => {
-                                        const newCategories = [
-                                          ...formData.categories,
-                                        ];
-                                        newCategories[catIndex].items[
-                                          itemIndex
-                                        ].date = e.target.value;
-                                        setFormData((prev) => ({
-                                          ...prev,
-                                          categories: newCategories,
-                                        }));
-                                      }}
-                                      className="w-full bg-white dark:bg-zinc-800 border border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
-                                    />
+                                    <div className="custom-datepicker-wrapper">
+                                      <DatePicker
+                                        selected={
+                                          item.date
+                                            ? new Date(item.date)
+                                            : null
+                                        }
+                                        onChange={(date: Date | null) => {
+                                          const newCategories = [
+                                            ...formData.categories,
+                                          ];
+                                          if (date) {
+                                            const year = date.getFullYear();
+                                            const month = String(
+                                              date.getMonth() + 1,
+                                            ).padStart(2, "0");
+                                            const day = String(
+                                              date.getDate(),
+                                            ).padStart(2, "0");
+                                            newCategories[catIndex].items[
+                                              itemIndex
+                                            ].date =
+                                              `${year}-${month}-${day}`;
+                                          } else {
+                                            newCategories[catIndex].items[
+                                              itemIndex
+                                            ].date = "";
+                                          }
+                                          setFormData((prev) => ({
+                                            ...prev,
+                                            categories: newCategories,
+                                          }));
+                                        }}
+                                        dateFormat="MM/dd/yyyy"
+                                        className="w-full bg-white dark:bg-zinc-800 border-2 border-rose-100 dark:border-rose-900/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-rose-500 transition-colors"
+                                        calendarClassName="custom-calendar"
+                                        showPopperArrow={false}
+                                        popperPlacement="bottom-start"
+                                        placeholderText="Select a date"
+                                      />
+                                    </div>
                                   ) : (
                                     <input
                                       type="text"
