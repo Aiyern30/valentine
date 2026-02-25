@@ -83,11 +83,7 @@ export function DiaryViewer({ diary }: DiaryViewerProps) {
               </div>
             ))}
           </div>
-        ) : (
-          <div className="rounded-3xl border border-rose-100/60 bg-white/70 p-10 text-center text-gray-400">
-            No photos for this diary yet.
-          </div>
-        )}
+        ) : null}
 
         <MarkdownPreview content={diary.content || ""} />
       </div>
