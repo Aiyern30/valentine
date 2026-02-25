@@ -149,19 +149,17 @@ export async function updateProfile(formData: FormData) {
     }
 
     // Update profile in database
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .upsert(
-        {
-          id: userId,
-          display_name: displayName.trim(),
-          username: username?.trim() || null,
-          avatar_url: avatarUrl,
-        },
-        {
-          onConflict: "id",
-        },
-      );
+    const { error: updateError } = await supabase.from("profiles").upsert(
+      {
+        id: userId,
+        display_name: displayName.trim(),
+        username: username?.trim() || null,
+        avatar_url: avatarUrl,
+      },
+      {
+        onConflict: "id",
+      },
+    );
 
     if (updateError) {
       console.error("Error updating profile:", updateError);
