@@ -292,3 +292,39 @@ export async function getDiaryById(diaryId: string) {
 
   return data;
 }
+
+export async function getPartnerProfile(userId: string) {
+  const supabase = await createClient();
+
+  // Get the relationship for the current user
+  const { data: relationship, error: relationshipError } = await supabase
+    .from("relationships")
+    .select("partner1_id, partner2_id")
+    .or(`partner1_id.eq.${userId},partner2_id.eq.${userId}`)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (relationshipError || !relationship) {
+    return null;
+  }
+
+  // Determine partner ID
+  const partnerId =
+    relationship.partner1_id === userId
+      ? relationship.partner2_id
+      : relationship.partner1_id;
+
+  // Get partner's profile
+  const { data: partnerProfile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", partnerId)
+    .single();
+
+  if (profileError) {
+    console.error("Error fetching partner profile:", profileError);
+    return null;
+  }
+
+  return partnerProfile;
+}

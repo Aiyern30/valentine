@@ -11,6 +11,7 @@ import {
   BookOpen,
   Menu,
   LogOut,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
@@ -22,6 +23,7 @@ const navigation = [
   { name: "Milestones", href: "/milestones", icon: Heart },
   { name: "Confessions", href: "/confessions", icon: MessageCircle },
   { name: "Diaries", href: "/diaries", icon: BookOpen },
+  { name: "Profile", href: "/profile", icon: User },
 ];
 
 interface NavigationSidebarProps {

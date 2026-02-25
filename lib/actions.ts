@@ -88,6 +88,95 @@ export async function completeProfile(formData: FormData) {
   return { success: true };
 }
 
+export async function updateProfile(formData: FormData) {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { error: "You must be logged in to update your profile" };
+    }
+
+    const userId = user.id;
+    const displayName = formData.get("displayName") as string;
+    const username = formData.get("username") as string | null;
+    const avatarFile = formData.get("avatar") as File | null;
+
+    if (!displayName || displayName.trim() === "") {
+      return { error: "Display name is required" };
+    }
+
+    let avatarUrl = formData.get("existingAvatarUrl") as string | null;
+
+    // If a new avatar file is provided, upload it
+    if (avatarFile && avatarFile.size > 0) {
+      // Validate file type
+      if (!avatarFile.type.startsWith("image/")) {
+        return { error: "Avatar must be an image file" };
+      }
+
+      // Validate file size (max 5MB)
+      if (avatarFile.size > 5 * 1024 * 1024) {
+        return { error: "Avatar file size must be less than 5MB" };
+      }
+
+      // Generate unique filename
+      const fileExt = avatarFile.name.split(".").pop();
+      const fileName = `avatars/${userId}/${Date.now()}.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("photos")
+        .upload(fileName, avatarFile, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error("Error uploading avatar:", uploadError);
+        return { error: "Failed to upload avatar. Please try again." };
+      }
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("photos").getPublicUrl(fileName);
+
+      avatarUrl = publicUrl;
+    }
+
+    // Update profile in database
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .upsert(
+        {
+          id: userId,
+          display_name: displayName.trim(),
+          username: username?.trim() || null,
+          avatar_url: avatarUrl,
+        },
+        {
+          onConflict: "id",
+        },
+      );
+
+    if (updateError) {
+      console.error("Error updating profile:", updateError);
+      return { error: "Failed to update profile. Please try again." };
+    }
+
+    revalidatePath("/profile");
+    revalidatePath("/dashboard");
+    return { success: true, avatarUrl };
+  } catch (error) {
+    console.error("Unexpected error in updateProfile:", error);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
+}
+
 export async function createMilestone(formData: FormData) {
   const supabase = await createClient();
 
