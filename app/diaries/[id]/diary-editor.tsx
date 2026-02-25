@@ -193,38 +193,41 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-linear-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-sm font-bold shadow-lg shadow-rose-500/25 transition-all disabled:opacity-50 active:scale-95"
+              className="flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-2xl bg-linear-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-sm font-bold shadow-lg shadow-rose-500/25 transition-all disabled:opacity-50 active:scale-95"
             >
               {isSaving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <Save className="w-4 h-4" />
               )}
-              {isEdit ? "Update Chapter" : "Save Story"}
+              <span className="hidden sm:inline">
+                {isEdit ? "Update Chapter" : "Save Story"}
+              </span>
+              <span className="sm:hidden">{isEdit ? "Update" : "Save"}</span>
             </button>
           </div>
         </div>
       </header>
 
       <main
-        className={`mx-auto px-4 transition-all duration-700 ${isFullscreen ? "max-w-none py-4" : "max-w-7xl py-12"}`}
+        className={`mx-auto px-2 sm:px-4 transition-all duration-700 ${isFullscreen ? "max-w-none py-4" : "max-w-7xl py-6 sm:py-12"}`}
       >
         <div
-          className={`grid grid-cols-1 ${isFullscreen ? "lg:grid-cols-1" : "lg:grid-cols-4"} gap-12 items-start`}
+          className={`grid grid-cols-1 ${isFullscreen ? "xl:grid-cols-1" : "xl:grid-cols-4"} gap-6 sm:gap-12 items-start`}
         >
           {/* Main Content Area */}
           <div
-            className={`${isFullscreen ? "lg:col-span-1" : "lg:col-span-3"} space-y-12`}
+            className={`${isFullscreen ? "xl:col-span-1" : "xl:col-span-3"} space-y-8 sm:space-y-12`}
           >
             {/* Title & Metadata */}
-            <div className="space-y-8 px-4">
+            <div className="space-y-6 sm:space-y-8 px-2 sm:px-4">
               <div className="relative group">
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Title of our story..."
-                  className="w-full bg-transparent border-none focus:ring-0 outline-hidden text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 placeholder:text-gray-200 dark:placeholder:text-zinc-800 italic font-dancing transition-all duration-500"
+                  className="w-full bg-transparent border-none focus:ring-0 outline-hidden text-3xl sm:text-4xl xl:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 placeholder:text-gray-200 dark:placeholder:text-zinc-800 italic font-dancing transition-all duration-500"
                 />
                 <div className="h-px w-24 bg-rose-500/30 group-focus-within:w-full transition-all duration-1000 mt-4" />
               </div>
@@ -237,8 +240,13 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                     onChange={(selectedDate: Date | null) => {
                       if (selectedDate) {
                         const year = selectedDate.getFullYear();
-                        const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
-                        const day = String(selectedDate.getDate()).padStart(2, "0");
+                        const month = String(
+                          selectedDate.getMonth() + 1,
+                        ).padStart(2, "0");
+                        const day = String(selectedDate.getDate()).padStart(
+                          2,
+                          "0",
+                        );
                         setDate(`${year}-${month}-${day}`);
                       } else {
                         setDate("");
@@ -254,21 +262,21 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="px-4 py-1.5 rounded-full bg-rose-50 text-rose-600 text-[11px] font-bold uppercase tracking-widest">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <div className="px-3 sm:px-4 py-1.5 rounded-full bg-rose-50 text-rose-600 text-[11px] font-bold uppercase tracking-widest">
                   {wordCount} words
                 </div>
-                <div className="px-4 py-1.5 rounded-full bg-zinc-50 text-zinc-600 text-[11px] font-bold uppercase tracking-widest">
+                <div className="px-3 sm:px-4 py-1.5 rounded-full bg-zinc-50 text-zinc-600 text-[11px] font-bold uppercase tracking-widest">
                   ~{readingTime} min read
                 </div>
-                <div className="px-4 py-1.5 rounded-full bg-pink-50 text-pink-600 text-[11px] font-bold uppercase tracking-widest">
+                <div className="px-3 sm:px-4 py-1.5 rounded-full bg-pink-50 text-pink-600 text-[11px] font-bold uppercase tracking-widest">
                   {photos.length} photos
                 </div>
               </div>
             </div>
 
             {/* Markdown Editor - Notion-like Configuration */}
-            <div className="bg-white/90 dark:bg-zinc-950 rounded-3xl p-3 border border-gray-100 dark:border-zinc-900/50 shadow-xs focus-within:shadow-2xl transition-all duration-500 min-h-175">
+            <div className="bg-white/90 dark:bg-zinc-950 rounded-2xl sm:rounded-3xl p-2 sm:p-3 border border-gray-100 dark:border-zinc-900/50 shadow-xs focus-within:shadow-2xl transition-all duration-500 min-h-125 sm:min-h-150 xl:min-h-175">
               <MdEditor
                 modelValue={content}
                 onChange={setContent}
@@ -310,7 +318,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
 
           {!isFullscreen && (
             /* Sidebar: Photos & Stats */
-            <div className="space-y-10 lg:sticky lg:top-24">
+            <div className="hidden xl:block space-y-10 xl:sticky xl:top-24">
               {/* Photos Panel */}
               <div className="bg-white/80 dark:bg-zinc-900/70 rounded-[40px] p-8 border border-rose-100/60 dark:border-zinc-800/60 shadow-[0_20px_60px_-30px_rgba(244,63,94,0.25)] space-y-6">
                 <div className="flex items-start justify-between px-1">
@@ -324,7 +332,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   {photos.map((url, idx) => (
                     <div
                       key={idx}
@@ -350,7 +358,7 @@ export function DiaryEditor({ diary }: DiaryEditorProps) {
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="aspect-4/5 sm:aspect-square rounded-2xl border-2 border-dashed border-rose-200/80 dark:border-zinc-800 flex flex-col items-center justify-center gap-2 bg-linear-to-br from-white to-rose-50/60 dark:from-zinc-900 dark:to-zinc-900 hover:border-rose-400/70 hover:shadow-md transition-all group"
+                    className="aspect-square rounded-2xl border-2 border-dashed border-rose-200/80 dark:border-zinc-800 flex flex-col items-center justify-center gap-2 bg-linear-to-br from-white to-rose-50/60 dark:from-zinc-900 dark:to-zinc-900 hover:border-rose-400/70 hover:shadow-md transition-all group"
                   >
                     {isUploading ? (
                       <Loader2 className="w-6 h-6 text-rose-500 animate-spin" />
