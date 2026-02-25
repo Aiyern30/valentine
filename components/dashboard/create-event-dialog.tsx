@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import {
-  X,
   Loader2,
   Calendar,
   PartyPopper,
@@ -15,6 +14,14 @@ import {
   ChevronDown,
   Bell,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input, Textarea, Label } from "@/components/ui/input";
 
 interface CreateEventDialogProps {
   isOpen: boolean;
@@ -88,8 +95,6 @@ export function CreateEventDialog({
     }
   }, [selectedDate]);
 
-  if (!isOpen) return null;
-
   const currentType =
     EVENT_TYPES.find((t) => t.id === selectedType) || EVENT_TYPES[0];
   const currentReminder =
@@ -131,30 +136,17 @@ export function CreateEventDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
-
-      {/* Dialog - REMOVED overflow-hidden to allow dropdowns to show */}
-      <div className="relative w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl animate-in fade-in zoom-in-95 duration-200 border border-gray-100 dark:border-zinc-800">
-        <div className="p-8 pb-4 border-b border-gray-50 dark:border-zinc-800 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 italic font-dancing">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] p-0 gap-0 rounded-[32px] border-gray-100 dark:border-zinc-800 flex flex-col">
+        <DialogHeader className="p-6 sm:p-8 pb-4 border-b border-gray-50 dark:border-zinc-800 space-y-0 shrink-0">
+          <DialogTitle className="text-xl font-bold text-gray-900 dark:text-gray-100 italic font-dancing">
             Create New Milestone
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-          >
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
-        {/* Add max-height and overflow to the form content instead */}
-        <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
-          <form action={handleSubmit} className="p-8 space-y-5">
+        {/* Scrollable Form Content */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <form action={handleSubmit} className="p-6 sm:p-8 space-y-5">
             {error && (
               <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium border border-red-100 dark:border-red-900/30">
                 {error}
@@ -162,23 +154,20 @@ export function CreateEventDialog({
             )}
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
-                Milestone Title
-              </label>
-              <input
+              <Label>Milestone Title</Label>
+              <Input
                 name="title"
                 type="text"
                 required
                 placeholder="e.g. Sarah's Birthday"
-                className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-gray-900 dark:text-gray-100"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                <Label>
                   {selectedType === "other" ? "Start Date" : "Date"}
-                </label>
+                </Label>
                 <div className="custom-datepicker-wrapper">
                   <DatePicker
                     selected={startDate}
@@ -195,9 +184,9 @@ export function CreateEventDialog({
 
               {selectedType === "other" && (
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                  <Label>
                     End Date (Optional)
-                  </label>
+                  </Label>
                   <div className="custom-datepicker-wrapper">
                     <DatePicker
                       selected={endDate}
@@ -214,9 +203,9 @@ export function CreateEventDialog({
               )}
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                <Label>
                   Type
-                </label>
+                </Label>
                 <div className="relative">
                   <input
                     type="hidden"
@@ -282,24 +271,23 @@ export function CreateEventDialog({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+              <Label>
                 Description (Optional)
-              </label>
-              <textarea
+              </Label>
+              <Textarea
                 name="description"
                 rows={3}
                 placeholder="Add some details..."
-                className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all resize-none placeholder:text-gray-400 dark:placeholder:text-zinc-600 text-gray-900 dark:text-gray-100"
               />
             </div>
 
             {/* Reminder Section */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1 flex items-center gap-2">
+                <Label className="flex items-center gap-2">
                   <Bell className="w-4 h-4 text-gray-400" />
                   Reminder
-                </label>
+                </Label>
                 <div className="relative">
                   <input
                     type="hidden"
@@ -366,14 +354,13 @@ export function CreateEventDialog({
               {/* Reminder Time (for day_of reminders) */}
               {selectedReminder === "day_of" && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
+                  <Label className="font-medium">
                     Reminder Time
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     name="reminderTime"
                     type="time"
                     defaultValue="09:00"
-                    className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
                   />
                 </div>
               )}
@@ -381,15 +368,15 @@ export function CreateEventDialog({
               {/* Advance Reminder (for in_advance reminders) */}
               {selectedReminder === "in_advance" && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
+                  <Label className="font-medium">
                     Remind Before
-                  </label>
+                  </Label>
                   <div className="grid grid-cols-3 gap-3">
                     {/* Days Dropdown */}
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                      <Label className="text-xs">
                         Days
-                      </label>
+                      </Label>
                       <div className="relative">
                         <input
                           type="hidden"
@@ -445,9 +432,9 @@ export function CreateEventDialog({
 
                     {/* Hours Dropdown */}
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                      <Label className="text-xs">
                         Hours
-                      </label>
+                      </Label>
                       <div className="relative">
                         <input
                           type="hidden"
@@ -503,9 +490,9 @@ export function CreateEventDialog({
 
                     {/* Minutes Dropdown */}
                     <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                      <Label className="text-xs">
                         Minutes
-                      </label>
+                      </Label>
                       <div className="relative">
                         <input
                           type="hidden"
@@ -565,18 +552,21 @@ export function CreateEventDialog({
             </div>
 
             <div className="pt-6 flex items-center justify-end gap-3">
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="lg"
                 onClick={onClose}
                 disabled={isLoading}
-                className="px-6 py-3 rounded-2xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 font-bold transition-colors disabled:opacity-50"
+                className="rounded-2xl text-gray-600 dark:text-gray-400 font-bold"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                variant="gradient"
+                size="xl"
                 disabled={isLoading}
-                className="px-8 py-3 rounded-2xl bg-linear-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold shadow-lg shadow-rose-500/25 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -586,11 +576,11 @@ export function CreateEventDialog({
                 ) : (
                   <>Create Milestone</>
                 )}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
