@@ -3,6 +3,8 @@
 import { useState, useRef } from "react";
 import { uploadPhoto } from "@/lib/actions";
 import { useRouter } from "next/navigation";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import {
   Loader2,
   Upload,
@@ -37,6 +39,7 @@ export function UploadPhotoDialog({ isOpen, onClose }: UploadPhotoDialogProps) {
   const [isCompressing, setIsCompressing] = useState(false);
   const [originalSize, setOriginalSize] = useState<number>(0);
   const [compressedSize, setCompressedSize] = useState<number>(0);
+  const [takenDate, setTakenDate] = useState<Date | null>(new Date());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -90,6 +93,14 @@ export function UploadPhotoDialog({ isOpen, onClose }: UploadPhotoDialogProps) {
       // Append the compressed file
       formData.set("file", selectedFile);
 
+      // Add taken date if selected
+      if (takenDate) {
+        const year = takenDate.getFullYear();
+        const month = String(takenDate.getMonth() + 1).padStart(2, "0");
+        const day = String(takenDate.getDate()).padStart(2, "0");
+        formData.set("takenDate", `${year}-${month}-${day}`);
+      }
+
       const result = await uploadPhoto(formData);
 
       if (result.error) {
@@ -103,6 +114,7 @@ export function UploadPhotoDialog({ isOpen, onClose }: UploadPhotoDialogProps) {
         setPreviewUrl(null);
         setOriginalSize(0);
         setCompressedSize(0);
+        setTakenDate(new Date());
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -118,6 +130,7 @@ export function UploadPhotoDialog({ isOpen, onClose }: UploadPhotoDialogProps) {
       setError(null);
       setOriginalSize(0);
       setCompressedSize(0);
+      setTakenDate(new Date());
       onClose();
     }
   };
@@ -133,7 +146,7 @@ export function UploadPhotoDialog({ isOpen, onClose }: UploadPhotoDialogProps) {
 
         <form action={handleSubmit} className="flex flex-col flex-1 min-h-0">
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
+          <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 pt-0!">
             {error && (
               <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium border border-red-100 dark:border-red-900/30">
                 {error}
@@ -226,12 +239,17 @@ export function UploadPhotoDialog({ isOpen, onClose }: UploadPhotoDialogProps) {
                 <Calendar className="w-4 h-4 text-gray-400" />
                 Date Taken (Optional)
               </label>
-              <input
-                name="takenDate"
-                type="date"
-                defaultValue={new Date().toISOString().split("T")[0]}
-                className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
-              />
+              <div className="custom-datepicker-wrapper">
+                <DatePicker
+                  selected={takenDate}
+                  onChange={(date: Date | null) => setTakenDate(date)}
+                  dateFormat="MM/dd/yyyy"
+                  className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                  calendarClassName="custom-calendar"
+                  showPopperArrow={false}
+                  popperPlacement="bottom-start"
+                />
+              </div>
             </div>
           </div>
 

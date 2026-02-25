@@ -145,7 +145,7 @@ export function CreateEventDialog({
 
         {/* Scrollable Form Content */}
         <div className="flex-1 overflow-y-auto min-h-0">
-          <form action={handleSubmit} className="p-6 sm:p-8 space-y-5">
+          <form action={handleSubmit} className="p-6 sm:p-8 space-y-5 pt-0!">
             {error && (
               <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium border border-red-100 dark:border-red-900/30">
                 {error}
