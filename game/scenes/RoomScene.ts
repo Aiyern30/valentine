@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-
+type CatType = "siamese" | "orange" | "black" | "gray" | "calico";
 export class RoomScene extends Phaser.Scene {
   private cat!: Phaser.GameObjects.Container;
   private catBody!: Phaser.GameObjects.Graphics;
@@ -372,28 +372,33 @@ export class RoomScene extends Phaser.Scene {
     this.catBody = this.add.graphics();
     this.catTail = this.add.graphics();
 
-    this.drawCatGraphics(this.catBody, this.catTail);
+    // 🔥 Choose a cat type
+    const types: CatType[] = ["siamese", "orange", "black", "gray", "calico"];
+    const randomType = Phaser.Utils.Array.GetRandom(types);
+
+    // ✅ CALL THE FUNCTION HERE
+    this.drawCatGraphics(this.catBody, this.catTail, randomType);
 
     this.cat.add([this.catTail, this.catBody]);
 
-    // Sparkle above cat head
     const sparkle = this.add.text(-5, -68, "✨", { fontSize: "14px" });
     this.cat.add(sparkle);
 
-    // Make cat interactive
     this.catBody.setInteractive(
       new Phaser.Geom.Circle(0, -15, 50),
       Phaser.Geom.Circle.Contains,
     );
 
     this.catBody.on("pointerover", () => {
-      this.showTooltip("Pat me! 🐾");
+      this.showTooltip(`Pat the ${randomType} cat! 🐾`);
       this.game.canvas.style.cursor = "pointer";
     });
+
     this.catBody.on("pointerout", () => {
       this.hideTooltip();
       this.game.canvas.style.cursor = "default";
     });
+
     this.catBody.on("pointerdown", () => {
       this.patCat();
     });
@@ -402,119 +407,125 @@ export class RoomScene extends Phaser.Scene {
   private drawCatGraphics(
     body: Phaser.GameObjects.Graphics,
     tail: Phaser.GameObjects.Graphics,
+    type: CatType,
   ) {
-    // Tail — use CubicBezier curve (bezierCurveTo does not exist on Phaser 3 Graphics)
+    body.clear();
     tail.clear();
-    const tailCurve1 = new Phaser.Curves.CubicBezier(
+
+    // ───── COLOR PRESETS ─────
+    let mainColor = 0xf5ebe0;
+    let earInner = 0xffb7c5;
+    let noseColor = 0xff9999;
+    let eyeColor = 0x554433;
+    let patternColor = 0xffffff;
+
+    switch (type) {
+      case "siamese":
+        mainColor = 0xf5e6c8;
+        patternColor = 0x6b4f3b;
+        noseColor = 0x884444;
+        break;
+
+      case "orange":
+        mainColor = 0xffb347;
+        patternColor = 0xff9933;
+        break;
+
+      case "black":
+        mainColor = 0x222222;
+        earInner = 0x444444;
+        noseColor = 0xff77aa;
+        eyeColor = 0xffffff;
+        break;
+
+      case "gray":
+        mainColor = 0xcfd2d6;
+        patternColor = 0xb0b4ba;
+        break;
+
+      case "calico":
+        mainColor = 0xffffff;
+        break;
+    }
+
+    // ───── TAIL ─────
+    const tailCurve = new Phaser.Curves.CubicBezier(
       new Phaser.Math.Vector2(20, 20),
       new Phaser.Math.Vector2(60, 10),
       new Phaser.Math.Vector2(70, -20),
       new Phaser.Math.Vector2(50, -40),
     );
-    tail.lineStyle(10, 0xf0e0d0, 1);
-    tail.strokePoints(tailCurve1.getPoints(32), false, false);
 
-    const tailCurve2 = new Phaser.Curves.CubicBezier(
-      new Phaser.Math.Vector2(22, 18),
-      new Phaser.Math.Vector2(58, 8),
-      new Phaser.Math.Vector2(68, -18),
-      new Phaser.Math.Vector2(48, -38),
-    );
-    tail.lineStyle(6, 0xfff0e8, 1);
-    tail.strokePoints(tailCurve2.getPoints(32), false, false);
+    tail.lineStyle(10, mainColor, 1);
+    tail.strokePoints(tailCurve.getPoints(32), false, false);
 
-    // Body
-    body.clear();
-    body.fillStyle(0xf5ebe0, 1);
+    // Siamese darker tail tip
+    if (type === "siamese") {
+      tail.lineStyle(6, patternColor, 1);
+      tail.strokePoints(tailCurve.getPoints(32), false, false);
+    }
+
+    // ───── BODY ─────
+    body.fillStyle(mainColor, 1);
     body.fillEllipse(0, 10, 80, 75);
 
-    // Tummy patch
-    body.fillStyle(0xffffff, 0.8);
-    body.fillEllipse(0, 15, 44, 50);
+    // Pattern patches
+    if (type === "calico") {
+      body.fillStyle(0xff9933, 1);
+      body.fillCircle(-20, 10, 20);
+      body.fillStyle(0x333333, 1);
+      body.fillCircle(25, 0, 18);
+    }
 
-    // Head
-    body.fillStyle(0xf5ebe0, 1);
+    if (type === "orange" || type === "gray") {
+      body.fillStyle(patternColor, 0.6);
+      for (let i = -2; i <= 2; i++) {
+        body.fillEllipse(i * 12, 5, 10, 30);
+      }
+    }
+
+    // ───── HEAD ─────
+    body.fillStyle(mainColor, 1);
     body.fillCircle(0, -32, 38);
 
+    // Siamese face mask
+    if (type === "siamese") {
+      body.fillStyle(patternColor, 1);
+      body.fillEllipse(0, -28, 55, 40);
+    }
+
     // Ears
-    body.fillStyle(0xf5ebe0, 1);
+    body.fillStyle(mainColor, 1);
     body.fillTriangle(-28, -60, -10, -62, -20, -35);
     body.fillTriangle(28, -60, 10, -62, 20, -35);
-    // Inner ear
-    body.fillStyle(0xffb7c5, 1);
+
+    body.fillStyle(earInner, 1);
     body.fillTriangle(-24, -58, -13, -58, -18, -40);
     body.fillTriangle(24, -58, 13, -58, 18, -40);
 
-    // Eyes (closed happy)
-    body.lineStyle(3, 0x554433, 1);
-    body.beginPath();
-    body.arc(
-      -13,
-      -34,
-      8,
-      Phaser.Math.DegToRad(0),
-      Phaser.Math.DegToRad(180),
-      true,
-    );
-    body.strokePath();
-    body.beginPath();
-    body.arc(
-      13,
-      -34,
-      8,
-      Phaser.Math.DegToRad(0),
-      Phaser.Math.DegToRad(180),
-      true,
-    );
-    body.strokePath();
+    // Eyes (open for black cat 👀)
+    body.lineStyle(3, eyeColor, 1);
 
-    // Rosy cheeks
-    body.fillStyle(0xffb7c5, 0.5);
-    body.fillCircle(-20, -26, 9);
-    body.fillCircle(20, -26, 9);
+    if (type === "black") {
+      body.strokeCircle(-13, -34, 5);
+      body.strokeCircle(13, -34, 5);
+    } else {
+      body.beginPath();
+      body.arc(-13, -34, 8, 0, Math.PI, true);
+      body.strokePath();
+      body.beginPath();
+      body.arc(13, -34, 8, 0, Math.PI, true);
+      body.strokePath();
+    }
 
     // Nose
-    body.fillStyle(0xff9999, 1);
+    body.fillStyle(noseColor, 1);
     body.fillTriangle(-4, -22, 4, -22, 0, -17);
-
-    // Mouth
-    body.lineStyle(2, 0x998877, 1);
-    body.beginPath();
-    body.arc(
-      -5,
-      -15,
-      5,
-      Phaser.Math.DegToRad(0),
-      Phaser.Math.DegToRad(180),
-      false,
-    );
-    body.strokePath();
-    body.beginPath();
-    body.arc(
-      5,
-      -15,
-      5,
-      Phaser.Math.DegToRad(0),
-      Phaser.Math.DegToRad(180),
-      false,
-    );
-    body.strokePath();
 
     // Whiskers
     body.lineStyle(1.5, 0xaaaaaa, 0.8);
     body.lineBetween(-38, -22, -18, -20);
-    body.lineBetween(-38, -16, -18, -16);
     body.lineBetween(38, -22, 18, -20);
-    body.lineBetween(38, -16, 18, -16);
-
-    // Little flower accessory on ear
-    body.fillStyle(0xffdd44, 1);
-    body.fillCircle(-22, -58, 5);
-    body.fillStyle(0xffffff, 1);
-    for (let i = 0; i < 5; i++) {
-      const a = (i / 5) * Math.PI * 2;
-      body.fillCircle(-22 + Math.cos(a) * 7, -58 + Math.sin(a) * 7, 3);
-    }
   }
 
   // ─── Particles & Interactions ───────────────────────────────────────────────
@@ -599,15 +610,17 @@ export class RoomScene extends Phaser.Scene {
       loop: true,
       callback: () => {
         const sparkles = ["✦", "·", "˚", "✧", "⋆"];
-        const s = this.add.text(
-          Phaser.Math.Between(20, W - 20),
-          Phaser.Math.Between(H * 0.1, H * 0.6),
-          sparkles[Math.floor(Math.random() * sparkles.length)],
-          {
-            fontSize: Phaser.Math.Between(10, 18) + "px",
-            color: "#ffb7c5",
-          },
-        ).setAlpha(0);
+        const s = this.add
+          .text(
+            Phaser.Math.Between(20, W - 20),
+            Phaser.Math.Between(H * 0.1, H * 0.6),
+            sparkles[Math.floor(Math.random() * sparkles.length)],
+            {
+              fontSize: Phaser.Math.Between(10, 18) + "px",
+              color: "#ffb7c5",
+            },
+          )
+          .setAlpha(0);
         this.tweens.add({
           targets: s,
           alpha: { from: 0, to: 0.7 },
