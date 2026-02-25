@@ -11,6 +11,24 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Get user's profile to check if they've accepted terms
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("terms_accepted")
+          .eq("id", user.id)
+          .single();
+
+        // If terms not accepted, redirect to terms page
+        if (!profile?.terms_accepted) {
+          return NextResponse.redirect(`${origin}/terms`);
+        }
+      }
+
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
@@ -18,3 +36,4 @@ export async function GET(request: Request) {
   // return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/auth/auth-code-error`);
 }
+

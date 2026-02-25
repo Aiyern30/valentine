@@ -175,6 +175,38 @@ export async function updateProfile(formData: FormData) {
   }
 }
 
+export async function acceptTerms() {
+  try {
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { error: "You must be logged in" };
+    }
+
+    // Update profile to mark terms as accepted
+    const { error } = await supabase
+      .from("profiles")
+      .update({ terms_accepted: true })
+      .eq("id", user.id);
+
+    if (error) {
+      console.error("Error accepting terms:", error);
+      return { error: "Failed to accept terms. Please try again." };
+    }
+
+    revalidatePath("/");
+    revalidatePath("/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Unexpected error in acceptTerms:", error);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
+}
+
 export async function createMilestone(formData: FormData) {
   const supabase = await createClient();
 

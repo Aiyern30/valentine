@@ -86,6 +86,7 @@ CREATE TABLE public.profiles (
   username text UNIQUE,
   display_name text,
   avatar_url text,
+  terms_accepted boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
