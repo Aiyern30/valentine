@@ -192,11 +192,40 @@ const ConfessionsPage = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto"></div>
-              <p className="text-gray-600 dark:text-gray-400 mt-4">
-                Loading confessions...
-              </p>
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] bg-white dark:bg-zinc-800/50 rounded-3xl border border-rose-100 dark:border-rose-900/20">
+              <div className="relative">
+                {/* Animated Hearts */}
+                <div className="absolute -top-20 -left-20 w-40 h-40 bg-rose-200/20 dark:bg-rose-500/10 rounded-full animate-pulse" />
+                <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-pink-200/20 dark:bg-pink-500/10 rounded-full animate-pulse" style={{ animationDelay: '700ms' }} />
+                
+                {/* Main Loading Content */}
+                <div className="relative z-10 flex flex-col items-center gap-6 p-8">
+                  {/* Spinning Heart Icon */}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-linear-to-r from-rose-500 to-pink-500 rounded-full blur-xl opacity-50 animate-pulse" />
+                    <div className="relative w-20 h-20 bg-linear-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center shadow-xl animate-bounce">
+                      <Heart className="w-10 h-10 text-white fill-white" />
+                    </div>
+                  </div>
+                  
+                  {/* Loading Text */}
+                  <div className="text-center space-y-2">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white italic font-dancing">
+                      Loading your confessions...
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Gathering all your love letters
+                    </p>
+                  </div>
+                  
+                  {/* Animated Dots */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-rose-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-3 h-3 bg-rose-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
