@@ -69,7 +69,7 @@ function SidebarContent({
       <nav className="flex flex-1 flex-col px-6 py-4">
         <ul role="list" className="flex flex-1 flex-col gap-y-2">
           {navigation.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname.startsWith(item.href);
             return (
               <li key={item.name}>
                 <Link
