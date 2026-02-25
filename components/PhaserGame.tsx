@@ -14,22 +14,25 @@ export default function PhaserGame({ onCatPatted }: PhaserGameProps) {
   useEffect(() => {
     if (!containerRef.current || gameRef.current) return;
 
-    // Dynamic import to avoid SSR issues
-    (async () => {
+    const container = containerRef.current;
+
+    // Small delay so the DOM has painted and clientWidth/Height are real
+    const timer = setTimeout(async () => {
       const { createGame } = await import("@/game/gameConfig");
-      const game = createGame(containerRef.current!);
+      const game = createGame(container);
       gameRef.current = game;
 
-      // Wait for scene to be ready then hook up events
+      // Hook up cat pat event after scene boots
       game.events.once("ready", () => {
         const scene = game.scene.getScene("RoomScene");
         if (scene && onCatPatted) {
           scene.events.on("catPatted", onCatPatted);
         }
       });
-    })();
+    }, 50);
 
     return () => {
+      clearTimeout(timer);
       gameRef.current?.destroy(true);
       gameRef.current = null;
     };
@@ -39,8 +42,12 @@ export default function PhaserGame({ onCatPatted }: PhaserGameProps) {
   return (
     <div
       ref={containerRef}
-      className="w-full h-full"
-      style={{ touchAction: "none" }}
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+      }}
     />
   );
 }

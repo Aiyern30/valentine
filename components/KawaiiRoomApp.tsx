@@ -19,10 +19,10 @@ const PAT_MESSAGES = [
 
 const ACTION_MESSAGES: Record<string, string> = {
   "Dress Up": "Trying on outfits! 🎀",
-  "Feed": "Nom nom nom! 🍡",
-  "Play": "Yay, play time! 🎮",
-  "Bath": "Splish splash! 🛁",
-  "Sleep": "Sweet dreams... 💤",
+  Feed: "Nom nom nom! 🍡",
+  Play: "Yay, play time! 🎮",
+  Bath: "Splish splash! 🛁",
+  Sleep: "Sweet dreams... 💤",
 };
 
 export default function KawaiiRoomApp() {
@@ -42,35 +42,34 @@ export default function KawaiiRoomApp() {
     showToast(msg);
   }, [showToast]);
 
-  const handleAction = useCallback((label: string) => {
-    const msg = ACTION_MESSAGES[label] ?? `${label}! ✨`;
-    showToast(msg);
-  }, [showToast]);
+  const handleAction = useCallback(
+    (label: string) => {
+      const msg = ACTION_MESSAGES[label] ?? `${label}! ✨`;
+      showToast(msg);
+    },
+    [showToast],
+  );
 
   return (
+    // Must have explicit height — 100svh works on mobile too
     <div
-      className="relative w-screen h-screen overflow-hidden"
-      style={{ background: "#fef3e8" }}
+      style={{
+        position: "relative",
+        width: "100vw",
+        height: "100svh",
+        overflow: "hidden",
+        background: "#fef3e8",
+      }}
     >
-      {/* Phaser game canvas fills entire background */}
-      <div className="absolute inset-0">
-        <PhaserGame onCatPatted={handleCatPatted} />
-      </div>
+      {/* Phaser canvas — absolutely fills the whole background */}
+      <PhaserGame onCatPatted={handleCatPatted} />
 
-      {/* React UI overlays on top */}
-      <HudBar
-        petName="Mochi"
-        daysTogther={daysTogether}
-        patCount={patCount}
-      />
+      {/* React UI overlays */}
+      <HudBar petName="Mochi" daysTogther={daysTogether} patCount={patCount} />
 
       <BottomBar onAction={handleAction} />
 
-      <Toast
-        key={toastKey}
-        message={toastMsg}
-        visible={!!toastMsg}
-      />
+      <Toast key={toastKey} message={toastMsg} visible={!!toastMsg} />
     </div>
   );
 }
