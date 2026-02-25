@@ -1,8 +1,5 @@
 "use client";
 
-import { CatType } from "@/types/cat";
-import { useState } from "react";
-
 interface HudBarProps {
   petName: string;
   daysTogther: number;
@@ -14,8 +11,6 @@ export default function HudBar({
   daysTogther,
   patCount,
 }: HudBarProps) {
-  const [catType, setCatType] = useState<CatType>("siamese");
-
   return (
     <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2 pointer-events-none">
       {/* Left: Pet name tag */}
@@ -23,17 +18,7 @@ export default function HudBar({
         <div className="w-8 h-8 rounded-full bg-linear-to-br from-pink-200 to-pink-300 flex items-center justify-center text-sm">
           🐱
         </div>
-        <select
-          value={catType}
-          onChange={(e) => setCatType(e.target.value as CatType)}
-          className="absolute top-16 left-4 z-20 bg-white rounded-lg px-2 py-1 shadow"
-        >
-          <option value="siamese">Siamese</option>
-          <option value="orange">Orange</option>
-          <option value="black">Black</option>
-          <option value="gray">Gray</option>
-          <option value="calico">Calico</option>
-        </select>
+
         <span className="text-sm font-bold text-pink-500 font-kawaii">
           {petName}
         </span>

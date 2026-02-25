@@ -1,6 +1,8 @@
 import { CatType } from "@/types/cat";
 import Phaser from "phaser";
+
 export class RoomScene extends Phaser.Scene {
+  private currentCatType: CatType = "siamese";
   private cat!: Phaser.GameObjects.Container;
   private catBody!: Phaser.GameObjects.Graphics;
   private catTail!: Phaser.GameObjects.Graphics;
@@ -372,12 +374,8 @@ export class RoomScene extends Phaser.Scene {
     this.catBody = this.add.graphics();
     this.catTail = this.add.graphics();
 
-    // 🔥 Choose a cat type
-    const types: CatType[] = ["siamese", "orange", "black", "gray", "calico"];
-    const randomType = Phaser.Utils.Array.GetRandom(types);
-
+    this.drawCatGraphics(this.catBody, this.catTail, this.currentCatType);
     // ✅ CALL THE FUNCTION HERE
-    this.drawCatGraphics(this.catBody, this.catTail, randomType);
 
     this.cat.add([this.catTail, this.catBody]);
 
@@ -390,7 +388,7 @@ export class RoomScene extends Phaser.Scene {
     );
 
     this.catBody.on("pointerover", () => {
-      this.showTooltip(`Pat the ${randomType} cat! 🐾`);
+      this.showTooltip(`Pat the ${this.currentCatType} cat! 🐾`);
       this.game.canvas.style.cursor = "pointer";
     });
 
@@ -528,6 +526,13 @@ export class RoomScene extends Phaser.Scene {
     body.lineBetween(38, -22, 18, -20);
   }
 
+  public setCatType(type: CatType) {
+    this.currentCatType = type;
+
+    if (this.catBody && this.catTail) {
+      this.drawCatGraphics(this.catBody, this.catTail, type);
+    }
+  }
   // ─── Particles & Interactions ───────────────────────────────────────────────
 
   private setupParticles() {
