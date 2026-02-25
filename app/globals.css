@@ -554,6 +554,12 @@
           font-style: italic !important;
           margin: 1.5rem 0 !important;
         }
+        .md-editor-preview-wrapper blockquote > * {
+          margin-top: 0 !important;
+        }
+        .md-editor-preview-wrapper blockquote > *:last-child {
+          margin-bottom: 0 !important;
+        }
         .dark .md-editor-preview-wrapper blockquote {
           background: rgba(225, 29, 72, 0.05) !important;
           border-left-color: #e11d48 !important;
@@ -573,10 +579,27 @@
         }
         .md-editor-preview-wrapper table {
           width: 100% !important;
-          border-collapse: collapse !important;
+          border-collapse: separate !important;
+          border-spacing: 0 !important;
           margin: 1.5rem 0 !important;
           border-radius: 1rem !important;
           overflow: hidden !important;
+          border: 1px solid #fecdd3 !important;
+        }
+        .dark .md-editor-preview-wrapper table {
+          border-color: rgba(244, 63, 94, 0.2) !important;
+        }
+        .md-editor-preview-wrapper table thead tr:first-child th:first-child {
+          border-top-left-radius: 1rem !important;
+        }
+        .md-editor-preview-wrapper table thead tr:first-child th:last-child {
+          border-top-right-radius: 1rem !important;
+        }
+        .md-editor-preview-wrapper table tbody tr:last-child td:first-child {
+          border-bottom-left-radius: 1rem !important;
+        }
+        .md-editor-preview-wrapper table tbody tr:last-child td:last-child {
+          border-bottom-right-radius: 1rem !important;
         }
         .md-editor-preview-wrapper table th {
           background: linear-gradient(135deg, #f43f5e, #ec4899) !important;
@@ -584,11 +607,17 @@
           padding: 1rem !important;
           text-align: left !important;
           font-weight: 700 !important;
+          border: none !important;
         }
         .md-editor-preview-wrapper table td {
           padding: 0.875rem 1rem !important;
           border-bottom: 1px solid #fecdd3 !important;
+          border-left: none !important;
+          border-right: none !important;
           color: #52525b !important;
+        }
+        .md-editor-preview-wrapper table tbody tr:last-child td {
+          border-bottom: none !important;
         }
         .dark .md-editor-preview-wrapper table td {
           color: #d4d4d8 !important;
@@ -616,6 +645,24 @@
         }
         .dark .md-editor-input-wrapper textarea {
           color: #d4d4d8 !important;
+        }
+        .md-editor-dropdown {
+          background-color: white !important;
+          z-index: 30000 !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+          border: 1px solid #e6e6e6 !important;
+          border-radius: 8px !important;
+        }
+        .dark .md-editor-dropdown {
+          background-color: #1a1a1a !important;
+          border-color: #2d2d2d !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+        }
+        .md-editor-menu {
+          background-color: white !important;
+        }
+        .dark .md-editor-menu {
+          background-color: #1a1a1a !important;
         }
 
         .diary-markdown-preview {
@@ -805,8 +852,12 @@
           border-radius: 1rem !important;
           font-style: italic !important;
           margin: 1.5rem 0 !important;
+        }        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) blockquote > * {
+          margin-top: 0 !important;
         }
-        .dark .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) blockquote {
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) blockquote > *:last-child {
+          margin-bottom: 0 !important;
+        }        .dark .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) blockquote {
           background: rgba(225, 29, 72, 0.05) !important;
           border-left-color: #e11d48 !important;
         }
@@ -825,22 +876,45 @@
         }
         .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) table {
           width: 100% !important;
-          border-collapse: collapse !important;
+          border-collapse: separate !important;
+          border-spacing: 0 !important;
           margin: 1.5rem 0 !important;
           border-radius: 1rem !important;
           overflow: hidden !important;
+          border: 1px solid #fecdd3 !important;
         }
-        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) table th {
+        .dark .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) table {
+          border-color: rgba(244, 63, 94, 0.2) !important;
+        }
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) table thead tr:first-child th:first-child {
+          border-top-left-radius: 1rem !important;
+        }
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) table thead tr:first-child th:last-child {
+          border-top-right-radius: 1rem !important;
+        }
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) table tbody tr:last-child td:first-child {
+          border-bottom-left-radius: 1rem !important;
+        }
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) table tbody tr:last-child td:last-child {
+          border-bottom-right-radius: 1rem !important;
+        }
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) table th {
           background: linear-gradient(135deg, #f43f5e, #ec4899) !important;
           color: white !important;
           padding: 1rem !important;
           text-align: left !important;
           font-weight: 700 !important;
+          border: none !important;
         }
         .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) table td {
           padding: 0.875rem 1rem !important;
           border-bottom: 1px solid #fecdd3 !important;
+          border-left: none !important;
+          border-right: none !important;
           color: #e11d48 !important;
+        }
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) table tbody tr:last-child td {
+          border-bottom: none !important;
         }
         .dark .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) table td {
           color: #fda4af !important;
