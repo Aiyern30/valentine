@@ -25,6 +25,22 @@ const ACTION_MESSAGES: Record<string, string> = {
   Bath: "Splish splash! 🛁",
   Sleep: "Sweet dreams... 💤",
 };
+const CAT_BREEDS: { value: CatType; label: string }[] = [
+  { value: "siamese", label: "Siamese" },
+  { value: "persian", label: "Persian" },
+  { value: "maine_coon", label: "Maine Coon" },
+  { value: "british_shorthair", label: "British Shorthair" },
+  { value: "ragdoll", label: "Ragdoll" },
+  { value: "bengal", label: "Bengal" },
+  { value: "sphynx", label: "Sphynx" },
+  { value: "scottish_fold", label: "Scottish Fold" },
+  { value: "abyssinian", label: "Abyssinian" },
+  { value: "american_shorthair", label: "American Shorthair" },
+  { value: "orange", label: "Orange" },
+  { value: "black", label: "Black" },
+  { value: "gray", label: "Gray" },
+  { value: "calico", label: "Calico" },
+];
 
 export default function KawaiiRoomApp() {
   const [patCount, setPatCount] = useState(0);
@@ -70,16 +86,15 @@ export default function KawaiiRoomApp() {
         name="cat-type"
         value={catType}
         onChange={(e) => {
-          console.log("Dropdown changed to:", e.target.value);
           setCatType(e.target.value as CatType);
         }}
-        className="absolute top-16 left-4 z-20 bg-white rounded-lg px-2 py-1 shadow"
+        className="absolute top-16 left-4 z-20 bg-white rounded-lg px-2 py-1 shadow text-sm"
       >
-        <option value="siamese">Siamese</option>
-        <option value="orange">Orange</option>
-        <option value="black">Black</option>
-        <option value="gray">Gray</option>
-        <option value="calico">Calico</option>
+        {CAT_BREEDS.map((breed) => (
+          <option key={breed.value} value={breed.value}>
+            {breed.label}
+          </option>
+        ))}
       </select>
 
       {/* React UI overlays */}

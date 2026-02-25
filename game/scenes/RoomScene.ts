@@ -2,7 +2,7 @@ import { CatType } from "@/types/cat";
 import Phaser from "phaser";
 
 export class RoomScene extends Phaser.Scene {
-  private currentCatType: CatType = "siamese";
+  private currentCatType: CatType = "black";
   private cat!: Phaser.GameObjects.Container;
   private catBody!: Phaser.GameObjects.Graphics;
   private catTail!: Phaser.GameObjects.Graphics;
@@ -172,7 +172,7 @@ export class RoomScene extends Phaser.Scene {
       g.lineBetween(x + sx, y + 6, x + sx + (i % 2 === 0 ? -4 : 4), y + 50);
     });
     // Star shape
-    this.add.text(x - 8, y + 50, "✦", {
+    this.add.text(x - 8, y + 50, "\u2726", {
       fontSize: "16px",
       color: "#c8a060",
     });
@@ -323,8 +323,8 @@ export class RoomScene extends Phaser.Scene {
     g.fillEllipse(sx + sw / 2, sy - 24, 14, 18);
 
     // Cat figurine row 3
-    this.add.text(sx + 14, sy + 120, "🐱", { fontSize: "18px" });
-    this.add.text(sx + 44, sy + 118, "⭐", { fontSize: "14px" });
+    this.add.text(sx + 14, sy + 120, "\uD83D\uDC31", { fontSize: "18px" });
+    this.add.text(sx + 44, sy + 118, "\u2B50", { fontSize: "14px" });
   }
 
   private drawPhotograph(W: number, H: number) {
@@ -353,7 +353,7 @@ export class RoomScene extends Phaser.Scene {
     g.fillRoundedRect(mx - 45, my, 90, 5, 2);
 
     // Strings and charms
-    const charms = ["🌙", "⭐", "🌸", "☁️"];
+    const charms = ["\uD83C\uDF19", "\u2B50", "\uD83C\uDF38", "\u2601\uFE0F"];
     const offsets = [-32, -10, 12, 32];
     const lengths = [40, 55, 45, 35];
     offsets.forEach((ox, i) => {
@@ -381,7 +381,7 @@ export class RoomScene extends Phaser.Scene {
 
     this.cat.add([this.catTail, this.catBody]);
 
-    const sparkle = this.add.text(-5, -68, "✨", { fontSize: "14px" });
+    const sparkle = this.add.text(-5, -68, "\u2728", { fontSize: "14px" });
     this.cat.add(sparkle);
 
     this.setupCatInteraction();
@@ -394,7 +394,8 @@ export class RoomScene extends Phaser.Scene {
     );
 
     this.catBody.on("pointerover", () => {
-      this.showTooltip(`Pat the ${this.currentCatType} cat! 🐾`);
+      const name = this.currentCatType.replace("_", " ");
+      this.showTooltip(`Pat the ${name} cat!`);
       this.game.canvas.style.cursor = "pointer";
     });
 
@@ -413,7 +414,6 @@ export class RoomScene extends Phaser.Scene {
     tail: Phaser.GameObjects.Graphics,
     type: CatType,
   ) {
-    console.log("[drawCatGraphics] Starting for type:", type);
     body.clear();
     tail.clear();
 
@@ -423,19 +423,99 @@ export class RoomScene extends Phaser.Scene {
     let noseColor = 0xff9999;
     let eyeColor = 0x554433;
     let patternColor = 0xffffff;
+    let bellyColor = -1; // -1 means no separate belly
+    let hasStripes = false;
+    let hasSpots = false;
+    let hasTicking = false;
+    let isSphynx = false;
+    let isScottishFold = false;
+    let isMaineCoon = false;
+    let isPersian = false;
+    let openEyes = false;
 
     switch (type) {
       case "siamese":
         mainColor = 0xf5e6c8;
         patternColor = 0x6b4f3b;
         noseColor = 0x884444;
-        console.log("[drawCatGraphics] Set to SIAMESE colors");
+        break;
+
+      case "persian":
+        mainColor = 0xf0e8e0;
+        patternColor = 0xe8ddd0;
+        noseColor = 0xffaaaa;
+        isPersian = true;
+        break;
+
+      case "maine_coon":
+        mainColor = 0x8b6842;
+        patternColor = 0x5c4030;
+        bellyColor = 0xd4b896;
+        noseColor = 0xcc7777;
+        hasStripes = true;
+        isMaineCoon = true;
+        break;
+
+      case "british_shorthair":
+        mainColor = 0x8899aa;
+        patternColor = 0x7788a0;
+        noseColor = 0xcc8888;
+        eyeColor = 0xcc8822; // copper eyes
+        openEyes = true;
+        break;
+
+      case "ragdoll":
+        mainColor = 0xf5f0e8;
+        patternColor = 0x9baab8; // blue-gray points
+        noseColor = 0xddaaaa;
+        bellyColor = 0xffffff;
+        break;
+
+      case "bengal":
+        mainColor = 0xd4a44c;
+        patternColor = 0x5c3a1a;
+        noseColor = 0xcc6655;
+        hasSpots = true;
+        openEyes = true;
+        eyeColor = 0x55aa44; // green eyes
+        break;
+
+      case "sphynx":
+        mainColor = 0xe8c8b0;
+        earInner = 0xddb8a0;
+        noseColor = 0xddaaaa;
+        eyeColor = 0x55aa88; // green eyes
+        isSphynx = true;
+        openEyes = true;
+        break;
+
+      case "scottish_fold":
+        mainColor = 0xb0b8c0;
+        patternColor = 0xa0a8b0;
+        noseColor = 0xddaaaa;
+        eyeColor = 0xdd8822; // amber eyes
+        isScottishFold = true;
+        openEyes = true;
+        break;
+
+      case "abyssinian":
+        mainColor = 0xc47a40;
+        patternColor = 0xa86030;
+        noseColor = 0xcc6655;
+        hasTicking = true;
+        break;
+
+      case "american_shorthair":
+        mainColor = 0xc0c0c0;
+        patternColor = 0x606060;
+        noseColor = 0xdd8888;
+        hasStripes = true;
         break;
 
       case "orange":
         mainColor = 0xffb347;
         patternColor = 0xff9933;
-        console.log("[drawCatGraphics] Set to ORANGE colors");
+        hasStripes = true;
         break;
 
       case "black":
@@ -443,18 +523,17 @@ export class RoomScene extends Phaser.Scene {
         earInner = 0x444444;
         noseColor = 0xff77aa;
         eyeColor = 0xffffff;
-        console.log("[drawCatGraphics] Set to BLACK colors");
+        openEyes = true;
         break;
 
       case "gray":
         mainColor = 0xcfd2d6;
         patternColor = 0xb0b4ba;
-        console.log("[drawCatGraphics] Set to GRAY colors");
+        hasStripes = true;
         break;
 
       case "calico":
         mainColor = 0xffffff;
-        console.log("[drawCatGraphics] Set to CALICO colors");
         break;
     }
 
@@ -466,20 +545,63 @@ export class RoomScene extends Phaser.Scene {
       new Phaser.Math.Vector2(50, -40),
     );
 
-    tail.lineStyle(10, mainColor, 1);
-    tail.strokePoints(tailCurve.getPoints(32), false, false);
+    // Maine Coon: bushy tail
+    if (isMaineCoon) {
+      tail.lineStyle(16, mainColor, 1);
+      tail.strokePoints(tailCurve.getPoints(32), false, false);
+      tail.lineStyle(10, patternColor, 0.5);
+      tail.strokePoints(tailCurve.getPoints(32), false, false);
+    } else if (isSphynx) {
+      // Sphynx: thin whip tail
+      tail.lineStyle(5, mainColor, 1);
+      tail.strokePoints(tailCurve.getPoints(32), false, false);
+    } else {
+      tail.lineStyle(10, mainColor, 1);
+      tail.strokePoints(tailCurve.getPoints(32), false, false);
+    }
 
-    // Siamese darker tail tip
-    if (type === "siamese") {
+    // Siamese / Ragdoll darker tail tip
+    if (type === "siamese" || type === "ragdoll") {
       tail.lineStyle(6, patternColor, 1);
       tail.strokePoints(tailCurve.getPoints(32), false, false);
     }
 
     // ───── BODY ─────
-    body.fillStyle(mainColor, 1);
-    body.fillEllipse(0, 10, 80, 75);
+    // Maine Coon: slightly bigger body
+    const bodyW = isMaineCoon ? 90 : 80;
+    const bodyH = isMaineCoon ? 82 : 75;
 
-    // Pattern patches
+    body.fillStyle(mainColor, 1);
+    body.fillEllipse(0, 10, bodyW, bodyH);
+
+    // Belly for breeds that have it
+    if (bellyColor !== -1) {
+      body.fillStyle(bellyColor, 0.8);
+      body.fillEllipse(0, 18, bodyW * 0.55, bodyH * 0.55);
+    }
+
+    // Persian: extra fluffy outline
+    if (isPersian) {
+      body.lineStyle(4, patternColor, 0.3);
+      body.strokeEllipse(0, 10, bodyW + 8, bodyH + 8);
+      body.strokeEllipse(0, 10, bodyW + 14, bodyH + 12);
+    }
+
+    // Maine Coon: chest ruff
+    if (isMaineCoon) {
+      body.fillStyle(bellyColor !== -1 ? bellyColor : mainColor, 0.7);
+      body.fillEllipse(0, -8, 50, 35);
+    }
+
+    // Sphynx: wrinkle lines on body
+    if (isSphynx) {
+      body.lineStyle(1, 0xd0b098, 0.4);
+      for (let i = -2; i <= 2; i++) {
+        body.lineBetween(i * 10 - 5, -5, i * 10 + 5, 25);
+      }
+    }
+
+    // Pattern patches (calico)
     if (type === "calico") {
       body.fillStyle(0xff9933, 1);
       body.fillCircle(-20, 10, 20);
@@ -487,39 +609,165 @@ export class RoomScene extends Phaser.Scene {
       body.fillCircle(25, 0, 18);
     }
 
-    if (type === "orange" || type === "gray") {
+    // Stripes
+    if (hasStripes) {
       body.fillStyle(patternColor, 0.6);
       for (let i = -2; i <= 2; i++) {
         body.fillEllipse(i * 12, 5, 10, 30);
       }
     }
 
-    // ───── HEAD ─────
-    body.fillStyle(mainColor, 1);
-    body.fillCircle(0, -32, 38);
+    // Spots (Bengal)
+    if (hasSpots) {
+      body.fillStyle(patternColor, 0.8);
+      const spotPositions = [
+        { x: -22, y: 0, r: 8 },
+        { x: 8, y: -5, r: 7 },
+        { x: 22, y: 8, r: 9 },
+        { x: -8, y: 18, r: 7 },
+        { x: 18, y: 22, r: 6 },
+        { x: -18, y: 22, r: 5 },
+        { x: 0, y: 10, r: 8 },
+      ];
+      spotPositions.forEach((s) => {
+        // Rosette: darker ring with lighter center
+        body.fillStyle(patternColor, 0.8);
+        body.fillCircle(s.x, s.y, s.r);
+        body.fillStyle(mainColor, 0.6);
+        body.fillCircle(s.x, s.y, s.r * 0.5);
+      });
+    }
 
-    // Siamese face mask
-    if (type === "siamese") {
+    // Ticking (Abyssinian) - alternating light/dark fur look
+    if (hasTicking) {
+      body.fillStyle(patternColor, 0.35);
+      for (let i = -3; i <= 3; i++) {
+        for (let j = -1; j <= 2; j++) {
+          body.fillCircle(i * 10, j * 12 + 5, 4);
+        }
+      }
+    }
+
+    // ───── HEAD ─────
+    const headR = isPersian ? 42 : isMaineCoon ? 40 : 38;
+    body.fillStyle(mainColor, 1);
+    body.fillCircle(0, -32, headR);
+
+    // Persian: flatter, rounder face overlay
+    if (isPersian) {
+      body.fillStyle(mainColor, 1);
+      body.fillEllipse(0, -28, headR * 2.2, headR * 1.8);
+      // Fluffy cheeks
+      body.fillStyle(patternColor, 0.3);
+      body.fillCircle(-18, -22, 14);
+      body.fillCircle(18, -22, 14);
+    }
+
+    // Siamese / Ragdoll face mask
+    if (type === "siamese" || type === "ragdoll") {
       body.fillStyle(patternColor, 1);
       body.fillEllipse(0, -28, 55, 40);
     }
 
-    // Ears
-    body.fillStyle(mainColor, 1);
-    body.fillTriangle(-28, -60, -10, -62, -20, -35);
-    body.fillTriangle(28, -60, 10, -62, 20, -35);
+    // British Shorthair: round chubby cheeks
+    if (type === "british_shorthair") {
+      body.fillStyle(mainColor, 1);
+      body.fillCircle(-18, -22, 16);
+      body.fillCircle(18, -22, 16);
+    }
 
-    body.fillStyle(earInner, 1);
-    body.fillTriangle(-24, -58, -13, -58, -18, -40);
-    body.fillTriangle(24, -58, 13, -58, 18, -40);
+    // Scottish Fold: round face
+    if (isScottishFold) {
+      body.fillStyle(mainColor, 1);
+      body.fillCircle(-16, -24, 14);
+      body.fillCircle(16, -24, 14);
+    }
 
-    // Eyes (open for black cat 👀)
+    // ───── EARS ─────
+    if (isScottishFold) {
+      // Folded ears - smaller, bent forward
+      body.fillStyle(mainColor, 1);
+      body.fillTriangle(-24, -55, -12, -58, -20, -42);
+      body.fillTriangle(24, -55, 12, -58, 20, -42);
+      // Fold crease
+      body.lineStyle(1.5, earInner, 0.5);
+      body.lineBetween(-22, -52, -16, -46);
+      body.lineBetween(22, -52, 16, -46);
+    } else if (isSphynx) {
+      // Sphynx: very large ears
+      body.fillStyle(mainColor, 1);
+      body.fillTriangle(-32, -70, -6, -60, -22, -35);
+      body.fillTriangle(32, -70, 6, -60, 22, -35);
+      body.fillStyle(earInner, 0.6);
+      body.fillTriangle(-28, -66, -10, -58, -20, -40);
+      body.fillTriangle(28, -66, 10, -58, 20, -40);
+    } else if (isMaineCoon) {
+      // Maine Coon: tufted ears (taller)
+      body.fillStyle(mainColor, 1);
+      body.fillTriangle(-30, -68, -8, -62, -20, -35);
+      body.fillTriangle(30, -68, 8, -62, 20, -35);
+      body.fillStyle(earInner, 1);
+      body.fillTriangle(-26, -64, -12, -60, -18, -42);
+      body.fillTriangle(26, -64, 12, -60, 18, -42);
+      // Ear tufts
+      body.lineStyle(2, patternColor, 0.7);
+      body.lineBetween(-28, -68, -30, -76);
+      body.lineBetween(-26, -68, -24, -76);
+      body.lineBetween(28, -68, 30, -76);
+      body.lineBetween(26, -68, 24, -76);
+    } else {
+      // Normal ears
+      body.fillStyle(mainColor, 1);
+      body.fillTriangle(-28, -60, -10, -62, -20, -35);
+      body.fillTriangle(28, -60, 10, -62, 20, -35);
+
+      body.fillStyle(earInner, 1);
+      body.fillTriangle(-24, -58, -13, -58, -18, -40);
+      body.fillTriangle(24, -58, 13, -58, 18, -40);
+    }
+
+    // Siamese / Ragdoll dark ear tips
+    if (type === "siamese" || type === "ragdoll") {
+      body.fillStyle(patternColor, 0.7);
+      body.fillTriangle(-27, -60, -12, -60, -20, -48);
+      body.fillTriangle(27, -60, 12, -60, 20, -48);
+    }
+
+    // ───── EYES ─────
     body.lineStyle(3, eyeColor, 1);
 
-    if (type === "black") {
-      body.strokeCircle(-13, -34, 5);
-      body.strokeCircle(13, -34, 5);
+    if (openEyes || type === "black") {
+      // Open round eyes
+      body.fillStyle(0xffffff, 1);
+      body.fillCircle(-13, -34, 7);
+      body.fillCircle(13, -34, 7);
+      body.fillStyle(eyeColor, 1);
+      body.fillCircle(-13, -34, 4);
+      body.fillCircle(13, -34, 4);
+      // Pupil
+      body.fillStyle(0x000000, 1);
+      body.fillCircle(-13, -34, 2);
+      body.fillCircle(13, -34, 2);
+      // Eye shine
+      body.fillStyle(0xffffff, 1);
+      body.fillCircle(-11, -36, 1.5);
+      body.fillCircle(15, -36, 1.5);
+    } else if (isPersian) {
+      // Persian: big round sleepy eyes (slightly open)
+      body.fillStyle(0xffffff, 1);
+      body.fillEllipse(-13, -30, 14, 10);
+      body.fillEllipse(13, -30, 14, 10);
+      body.fillStyle(0xcc8833, 1);
+      body.fillEllipse(-13, -30, 8, 8);
+      body.fillEllipse(13, -30, 8, 8);
+      body.fillStyle(0x000000, 1);
+      body.fillCircle(-13, -30, 3);
+      body.fillCircle(13, -30, 3);
+      body.fillStyle(0xffffff, 1);
+      body.fillCircle(-11, -32, 1.5);
+      body.fillCircle(15, -32, 1.5);
     } else {
+      // Closed/squinting eyes (happy look)
       body.beginPath();
       body.arc(-13, -34, 8, 0, Math.PI, true);
       body.strokePath();
@@ -528,14 +776,47 @@ export class RoomScene extends Phaser.Scene {
       body.strokePath();
     }
 
-    // Nose
-    body.fillStyle(noseColor, 1);
-    body.fillTriangle(-4, -22, 4, -22, 0, -17);
+    // Sphynx: wrinkle lines on forehead
+    if (isSphynx) {
+      body.lineStyle(1, 0xd0b098, 0.35);
+      body.lineBetween(-15, -48, 15, -48);
+      body.lineBetween(-12, -44, 12, -44);
+    }
 
-    // Whiskers
+    // ───── NOSE ─────
+    if (isPersian) {
+      // Persian: tiny flat nose higher up
+      body.fillStyle(noseColor, 1);
+      body.fillCircle(0, -24, 4);
+    } else {
+      body.fillStyle(noseColor, 1);
+      body.fillTriangle(-4, -22, 4, -22, 0, -17);
+    }
+
+    // Siamese / Ragdoll darker nose area
+    if (type === "siamese") {
+      body.fillStyle(patternColor, 0.4);
+      body.fillEllipse(0, -20, 20, 14);
+      body.fillStyle(noseColor, 1);
+      body.fillTriangle(-4, -22, 4, -22, 0, -17);
+    }
+
+    // ───── WHISKERS ─────
     body.lineStyle(1.5, 0xaaaaaa, 0.8);
     body.lineBetween(-38, -22, -18, -20);
     body.lineBetween(38, -22, 18, -20);
+    // Extra whiskers for some breeds
+    if (isMaineCoon || isPersian || type === "british_shorthair") {
+      body.lineBetween(-36, -18, -18, -17);
+      body.lineBetween(36, -18, 18, -17);
+    }
+
+    // ───── PAWS (Siamese/Ragdoll dark paws) ─────
+    if (type === "siamese" || type === "ragdoll") {
+      body.fillStyle(patternColor, 0.8);
+      body.fillEllipse(-18, 42, 18, 10);
+      body.fillEllipse(18, 42, 18, 10);
+    }
   }
 
   public isSceneReady(): boolean {
@@ -543,41 +824,50 @@ export class RoomScene extends Phaser.Scene {
   }
 
   public setCatType(type: CatType) {
-    console.log("[RoomScene] setCatType called with:", type);
     this.currentCatType = type;
 
-    if (this.cat && this.catBody && this.catTail) {
-      console.log("[RoomScene] Destroying old graphics...");
+    if (this.cat) {
+      // Stop all tweens on the old cat first
+      this.tweens.killTweensOf(this.cat);
 
-      // Remove old graphics from container
-      this.cat.remove(this.catBody);
-      this.cat.remove(this.catTail);
+      // Destroy the entire container and all its children
+      this.cat.destroy();
 
-      // Destroy old graphics
-      this.catBody.destroy();
-      this.catTail.destroy();
+      // Get the original position
+      const W = this.scale.width;
+      const H = this.scale.height;
 
-      console.log("[RoomScene] Creating new graphics...");
-      // Create new graphics objects
+      // Recreate everything from scratch
+      this.cat = this.add.container(W * 0.45, H * 0.55);
+
       this.catBody = this.add.graphics();
       this.catTail = this.add.graphics();
 
-      console.log("[RoomScene] Drawing cat graphics for type:", type);
       // Draw the new cat
       this.drawCatGraphics(this.catBody, this.catTail, type);
 
-      console.log("[RoomScene] Adding graphics to container...");
-      // Add new graphics back to container
+      // Add graphics to container
       this.cat.add([this.catTail, this.catBody]);
 
-      // Re-setup interactive events on new graphics
+      // Add sparkle
+      const sparkle = this.add.text(-5, -68, "\u2728", { fontSize: "14px" });
+      this.cat.add(sparkle);
+
+      // Re-setup interactive events
       this.setupCatInteraction();
 
-      console.log("[RoomScene] Cat graphics recreated for type:", type);
-    } else {
-      console.log("[RoomScene] Graphics not ready yet");
+      // Restart idle animations on the NEW cat
+      this.idleTween = this.tweens.add({
+        targets: this.cat,
+        y: this.cat.y + 5,
+        duration: 2000,
+        yoyo: true,
+        repeat: -1,
+        ease: "Sine.easeInOut",
+      });
     }
   }
+
   // ─── Particles & Interactions ───────────────────────────────────────────────
 
   private setupParticles() {
@@ -595,7 +885,13 @@ export class RoomScene extends Phaser.Scene {
     });
 
     // Spawn hearts
-    const emojis = ["💕", "❤️", "💖", "✨", "🌸"];
+    const emojis = [
+      "\uD83D\uDC95",
+      "\u2764\uFE0F",
+      "\uD83D\uDC96",
+      "\u2728",
+      "\uD83C\uDF38",
+    ];
     for (let i = 0; i < 5; i++) {
       this.time.delayedCall(i * 80, () => {
         const e = emojis[Math.floor(Math.random() * emojis.length)];
@@ -625,11 +921,11 @@ export class RoomScene extends Phaser.Scene {
     this.tooltipText = this.add.container(0, 0);
     const bg = this.add.graphics();
     bg.fillStyle(0xffffff, 0.92);
-    bg.fillRoundedRect(0, 0, 110, 30, 15);
+    bg.fillRoundedRect(0, 0, 140, 30, 15);
     bg.lineStyle(2, 0xffb7c5, 1);
-    bg.strokeRoundedRect(0, 0, 110, 30, 15);
+    bg.strokeRoundedRect(0, 0, 140, 30, 15);
     const txt = this.add
-      .text(55, 15, "", {
+      .text(70, 15, "", {
         fontSize: "12px",
         color: "#cc6688",
         fontFamily: "Nunito",
@@ -644,7 +940,7 @@ export class RoomScene extends Phaser.Scene {
   private showTooltip(msg: string) {
     const txt = this.tooltipText.getData("text") as Phaser.GameObjects.Text;
     txt.setText(msg);
-    this.tooltipText.setPosition(this.cat.x - 55, this.cat.y - 120);
+    this.tooltipText.setPosition(this.cat.x - 70, this.cat.y - 120);
     this.tweens.add({ targets: this.tooltipText, alpha: 1, duration: 200 });
   }
 
@@ -659,7 +955,7 @@ export class RoomScene extends Phaser.Scene {
       delay: 2500,
       loop: true,
       callback: () => {
-        const sparkles = ["✦", "·", "˚", "✧", "⋆"];
+        const sparkles = ["\u2726", "\u00B7", "\u02DA", "\u2727", "\u22C6"];
         const s = this.add
           .text(
             Phaser.Math.Between(20, W - 20),

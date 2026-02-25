@@ -1,1 +1,15 @@
-export type CatType = "siamese" | "orange" | "black" | "gray" | "calico";
+export type CatType =
+  | "siamese"
+  | "persian"
+  | "maine_coon"
+  | "british_shorthair"
+  | "ragdoll"
+  | "bengal"
+  | "sphynx"
+  | "scottish_fold"
+  | "abyssinian"
+  | "american_shorthair"
+  | "orange"
+  | "black"
+  | "gray"
+  | "calico";
