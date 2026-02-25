@@ -435,10 +435,13 @@
         }
         .md-editor-preview-wrapper strong {
           font-weight: 700 !important;
-          color: #18181b !important;
+          color: inherit !important;
+        }
+        .md-editor-preview-wrapper p strong {
+          color: inherit !important;
         }
         .dark .md-editor-preview-wrapper strong {
-          color: #fafafa !important;
+          color: inherit !important;
         }
         .md-editor-preview-wrapper em {
           font-style: italic !important;
@@ -618,7 +621,7 @@
         .diary-markdown-preview {
           overflow: hidden;
         }
-        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) {
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) {
           font-family: var(--font-geist-sans) !important;
           padding: 24px !important;
           font-size: 1.125rem !important;
@@ -669,24 +672,30 @@
           text-transform: uppercase !important;
           letter-spacing: 0.05em !important;
         }
-        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) p {
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) p {
           font-size: 1.0625rem !important;
           line-height: 1.875 !important;
           color: #e11d48 !important;
           margin-bottom: 1.25rem !important;
-          font-family: var(--font-script), var(--font-geist-sans) !important;
+          font-family: var(--font-dancing-script), var(--font-geist-sans) !important;
         }
-        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) p + p {
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) p + p {
           text-indent: 1.75rem !important;
         }
-        .dark .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) p {
+        .dark .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) p {
           color: #fda4af !important;
         }
-        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) strong {
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) strong,
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) b {
           font-weight: 700 !important;
           color: inherit !important;
         }
-        .dark .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) strong {
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) p strong,
+        .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) p b {
+            color: inherit !important;
+          }
+        .dark .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) strong,
+        .dark .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper, .diary-md-preview) b {
           color: inherit !important;
         }
         .diary-markdown-preview :is(.md-preview-wrapper, .md-editor-preview, .md-editor-preview-wrapper) em {
