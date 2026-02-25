@@ -1,5 +1,5 @@
+import { CatType } from "@/types/cat";
 import Phaser from "phaser";
-type CatType = "siamese" | "orange" | "black" | "gray" | "calico";
 export class RoomScene extends Phaser.Scene {
   private cat!: Phaser.GameObjects.Container;
   private catBody!: Phaser.GameObjects.Graphics;
