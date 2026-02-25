@@ -165,6 +165,11 @@
   border-radius: 1rem !important;
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   overflow: hidden;
+  z-index: 9999 !important;
+}
+
+.react-datepicker-popper {
+  z-index: 9999 !important;
 }
 
 .dark .custom-calendar {
@@ -220,6 +225,7 @@
   border-radius: 0.75rem;
   font-weight: 500;
   transition: all 0.15s;
+  z-index: 9999;
 }
 
 .dark .custom-calendar .react-datepicker__day {

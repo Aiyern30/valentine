@@ -196,8 +196,11 @@ const ConfessionsPage = () => {
               <div className="relative">
                 {/* Animated Hearts */}
                 <div className="absolute -top-20 -left-20 w-40 h-40 bg-rose-200/20 dark:bg-rose-500/10 rounded-full animate-pulse" />
-                <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-pink-200/20 dark:bg-pink-500/10 rounded-full animate-pulse" style={{ animationDelay: '700ms' }} />
-                
+                <div
+                  className="absolute -bottom-20 -right-20 w-40 h-40 bg-pink-200/20 dark:bg-pink-500/10 rounded-full animate-pulse"
+                  style={{ animationDelay: "700ms" }}
+                />
+
                 {/* Main Loading Content */}
                 <div className="relative z-10 flex flex-col items-center gap-6 p-8">
                   {/* Spinning Heart Icon */}
@@ -207,7 +210,7 @@ const ConfessionsPage = () => {
                       <Heart className="w-10 h-10 text-white fill-white" />
                     </div>
                   </div>
-                  
+
                   {/* Loading Text */}
                   <div className="text-center space-y-2">
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white italic font-dancing">
@@ -217,12 +220,21 @@ const ConfessionsPage = () => {
                       Gathering all your love letters
                     </p>
                   </div>
-                  
+
                   {/* Animated Dots */}
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-rose-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-3 h-3 bg-rose-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <div
+                      className="w-3 h-3 bg-rose-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "0ms" }}
+                    />
+                    <div
+                      className="w-3 h-3 bg-rose-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "150ms" }}
+                    />
+                    <div
+                      className="w-3 h-3 bg-pink-500 rounded-full animate-bounce"
+                      style={{ animationDelay: "300ms" }}
+                    />
                   </div>
                 </div>
               </div>
