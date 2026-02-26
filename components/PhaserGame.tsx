@@ -156,7 +156,7 @@ export default function PhaserGame({
     function tryUpdate() {
       const scene = game!.scene.getScene(targetKey);
       if (scene && "setPetType" in scene) {
-        const s = scene as {
+        const s = scene as unknown as {
           isSceneReady: () => boolean;
           setPetType: (k: PetKind, b: PetBreed) => void;
         };
