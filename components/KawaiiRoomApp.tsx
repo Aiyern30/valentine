@@ -6,7 +6,6 @@ import HudBar from "./HudBar";
 import BottomBar from "./BottomBar";
 import Toast from "./Toast";
 import { CatType } from "@/types/cat";
-import { CAT_BREEDS } from "@/game/catBreeds";
 
 // Dynamically import PhaserGame with no SSR
 const PhaserGame = dynamic(() => import("./PhaserGame"), { ssr: false });
@@ -66,24 +65,15 @@ export default function KawaiiRoomApp() {
     >
       {/* Phaser canvas - absolutely fills the whole background */}
       <PhaserGame onCatPatted={handleCatPatted} catType={catType} />
-      <select
-        id="cat-type-select"
-        name="cat-type"
-        value={catType}
-        onChange={(e) => {
-          setCatType(e.target.value as CatType);
-        }}
-        className="absolute top-16 left-4 z-20 bg-white rounded-lg px-2 py-1 shadow text-sm"
-      >
-        {CAT_BREEDS.map((breed) => (
-          <option key={breed.value} value={breed.value}>
-            {breed.label}
-          </option>
-        ))}
-      </select>
 
       {/* React UI overlays */}
-      <HudBar petName="Mochi" daysTogther={daysTogether} patCount={patCount} />
+      <HudBar
+        petName="Mochi"
+        daysTogther={daysTogether}
+        patCount={patCount}
+        catType={catType}
+        onCatTypeChange={setCatType}
+      />
 
       <BottomBar onAction={handleAction} />
 
