@@ -40,6 +40,9 @@ export const metadata: Metadata = {
   authors: [{ name: "SweetDays" }],
   creator: "SweetDays",
   publisher: "SweetDays",
+  verification: {
+    google: "_FFjqiZ81ovs7By86j2PL8yGgjMNzm3F19Y7GnOQjVA",
+  },
   robots: {
     index: true,
     follow: true,
