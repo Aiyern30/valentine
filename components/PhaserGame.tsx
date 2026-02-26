@@ -1,142 +1,107 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type Phaser from "phaser";
-import type { RoomScene } from "@/game/scenes/RoomScene";
-import { CatType } from "@/types/cat";
+import { PetKind, PetBreed } from "@/types/pet";
 
 interface PhaserGameProps {
-  onCatPatted?: () => void;
-  catType: CatType;
+  onPetPatted: () => void;
+  petKind: PetKind;
+  petBreed: PetBreed;
 }
 
-export default function PhaserGame({ onCatPatted, catType }: PhaserGameProps) {
+export default function PhaserGame({
+  onPetPatted,
+  petKind,
+  petBreed,
+}: PhaserGameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
-  const sceneRef = useRef<RoomScene | null>(null);
-  const catTypeRef = useRef<CatType>(catType);
+  const sceneRef = useRef<import("@/game/scenes/RoomScene").RoomScene | null>(
+    null,
+  );
+  const petKindRef = useRef(petKind);
+  const petBreedRef = useRef(petBreed);
 
-  // Always keep the ref in sync with the latest catType
-  catTypeRef.current = catType;
+  // Keep refs in sync
+  petKindRef.current = petKind;
+  petBreedRef.current = petBreed;
 
-  // ✅ 1️⃣ Create Phaser game (RUNS ONLY ONCE)
-  // ✅ 1️⃣ Create Phaser game (RUNS ONLY ONCE)
   useEffect(() => {
-    let cancelled = false; // <-- KEY FIX: tracks if this effect was cleaned up
+    if (!containerRef.current || gameRef.current) return;
 
-    console.log("[PhaserGame] Init effect running");
-    if (!containerRef.current) {
-      console.log("[PhaserGame] Skipping init - no container");
-      return;
-    }
+    let destroyed = false;
 
-    const init = async () => {
-      console.log("[PhaserGame] Creating game...");
-      const { createGame } = await import("@/game/gameConfig");
+    async function init() {
+      const Phaser = (await import("phaser")).default;
+      const { RoomScene } = await import("@/game/scenes/RoomScene");
 
-      // If cleanup ran while we were awaiting the import, abort
-      if (cancelled) {
-        console.log(
-          "[PhaserGame] Init cancelled after import (StrictMode cleanup)",
-        );
-        return;
-      }
+      if (destroyed || !containerRef.current) return;
 
-      const game = createGame(containerRef.current!);
-      gameRef.current = game;
-      console.log("[PhaserGame] Game created");
+      const scene = new RoomScene();
+      sceneRef.current = scene;
 
-      game.events.once("ready", () => {
-        if (cancelled) {
-          console.log(
-            "[PhaserGame] Ready event fired but effect was cancelled, destroying game",
-          );
-          game.destroy(true);
-          return;
-        }
-
-        console.log("[PhaserGame] Game ready event fired");
-        const scene = game.scene.getScene("RoomScene") as RoomScene;
-        sceneRef.current = scene;
-        console.log("[PhaserGame] Scene reference set");
-
-        scene.events.once("create", () => {
-          if (cancelled) {
-            console.log(
-              "[PhaserGame] Scene create fired but effect was cancelled",
-            );
-            return;
-          }
-          console.log(
-            "[PhaserGame] Scene create event fired, setting initial cat type:",
-            catTypeRef.current,
-          );
-          scene.setCatType(catTypeRef.current);
-        });
+      const game = new Phaser.Game({
+        type: Phaser.AUTO,
+        parent: containerRef.current,
+        width: containerRef.current.clientWidth,
+        height: containerRef.current.clientHeight,
+        transparent: true,
+        scene: scene,
+        scale: {
+          mode: Phaser.Scale.RESIZE,
+          autoCenter: Phaser.Scale.CENTER_BOTH,
+        },
+        physics: { default: "arcade", arcade: { debug: false } },
       });
-    };
+
+      gameRef.current = game;
+
+      // Listen for pat events
+      scene.events.on("petPatted", () => {
+        onPetPatted();
+      });
+    }
 
     init();
 
     return () => {
-      console.log("[PhaserGame] Cleanup: destroying game");
-      cancelled = true; // <-- Prevents the stale init from wiring up events
+      destroyed = true;
       if (gameRef.current) {
         gameRef.current.destroy(true);
         gameRef.current = null;
+        sceneRef.current = null;
       }
-      sceneRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ✅ 2️⃣ Sync catType changes
+  // Update pet when kind or breed changes
   useEffect(() => {
-    console.log("\n========== CAT TYPE CHANGED ==========");
-    console.log("[PhaserGame] catType prop changed to:", catType);
-    console.log("[PhaserGame] sceneRef.current exists?", !!sceneRef.current);
-    console.log("[PhaserGame] gameRef.current exists?", !!gameRef.current);
-
-    if (sceneRef.current) {
-      const isReady = sceneRef.current.isSceneReady();
-      console.log("[PhaserGame] Scene isReady():", isReady);
-
-      if (isReady) {
-        console.log("[PhaserGame] ✅ Calling scene.setCatType(", catType, ")");
-        sceneRef.current.setCatType(catType);
-      } else {
-        console.log("[PhaserGame] ❌ Scene not ready yet, cannot update");
-      }
-    } else {
-      console.log("[PhaserGame] ❌ sceneRef.current is null!");
-    }
-    console.log("========== END CAT TYPE CHANGE ==========\n");
-  }, [catType]);
-
-  // ✅ 3️⃣ Sync onCatPatted safely (prevents stale closure)
-  useEffect(() => {
-    if (!sceneRef.current) return;
-
     const scene = sceneRef.current;
-
-    if (onCatPatted) {
-      scene.events.on("catPatted", onCatPatted);
+    if (scene && scene.isSceneReady()) {
+      scene.setPetType(petKind, petBreed);
+    } else {
+      // Scene might not be ready yet, poll briefly
+      const interval = setInterval(() => {
+        const s = sceneRef.current;
+        if (s && s.isSceneReady()) {
+          s.setPetType(petKindRef.current, petBreedRef.current);
+          clearInterval(interval);
+        }
+      }, 100);
+      return () => clearInterval(interval);
     }
-
-    return () => {
-      if (onCatPatted) {
-        scene.events.off("catPatted", onCatPatted);
-      }
-    };
-  }, [onCatPatted]);
+  }, [petKind, petBreed]);
 
   return (
     <div
       ref={containerRef}
       style={{
         position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: "100%",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
       }}
     />
   );

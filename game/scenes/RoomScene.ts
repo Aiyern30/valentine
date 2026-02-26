@@ -1,17 +1,17 @@
 import { CatType } from "@/types/cat";
+import { DogType } from "@/types/dog";
+import { PetKind, PetBreed } from "@/types/pet";
 import Phaser from "phaser";
 import { drawCatGraphics } from "../catRenderer";
+import { drawDogGraphics } from "../dogRenderer";
 
 export class RoomScene extends Phaser.Scene {
-  private currentCatType: CatType = "siamese";
-  private cat!: Phaser.GameObjects.Container;
-  private catBody!: Phaser.GameObjects.Graphics;
-  private catTail!: Phaser.GameObjects.Graphics;
-  private furnitureItems: Phaser.GameObjects.Container[] = [];
-  private floatingHearts: Phaser.GameObjects.Text[] = [];
+  private currentPetKind: PetKind = "cat";
+  private currentPetBreed: PetBreed = "siamese";
+  private pet!: Phaser.GameObjects.Container;
+  private petBody!: Phaser.GameObjects.Graphics;
+  private petTail!: Phaser.GameObjects.Graphics;
   private idleTween!: Phaser.Tweens.Tween;
-  private tailTween!: Phaser.Tweens.Tween;
-  private particles!: Phaser.GameObjects.Group;
   private tooltipText!: Phaser.GameObjects.Container;
   private isReady = false;
 
@@ -20,7 +20,7 @@ export class RoomScene extends Phaser.Scene {
   }
 
   preload() {
-    // We'll draw everything procedurally — no external assets needed!
+    // We draw everything procedurally - no external assets needed
   }
 
   create() {
@@ -29,8 +29,7 @@ export class RoomScene extends Phaser.Scene {
 
     this.drawRoom(W, H);
     this.drawFurniture(W, H);
-    this.drawCat(W, H);
-    this.setupParticles();
+    this.drawPet(W, H);
     this.setupInteractions();
     this.startIdleAnimations();
     this.spawnSparkles(W, H);
@@ -54,8 +53,6 @@ export class RoomScene extends Phaser.Scene {
     // Roof triangle
     g.fillStyle(0xf0c0a0, 1);
     g.fillTriangle(W * 0.5, 0, -W * 0.1, H * 0.22, W * 1.1, H * 0.22);
-
-    // Roof ridge line
     g.lineStyle(3, 0xe0a080, 1);
     g.strokeTriangle(W * 0.5, 0, -W * 0.1, H * 0.22, W * 1.1, H * 0.22);
 
@@ -107,12 +104,12 @@ export class RoomScene extends Phaser.Scene {
     g.lineStyle(3, 0xd0b090, 1);
     g.strokeRoundedRect(x, y, w, h, 10);
 
-    // Sky / outside scene
+    // Sky
     g.fillStyle(0xc8e8ff, 0.9);
     g.fillRoundedRect(x + 5, y + 5, w - 10, h - 10, 7);
 
-    // Little tree outside
-    g.fillStyle(0xff9933, 0.8); // autumn tree
+    // Tree outside
+    g.fillStyle(0xff9933, 0.8);
     g.fillCircle(x + 30, y + 55, 22);
     g.fillCircle(x + 45, y + 45, 18);
     g.fillStyle(0x8b5e3c, 1);
@@ -145,15 +142,12 @@ export class RoomScene extends Phaser.Scene {
     g.fillRoundedRect(x, y, w, h, 8);
     g.lineStyle(2, 0xd0d0d0, 1);
     g.strokeRoundedRect(x, y, w, h, 8);
-    // Vents
     g.lineStyle(1, 0xc0c0c0, 1);
     for (let i = 0; i < 4; i++) {
       g.lineBetween(x + 10 + i * 12, y + h - 10, x + 10 + i * 12, y + h - 4);
     }
-    // Indicator light
     g.fillStyle(0x00cc88, 1);
     g.fillCircle(x + w - 12, y + h / 2, 4);
-    // Mount bracket
     g.fillStyle(0xd0c0b0, 1);
     g.fillRect(x + 10, y - 6, w - 20, 8);
   }
@@ -163,16 +157,13 @@ export class RoomScene extends Phaser.Scene {
     x: number,
     y: number,
   ) {
-    // Wooden dowel
     g.fillStyle(0xc8a060, 1);
     g.fillRoundedRect(x - 30, y, 60, 6, 3);
-    // Macrame strings
     g.lineStyle(2, 0xe8d5b0, 1);
     const strings = [-20, -8, 4, 16];
     strings.forEach((sx, i) => {
       g.lineBetween(x + sx, y + 6, x + sx + (i % 2 === 0 ? -4 : 4), y + 50);
     });
-    // Star shape
     this.add.text(x - 8, y + 50, "\u2726", {
       fontSize: "16px",
       color: "#c8a060",
@@ -193,15 +184,12 @@ export class RoomScene extends Phaser.Scene {
     const g = this.add.graphics();
     const cx = W * 0.5;
     const cy = H * 0.76;
-    // Outer rug
     g.fillStyle(0xffffff, 0.95);
     g.fillEllipse(cx, cy, 300, 90);
     g.lineStyle(3, 0xf0d0d8, 1);
     g.strokeEllipse(cx, cy, 300, 90);
-    // Inner pattern ring
     g.lineStyle(2, 0xffb7c5, 0.5);
     g.strokeEllipse(cx, cy, 240, 70);
-    // Tiny dots
     g.fillStyle(0xffb7c5, 0.4);
     for (let i = 0; i < 8; i++) {
       const angle = (i / 8) * Math.PI * 2;
@@ -216,52 +204,33 @@ export class RoomScene extends Phaser.Scene {
     const bw = 200;
     const bh = 120;
 
-    // Bed frame
     g.fillStyle(0xdeb887, 1);
     g.fillRoundedRect(bx, by, bw, bh, 10);
-
-    // Mattress
     g.fillStyle(0xfff8f0, 1);
     g.fillRoundedRect(bx + 6, by + 8, bw - 12, bh - 16, 8);
-
-    // Blanket / duvet
     g.fillStyle(0xffd6d6, 1);
     g.fillRoundedRect(bx + 6, by + 35, bw - 12, bh - 43, 8);
-
-    // Duvet pattern lines
     g.lineStyle(1, 0xffc0c0, 0.5);
     for (let i = 0; i < 4; i++) {
       const dy = by + 45 + i * 14;
       g.lineBetween(bx + 10, dy, bx + bw - 10, dy);
     }
-
-    // Pillow
     g.fillStyle(0xffffff, 1);
     g.fillRoundedRect(bx + 12, by + 12, 65, 40, 12);
     g.lineStyle(2, 0xf0d0d0, 1);
     g.strokeRoundedRect(bx + 12, by + 12, 65, 40, 12);
-
-    // Second pillow
     g.fillStyle(0xffe0f0, 1);
     g.fillRoundedRect(bx + 88, by + 12, 65, 40, 12);
     g.lineStyle(2, 0xf0d0d0, 1);
     g.strokeRoundedRect(bx + 88, by + 12, 65, 40, 12);
-
-    // Headboard
     g.fillStyle(0xc8945a, 1);
     g.fillRoundedRect(bx - 5, by - 30, bw + 10, 38, 12);
     g.lineStyle(2, 0xb08040, 1);
     g.strokeRoundedRect(bx - 5, by - 30, bw + 10, 38, 12);
-
-    // Bed legs
     g.fillStyle(0xb08040, 1);
     g.fillRoundedRect(bx + 10, by + bh, 16, 18, 4);
     g.fillRoundedRect(bx + bw - 26, by + bh, 16, 18, 4);
-
-    // Lamp on headboard
     this.drawLamp(g, bx + bw + 10, by - 40);
-
-    // Small photo frame on headboard
     g.fillStyle(0xd4a870, 1);
     g.fillRoundedRect(bx + 15, by - 22, 28, 22, 3);
     g.fillStyle(0xb0d4f0, 1);
@@ -269,18 +238,14 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private drawLamp(g: Phaser.GameObjects.Graphics, x: number, y: number) {
-    // Lamp shade
     g.fillStyle(0xffeedd, 1);
     g.fillTriangle(x - 18, y + 30, x + 18, y + 30, x, y);
     g.lineStyle(2, 0xd4a870, 1);
     g.strokeTriangle(x - 18, y + 30, x + 18, y + 30, x, y);
-    // Pole
     g.lineStyle(3, 0xc8a060, 1);
     g.lineBetween(x, y + 30, x, y + 70);
-    // Base
     g.fillStyle(0xc8a060, 1);
     g.fillEllipse(x, y + 75, 28, 10);
-    // Glow
     g.fillStyle(0xffffcc, 0.15);
     g.fillCircle(x, y + 20, 35);
   }
@@ -292,30 +257,24 @@ export class RoomScene extends Phaser.Scene {
     const sw = 80;
     const sh = 160;
 
-    // Shelf body
     g.fillStyle(0xc8a060, 1);
     g.fillRoundedRect(sx, sy, sw, sh, 6);
-
-    // Shelves
     g.fillStyle(0xb08040, 1);
     g.fillRect(sx, sy + 55, sw, 6);
     g.fillRect(sx, sy + 110, sw, 6);
 
-    // Books row 1
     const bookColors1 = [0xff9999, 0x99ccff, 0xffcc88, 0xcc99ff];
     bookColors1.forEach((c, i) => {
       g.fillStyle(c, 1);
       g.fillRoundedRect(sx + 5 + i * 17, sy + 12, 14, 40, 2);
     });
 
-    // Books row 2
     const bookColors2 = [0x99ffcc, 0xffb7c5, 0xaaddff, 0xffdd88];
     bookColors2.forEach((c, i) => {
       g.fillStyle(c, 1);
       g.fillRoundedRect(sx + 5 + i * 17, sy + 65, 14, 40, 2);
     });
 
-    // Small plant on top
     g.fillStyle(0xd4a870, 1);
     g.fillEllipse(sx + sw / 2, sy - 5, 24, 16);
     g.fillStyle(0x66bb66, 1);
@@ -323,7 +282,6 @@ export class RoomScene extends Phaser.Scene {
     g.fillEllipse(sx + sw / 2 + 8, sy - 20, 16, 20);
     g.fillEllipse(sx + sw / 2, sy - 24, 14, 18);
 
-    // Cat figurine row 3
     this.add.text(sx + 14, sy + 120, "\uD83D\uDC31", { fontSize: "18px" });
     this.add.text(sx + 44, sy + 118, "\u2B50", { fontSize: "14px" });
   }
@@ -332,12 +290,10 @@ export class RoomScene extends Phaser.Scene {
     const g = this.add.graphics();
     const px = W * 0.5;
     const py = H * 0.3;
-    // Frame
     g.fillStyle(0xdeb887, 1);
     g.fillRoundedRect(px, py, 52, 44, 4);
     g.fillStyle(0xc8e8ff, 1);
     g.fillRect(px + 4, py + 4, 44, 36);
-    // Simple house drawing inside
     g.fillStyle(0xffcc88, 0.6);
     g.fillRect(px + 12, py + 20, 24, 16);
     g.fillStyle(0xff9999, 0.7);
@@ -349,11 +305,9 @@ export class RoomScene extends Phaser.Scene {
     const mx = W * 0.28;
     const my = H * 0.22;
 
-    // Horizontal bar
     g.fillStyle(0xc8a060, 1);
     g.fillRoundedRect(mx - 45, my, 90, 5, 2);
 
-    // Strings and charms
     const charms = ["\uD83C\uDF19", "\u2B50", "\uD83C\uDF38", "\u2601\uFE0F"];
     const offsets = [-32, -10, 12, 32];
     const lengths = [40, 55, 45, 35];
@@ -365,104 +319,99 @@ export class RoomScene extends Phaser.Scene {
       });
     });
 
-    // Attach cord to ceiling
     g.lineStyle(2, 0xc8a060, 0.8);
     g.lineBetween(mx, 0, mx, my);
   }
 
-  // ─── Cat Character ─────────────────────────────────────────────────────────
+  // ─── Pet Character ─────────────────────────────────────────────────────────
 
-  private drawCat(W: number, H: number) {
-    this.cat = this.add.container(W * 0.45, H * 0.55);
+  private drawPet(W: number, H: number) {
+    this.pet = this.add.container(W * 0.45, H * 0.55);
 
-    this.catBody = this.add.graphics();
-    this.catTail = this.add.graphics();
+    this.petBody = this.add.graphics();
+    this.petTail = this.add.graphics();
 
-    this.drawCatGraphicsOnScene(
-      this.catBody,
-      this.catTail,
-      this.currentCatType,
-    );
+    this.drawPetGraphics();
 
-    this.cat.add([this.catTail, this.catBody]);
+    this.pet.add([this.petTail, this.petBody]);
 
     const sparkle = this.add.text(-5, -68, "\u2728", { fontSize: "14px" });
-    this.cat.add(sparkle);
+    this.pet.add(sparkle);
 
-    this.setupCatInteraction();
+    this.setupPetInteraction();
   }
 
-  private setupCatInteraction() {
-    this.catBody.setInteractive(
+  private drawPetGraphics() {
+    if (this.currentPetKind === "cat") {
+      drawCatGraphics(
+        this.petBody,
+        this.petTail,
+        this.currentPetBreed as CatType,
+      );
+    } else {
+      drawDogGraphics(
+        this.petBody,
+        this.petTail,
+        this.currentPetBreed as DogType,
+      );
+    }
+  }
+
+  private setupPetInteraction() {
+    this.petBody.setInteractive(
       new Phaser.Geom.Circle(0, -15, 50),
       Phaser.Geom.Circle.Contains,
     );
 
-    this.catBody.on("pointerover", () => {
-      const name = this.currentCatType.replace("_", " ");
-      this.showTooltip(`Pat the ${name} cat!`);
+    this.petBody.on("pointerover", () => {
+      const name = this.currentPetBreed.replace("_", " ");
+      const kind = this.currentPetKind;
+      this.showTooltip(`Pat the ${name} ${kind}!`);
       this.game.canvas.style.cursor = "pointer";
     });
 
-    this.catBody.on("pointerout", () => {
+    this.petBody.on("pointerout", () => {
       this.hideTooltip();
       this.game.canvas.style.cursor = "default";
     });
 
-    this.catBody.on("pointerdown", () => {
-      this.patCat();
+    this.petBody.on("pointerdown", () => {
+      this.patPet();
     });
-  }
-
-  private drawCatGraphicsOnScene(
-    body: Phaser.GameObjects.Graphics,
-    tail: Phaser.GameObjects.Graphics,
-    type: CatType,
-  ) {
-    drawCatGraphics(body, tail, type);
   }
 
   public isSceneReady(): boolean {
     return this.isReady;
   }
 
-  public setCatType(type: CatType) {
-    this.currentCatType = type;
+  public setPetType(kind: PetKind, breed: PetBreed) {
+    this.currentPetKind = kind;
+    this.currentPetBreed = breed;
 
-    if (this.cat) {
-      // Stop all tweens on the old cat first
-      this.tweens.killTweensOf(this.cat);
+    if (this.pet) {
+      this.tweens.killTweensOf(this.pet);
+      this.pet.destroy();
 
-      // Destroy the entire container and all its children
-      this.cat.destroy();
-
-      // Get the original position
       const W = this.scale.width;
       const H = this.scale.height;
 
-      // Recreate everything from scratch
-      this.cat = this.add.container(W * 0.45, H * 0.55);
+      this.pet = this.add.container(W * 0.45, H * 0.55);
 
-      this.catBody = this.add.graphics();
-      this.catTail = this.add.graphics();
+      this.petBody = this.add.graphics();
+      this.petTail = this.add.graphics();
 
-      // Draw the new cat
-      this.drawCatGraphicsOnScene(this.catBody, this.catTail, type);
+      this.drawPetGraphics();
 
-      // Add graphics to container
-      this.cat.add([this.catTail, this.catBody]);
+      this.pet.add([this.petTail, this.petBody]);
 
-      // Add sparkle
       const sparkle = this.add.text(-5, -68, "\u2728", { fontSize: "14px" });
-      this.cat.add(sparkle);
+      this.pet.add(sparkle);
 
-      // Re-setup interactive events
-      this.setupCatInteraction();
+      this.setupPetInteraction();
 
-      // Restart idle animations on the NEW cat
       this.idleTween = this.tweens.add({
-        targets: this.cat,
-        y: this.cat.y + 5,
+        targets: this.pet,
+        y: this.pet.y + 5,
         duration: 2000,
         yoyo: true,
         repeat: -1,
@@ -471,36 +420,40 @@ export class RoomScene extends Phaser.Scene {
     }
   }
 
-  // ─── Particles & Interactions ───────────────────────────────────────────────
+  // ─── Interactions ───────────────────────────────────────────────────────────
 
-  private setupParticles() {
-    this.particles = this.add.group();
-  }
-
-  private patCat() {
-    // Bounce animation
+  private patPet() {
     this.tweens.add({
-      targets: this.cat,
-      y: this.cat.y - 20,
+      targets: this.pet,
+      y: this.pet.y - 20,
       duration: 150,
       yoyo: true,
       ease: "Back.easeOut",
     });
 
-    // Spawn hearts
-    const emojis = [
-      "\uD83D\uDC95",
-      "\u2764\uFE0F",
-      "\uD83D\uDC96",
-      "\u2728",
-      "\uD83C\uDF38",
-    ];
+    const emojis =
+      this.currentPetKind === "cat"
+        ? [
+            "\uD83D\uDC95",
+            "\u2764\uFE0F",
+            "\uD83D\uDC96",
+            "\u2728",
+            "\uD83C\uDF38",
+          ]
+        : [
+            "\uD83D\uDC95",
+            "\u2764\uFE0F",
+            "\uD83D\uDC3E",
+            "\u2728",
+            "\uD83C\uDF1F",
+          ];
+
     for (let i = 0; i < 5; i++) {
       this.time.delayedCall(i * 80, () => {
         const e = emojis[Math.floor(Math.random() * emojis.length)];
         const heart = this.add.text(
-          this.cat.x + Phaser.Math.Between(-40, 40),
-          this.cat.y - 60,
+          this.pet.x + Phaser.Math.Between(-40, 40),
+          this.pet.y - 60,
           e,
           { fontSize: "20px" },
         );
@@ -515,20 +468,18 @@ export class RoomScene extends Phaser.Scene {
       });
     }
 
-    // Notify React UI
-    this.events.emit("catPatted");
+    this.events.emit("petPatted");
   }
 
   private setupInteractions() {
-    // Tooltip container
     this.tooltipText = this.add.container(0, 0);
     const bg = this.add.graphics();
     bg.fillStyle(0xffffff, 0.92);
-    bg.fillRoundedRect(0, 0, 140, 30, 15);
+    bg.fillRoundedRect(0, 0, 160, 30, 15);
     bg.lineStyle(2, 0xffb7c5, 1);
-    bg.strokeRoundedRect(0, 0, 140, 30, 15);
+    bg.strokeRoundedRect(0, 0, 160, 30, 15);
     const txt = this.add
-      .text(70, 15, "", {
+      .text(80, 15, "", {
         fontSize: "12px",
         color: "#cc6688",
         fontFamily: "Nunito",
@@ -543,7 +494,7 @@ export class RoomScene extends Phaser.Scene {
   private showTooltip(msg: string) {
     const txt = this.tooltipText.getData("text") as Phaser.GameObjects.Text;
     txt.setText(msg);
-    this.tooltipText.setPosition(this.cat.x - 70, this.cat.y - 120);
+    this.tooltipText.setPosition(this.pet.x - 80, this.pet.y - 120);
     this.tweens.add({ targets: this.tooltipText, alpha: 1, duration: 200 });
   }
 
@@ -586,22 +537,19 @@ export class RoomScene extends Phaser.Scene {
   // ─── Idle Animations ────────────────────────────────────────────────────────
 
   private startIdleAnimations() {
-    // Cat breathing bob
     this.idleTween = this.tweens.add({
-      targets: this.cat,
-      y: this.cat.y + 5,
+      targets: this.pet,
+      y: this.pet.y + 5,
       duration: 2000,
       yoyo: true,
       repeat: -1,
       ease: "Sine.easeInOut",
     });
 
-    // Mobile charm sway
     this.time.addEvent({
       delay: 3000,
       loop: true,
       callback: () => {
-        // subtle scene camera shift
         this.cameras.main.pan(
           this.scale.width / 2 + Phaser.Math.Between(-3, 3),
           this.scale.height / 2 + Phaser.Math.Between(-2, 2),
@@ -613,8 +561,7 @@ export class RoomScene extends Phaser.Scene {
   }
 
   update() {
-    // Tail wag - slow sine motion
     const t = this.time.now / 1000;
-    this.cat.rotation = Math.sin(t * 0.8) * 0.04;
+    this.pet.rotation = Math.sin(t * 0.8) * 0.04;
   }
 }
