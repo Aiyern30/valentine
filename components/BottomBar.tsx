@@ -7,12 +7,41 @@ interface BottomBarProps {
   activeScene: ActiveScene;
 }
 
-const ACTIONS = [
-  { icon: "\uD83D\uDC57", label: "Dress Up", scene: null },
-  { icon: "\uD83C\uDF5C", label: "Feed", scene: null },
-  { icon: "\uD83C\uDFBE", label: "Play", scene: null },
-  { icon: "\uD83D\uDEC1", label: "Bath", scene: "bath" as ActiveScene },
-  { icon: "\uD83D\uDCA4", label: "Sleep", scene: "sleep" as ActiveScene },
+const ACTIONS: {
+  icon: string;
+  label: string;
+  scene: ActiveScene | null;
+  activeColor: string;
+  activeBg: string;
+}[] = [
+  {
+    icon: "\uD83C\uDF5C",
+    label: "Feed",
+    scene: "feed",
+    activeColor: "text-amber-500",
+    activeBg: "bg-amber-100 ring-2 ring-amber-300",
+  },
+  {
+    icon: "\uD83C\uDFBE",
+    label: "Play",
+    scene: "play",
+    activeColor: "text-emerald-500",
+    activeBg: "bg-emerald-100 ring-2 ring-emerald-300",
+  },
+  {
+    icon: "\uD83D\uDEC1",
+    label: "Bath",
+    scene: "bath",
+    activeColor: "text-sky-500",
+    activeBg: "bg-sky-100 ring-2 ring-sky-300",
+  },
+  {
+    icon: "\uD83D\uDCA4",
+    label: "Sleep",
+    scene: "sleep",
+    activeColor: "text-indigo-500",
+    activeBg: "bg-indigo-100 ring-2 ring-indigo-300",
+  },
 ];
 
 export default function BottomBar({ onAction, activeScene }: BottomBarProps) {
@@ -29,20 +58,14 @@ export default function BottomBar({ onAction, activeScene }: BottomBarProps) {
               title={action.label}
               className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl transition-all cursor-pointer ${
                 isActive
-                  ? action.scene === "sleep"
-                    ? "bg-indigo-100 ring-2 ring-indigo-300 scale-105"
-                    : "bg-sky-100 ring-2 ring-sky-300 scale-105"
+                  ? `${action.activeBg} scale-105`
                   : "hover:bg-pink-50 active:scale-90"
               }`}
             >
               <span className="text-xl">{action.icon}</span>
               <span
                 className={`text-[10px] font-semibold ${
-                  isActive
-                    ? action.scene === "sleep"
-                      ? "text-indigo-500"
-                      : "text-sky-500"
-                    : "text-pink-400"
+                  isActive ? action.activeColor : "text-pink-400"
                 }`}
                 style={{ fontFamily: "'Nunito', sans-serif" }}
               >
