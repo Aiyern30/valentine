@@ -1,0 +1,33 @@
+{
+  "name": "SweetDays - Celebrate Your Love Story",
+  "short_name": "SweetDays",
+  "description": "A beautiful place to celebrate and cherish your relationship. Create memories, share milestones, and strengthen your bond one sweet day at a time.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f43f5e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["lifestyle", "social"],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

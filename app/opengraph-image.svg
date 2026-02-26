@@ -1,0 +1,36 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fdf2f8;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#fce7f3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fbcfe8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f43f5e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+  
+  <!-- Decorative circles -->
+  <circle cx="100" cy="100" r="80" fill="#fce7f3" opacity="0.5"/>
+  <circle cx="1100" cy="530" r="100" fill="#fbcfe8" opacity="0.5"/>
+  <circle cx="1050" cy="150" r="60" fill="#fce7f3" opacity="0.5"/>
+  
+  <!-- Main Heart Icon -->
+  <g transform="translate(150, 180)">
+    <path d="M120 280C120 280 30 230 30 160C30 130 50 100 80 100C95 100 108 106 120 118C132 106 145 100 160 100C190 130 210 130 210 160C210 230 120 280 120 280Z" fill="url(#heartGradient)" stroke="white" stroke-width="4"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="450" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="80" font-weight="bold" fill="#f43f5e">SweetDays</text>
+  <text x="450" y="310" font-family="system-ui, -apple-system, sans-serif" font-size="36" fill="#9d174d">Celebrate Your Love Story</text>
+  <text x="450" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#be185d" opacity="0.8">One sweet day at a time 💕</text>
+  
+  <!-- Small decorative hearts -->
+  <path d="M1000 200C1000 200 980 190 980 178C980 172 983 165 990 165C993 165 996 166.5 1000 169.5C1004 166.5 1007 165 1010 165C1017 165 1020 172 1020 178C1020 190 1000 200 1000 200Z" fill="#f43f5e" opacity="0.6"/>
+  <path d="M200 450C200 450 180 440 180 428C180 422 183 415 190 415C193 415 196 416.5 200 419.5C204 416.5 207 415 210 415C217 415 220 422 220 428C220 440 200 450 200 450Z" fill="#ec4899" opacity="0.6"/>
+</svg>

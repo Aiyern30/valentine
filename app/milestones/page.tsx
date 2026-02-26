@@ -5,6 +5,13 @@ import { MilestoneCalendar } from "@/components/milestones/MilestonesCalendar";
 import { CreateMilestoneButton } from "@/components/milestones/CreateMilestonesButton";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Heart } from "lucide-react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Our Milestones",
+  description: "Track and celebrate your special moments together. Mark important dates, anniversaries, and achievements in your relationship journey.",
+  keywords: ["relationship milestones", "anniversary tracker", "couple achievements", "special moments", "relationship goals"],
+};
 
 export default async function MilestonesPage() {
   const user = await getUser();

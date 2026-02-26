@@ -112,14 +112,19 @@ export function ProfileCompletionDialog({
             <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Welcome to SweetDays! 💕</h2>
+            <h2 className="text-2xl font-bold mb-2">
+              Welcome to SweetDays! 💕
+            </h2>
             <p className="text-rose-100">
               Let's set up your profile to get started
             </p>
           </div>
         </div>
 
-        <form action={handleSubmit} className="p-8 space-y-6 overflow-y-auto flex-1 min-h-0">
+        <form
+          action={handleSubmit}
+          className="p-8 space-y-6 overflow-y-auto flex-1 min-h-0"
+        >
           {error && (
             <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium border border-red-100 dark:border-red-900/30">
               {error}

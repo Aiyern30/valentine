@@ -3,6 +3,13 @@ import { redirect } from "next/navigation";
 import { Image as ImageIcon } from "lucide-react";
 import { GalleryGrid } from "@/components/gallery/galleryGrid";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Photo Gallery",
+  description: "Your shared photo gallery. Browse and cherish all your precious memories together in one beautiful place.",
+  keywords: ["photo gallery", "couple photos", "shared memories", "picture album", "relationship photos"],
+};
 
 export default async function GalleryPage() {
   const user = await getUser();

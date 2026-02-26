@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f43f5e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fce7f3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" rx="120" fill="url(#bgGradient)"/>
+  
+  <!-- Main Heart -->
+  <path d="M256 416C256 416 96 320 96 208C96 157.6 136.8 116 188 116C216 116 242 128 256 148C270 128 296 116 324 116C375.2 116 416 157.6 416 208C416 320 256 416 256 416Z" fill="url(#heartGradient)" stroke="white" stroke-width="8" stroke-linejoin="round"/>
+  
+  <!-- Small accent hearts -->
+  <path d="M140 140C140 140 110 125 110 105C110 95 115 85 125 85C130 85 135 87.5 140 92.5C145 87.5 150 85 155 85C165 85 170 95 170 105C170 125 140 140 140 140Z" fill="white" opacity="0.6"/>
+  
+  <path d="M372 140C372 140 342 125 342 105C342 95 347 85 357 85C362 85 367 87.5 372 92.5C377 87.5 382 85 387 85C397 85 402 95 402 105C402 125 372 140 372 140Z" fill="white" opacity="0.6"/>
+</svg>

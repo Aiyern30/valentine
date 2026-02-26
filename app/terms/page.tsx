@@ -1,6 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import TermsDialog from "@/components/TermsDialog";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms & Conditions",
+  description: "Read our terms and conditions for using SweetDays. Learn about our privacy policy and user agreements.",
+  keywords: ["terms", "conditions", "privacy policy", "user agreement"],
+};
 
 export default async function TermsPage() {
   const supabase = await createClient();

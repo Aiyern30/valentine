@@ -18,6 +18,14 @@ import { redirect } from "next/navigation";
 import { ProfileCompletionDialog } from "@/components/ProfileCompletionDialog";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { InvitePartnerCard } from "@/components/InvitePartnerCards";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Your relationship dashboard. View your timeline, upcoming events, and recent memories together.",
+  keywords: ["dashboard", "relationship timeline", "couple dashboard", "anniversary countdown"],
+};
+
 // app/dashboard/page.tsx
 export default async function DashboardPage() {
   const user = await getUser();

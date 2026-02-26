@@ -13,6 +13,13 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Our Love Story",
+  description: "Write and share your love story together. Keep a shared diary of your journey, capturing every moment in words and photos.",
+  keywords: ["love diary", "couple journal", "relationship diary", "shared diary", "love story", "couple writing"],
+};
 
 export default async function DiariesPage() {
   const user = await getUser();

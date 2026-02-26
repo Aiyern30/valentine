@@ -2,6 +2,13 @@ import { getUser, getProfile, getPartnerProfile } from "@/lib/data";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ProfileCard } from "@/components/profile/profile-card";
 import { User } from "lucide-react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Profile",
+  description: "Manage your profile and view your partner's information. Update your details and relationship settings.",
+  keywords: ["profile", "user profile", "couple profile", "account settings", "relationship settings"],
+};
 
 export default async function ProfilePage() {
   const user = await getUser();
