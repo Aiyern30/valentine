@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Dancing_Script } from "next/font/google";
 import "./globals.css";
 import "./markdown-preview.css";
+import { Analytics } from "@vercel/analytics/next";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -92,6 +93,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable} antialiased`}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
