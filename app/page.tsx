@@ -50,7 +50,8 @@ export default async function Home() {
               </div>
 
               <p className="text-center text-xs sm:text-sm text-gray-400 max-w-xs mx-auto">
-                By continuing, you agree to celebrate and cherish every sweet day together.
+                By continuing, you agree to celebrate and cherish every sweet
+                day together.
               </p>
             </div>
           </div>

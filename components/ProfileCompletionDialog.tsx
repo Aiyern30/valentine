@@ -112,7 +112,7 @@ export function ProfileCompletionDialog({
             <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Welcome to LoveLink! 💕</h2>
+            <h2 className="text-2xl font-bold mb-2">Welcome to SweetDays! 💕</h2>
             <p className="text-rose-100">
               Let's set up your profile to get started
             </p>

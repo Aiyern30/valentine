@@ -16,6 +16,7 @@ SweetDays is a beautiful relationship app designed for couples to celebrate and 
 ## Tech Stack
 
 Built with modern technologies:
+
 - **Next.js 16** - React framework
 - **TypeScript** - Type safety
 - **Supabase** - Backend & authentication
