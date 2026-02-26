@@ -31,7 +31,6 @@ export default function HudBar({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -41,29 +40,26 @@ export default function HudBar({
         setDropdownOpen(false);
       }
     }
-    if (dropdownOpen) {
+    if (dropdownOpen)
       document.addEventListener("mousedown", handleClickOutside);
-    }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropdownOpen]);
 
-  // Close on Escape
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape") setDropdownOpen(false);
     }
-    if (dropdownOpen) {
-      document.addEventListener("keydown", handleKey);
-    }
+    if (dropdownOpen) document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [dropdownOpen]);
 
   const breeds = petKind === "cat" ? CAT_BREEDS : DOG_BREEDS;
   const currentBreed = breeds.find((b) => b.value === petBreed);
+  const isCat = petKind === "cat";
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2 pointer-events-none">
-      {/* Left: Pet name tag with pet kind tabs + breed dropdown */}
+      {/* Left: Pet name tag + breed picker */}
       <div className="pointer-events-auto relative" ref={dropdownRef}>
         <button
           onClick={() => setDropdownOpen((prev) => !prev)}
@@ -73,7 +69,7 @@ export default function HudBar({
           aria-label={`Select pet breed, currently ${currentBreed?.label}`}
         >
           <div className="w-8 h-8 rounded-full bg-linear-to-br from-pink-50 to-pink-100 flex items-center justify-center overflow-hidden">
-            {petKind === "cat" ? (
+            {isCat ? (
               <CatFaceIcon type={petBreed as CatType} size={26} />
             ) : (
               <DogFaceIcon type={petBreed as DogType} size={26} />
@@ -102,7 +98,7 @@ export default function HudBar({
 
         {/* Dropdown */}
         {dropdownOpen && (
-          <div className="absolute top-full left-0 mt-2 w-72 rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-pink-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="absolute top-full left-0 mt-2 w-64 rounded-2xl bg-white/95 backdrop-blur-md shadow-lg border border-pink-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
             {/* Pet Kind Tabs */}
             <div className="flex border-b border-pink-100">
               <button
@@ -111,7 +107,7 @@ export default function HudBar({
                   onPetBreedChange("siamese");
                 }}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold transition-colors cursor-pointer ${
-                  petKind === "cat"
+                  isCat
                     ? "bg-pink-50 text-pink-600 border-b-2 border-pink-400"
                     : "text-gray-500 hover:bg-pink-50/40"
                 }`}
@@ -136,7 +132,7 @@ export default function HudBar({
                   onPetBreedChange("shiba_inu");
                 }}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold transition-colors cursor-pointer ${
-                  petKind === "dog"
+                  !isCat
                     ? "bg-amber-50 text-amber-600 border-b-2 border-amber-400"
                     : "text-gray-500 hover:bg-amber-50/40"
                 }`}
@@ -159,65 +155,77 @@ export default function HudBar({
               </button>
             </div>
 
-            {/* Breed List */}
-            <div
-              role="listbox"
-              aria-label={`Select ${petKind} breed`}
-              className="max-h-60 overflow-y-auto py-1.5"
-            >
-              {breeds.map((breed) => {
-                const isSelected = breed.value === petBreed;
-                return (
-                  <button
-                    key={breed.value}
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => {
-                      onPetBreedChange(breed.value);
-                      setDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors cursor-pointer ${
-                      isSelected
-                        ? petKind === "cat"
-                          ? "bg-pink-50 text-pink-600"
-                          : "bg-amber-50 text-amber-600"
-                        : "text-gray-700 hover:bg-pink-50/60"
-                    }`}
-                  >
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${
-                        petKind === "cat"
-                          ? "bg-linear-to-br from-pink-50 to-orange-50"
-                          : "bg-linear-to-br from-amber-50 to-orange-50"
-                      }`}
+            {/* Selected breed name */}
+            <div className="px-3 pt-2.5 pb-1">
+              <p
+                className={`text-xs font-semibold ${isCat ? "text-pink-400" : "text-amber-400"}`}
+              >
+                {currentBreed?.label ?? "—"}
+              </p>
+            </div>
+
+            {/* Grid: 5 icons per row */}
+            <div className="px-2.5 pb-3">
+              <div className="grid grid-cols-5 gap-1.5">
+                {breeds.map((breed) => {
+                  const isSelected = breed.value === petBreed;
+                  return (
+                    <button
+                      key={breed.value}
+                      title={breed.label}
+                      onClick={() => {
+                        onPetBreedChange(breed.value);
+                        setDropdownOpen(false);
+                      }}
+                      className={`
+                        relative group flex items-center justify-center
+                        w-10 h-10 rounded-xl transition-all cursor-pointer
+                        ${
+                          isSelected
+                            ? isCat
+                              ? "bg-pink-100 ring-2 ring-pink-400 scale-105"
+                              : "bg-amber-100 ring-2 ring-amber-400 scale-105"
+                            : "bg-gray-50 hover:bg-pink-50 hover:scale-110"
+                        }
+                      `}
+                      aria-label={breed.label}
+                      aria-pressed={isSelected}
                     >
-                      {petKind === "cat" ? (
-                        <CatFaceIcon type={breed.value as CatType} size={26} />
+                      {isCat ? (
+                        <CatFaceIcon type={breed.value as CatType} size={28} />
                       ) : (
-                        <DogFaceIcon type={breed.value as DogType} size={26} />
+                        <DogFaceIcon type={breed.value as DogType} size={28} />
                       )}
-                    </div>
-                    <span className="text-sm font-medium truncate">
-                      {breed.label}
-                    </span>
-                    {isSelected && (
-                      <svg
-                        className={`w-4 h-4 ml-auto shrink-0 ${petKind === "cat" ? "text-pink-500" : "text-amber-500"}`}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4.5 12.75l6 6 9-13.5"
-                        />
-                      </svg>
-                    )}
-                  </button>
-                );
-              })}
+
+                      {/* Selected checkmark badge */}
+                      {isSelected && (
+                        <span
+                          className={`absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white ${isCat ? "bg-pink-400" : "bg-amber-400"}`}
+                        >
+                          <svg
+                            className="w-2.5 h-2.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4.5 12.75l6 6 9-13.5"
+                            />
+                          </svg>
+                        </span>
+                      )}
+
+                      {/* Tooltip on hover */}
+                      <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-0.5 rounded-lg bg-gray-800/90 text-white text-[10px] font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                        {breed.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
@@ -226,9 +234,9 @@ export default function HudBar({
       {/* Center: Action icons */}
       <div className="pointer-events-auto flex items-center gap-2">
         {[
-          { icon: "\uD83C\uDFE0", label: "Room" },
-          { icon: "\uD83E\uDDFA", label: "Items" },
-          { icon: "\uD83D\uDCCB", label: "Tasks" },
+          { icon: "🏠", label: "Room" },
+          { icon: "🧺", label: "Items" },
+          { icon: "📋", label: "Tasks" },
         ].map((btn) => (
           <button
             key={btn.label}
@@ -244,7 +252,7 @@ export default function HudBar({
       <div className="pointer-events-auto flex items-center gap-2">
         <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm rounded-2xl px-3 py-1.5 shadow-sm border border-pink-100">
           <span className="text-red-400 text-sm" aria-hidden="true">
-            {"\u2764\uFE0F"}
+            ❤️
           </span>
           <span
             className="text-xs font-bold text-pink-500"
@@ -256,7 +264,7 @@ export default function HudBar({
 
         <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm rounded-2xl px-3 py-1.5 shadow-sm border border-pink-100">
           <span className="text-sm" aria-hidden="true">
-            {"\uD83D\uDC3E"}
+            🐾
           </span>
           <span
             className="text-xs font-bold text-pink-400"
@@ -266,7 +274,7 @@ export default function HudBar({
           </span>
         </div>
 
-        {["\u2B50", "\uD83D\uDD14", "\u2699\uFE0F"].map((icon, i) => (
+        {["⭐", "🔔", "⚙️"].map((icon, i) => (
           <button
             key={i}
             className="w-9 h-9 rounded-xl bg-white/80 backdrop-blur-sm shadow-sm border border-pink-100 flex items-center justify-center text-base hover:scale-110 active:scale-95 transition-transform"
