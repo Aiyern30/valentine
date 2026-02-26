@@ -6,8 +6,15 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Profile",
-  description: "Manage your profile and view your partner's information. Update your details and relationship settings.",
-  keywords: ["profile", "user profile", "couple profile", "account settings", "relationship settings"],
+  description:
+    "Manage your profile and view your partner's information. Update your details and relationship settings.",
+  keywords: [
+    "profile",
+    "user profile",
+    "couple profile",
+    "account settings",
+    "relationship settings",
+  ],
 };
 
 export default async function ProfilePage() {

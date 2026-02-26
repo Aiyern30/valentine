@@ -5,7 +5,8 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions",
-  description: "Read our terms and conditions for using SweetDays. Learn about our privacy policy and user agreements.",
+  description:
+    "Read our terms and conditions for using SweetDays. Learn about our privacy policy and user agreements.",
   keywords: ["terms", "conditions", "privacy policy", "user agreement"],
 };
 

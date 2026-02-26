@@ -22,8 +22,14 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "Your relationship dashboard. View your timeline, upcoming events, and recent memories together.",
-  keywords: ["dashboard", "relationship timeline", "couple dashboard", "anniversary countdown"],
+  description:
+    "Your relationship dashboard. View your timeline, upcoming events, and recent memories together.",
+  keywords: [
+    "dashboard",
+    "relationship timeline",
+    "couple dashboard",
+    "anniversary countdown",
+  ],
 };
 
 // app/dashboard/page.tsx

@@ -6,8 +6,16 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Welcome to SweetDays",
-  description: "Celebrate your love story, one sweet day at a time. Create memories, share milestones, and strengthen your bond with your special someone.",
-  keywords: ["sweetdays", "relationship app", "couples app", "love story", "relationship tracker", "couple memories"],
+  description:
+    "Celebrate your love story, one sweet day at a time. Create memories, share milestones, and strengthen your bond with your special someone.",
+  keywords: [
+    "sweetdays",
+    "relationship app",
+    "couples app",
+    "love story",
+    "relationship tracker",
+    "couple memories",
+  ],
 };
 
 export default async function Home() {
