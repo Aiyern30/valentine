@@ -18,8 +18,21 @@ const dancingScript = Dancing_Script({
 });
 
 export const metadata: Metadata = {
-  title: "Valentine's Day",
-  description: "Share the love",
+  title: "SweetDays - Celebrate Your Love Story",
+  description: "SweetDays - A beautiful place to celebrate and cherish your relationship. Create memories, share milestones, and strengthen your bond one sweet day at a time.",
+  keywords: ["relationship app", "couples app", "love journal", "relationship milestones", "couple memories", "sweetdays", "relationship tracker", "love diary"],
+  authors: [{ name: "SweetDays" }],
+  openGraph: {
+    title: "SweetDays - Celebrate Your Love Story",
+    description: "A beautiful place to celebrate and cherish your relationship. Create memories, share milestones, and strengthen your bond.",
+    type: "website",
+    siteName: "SweetDays",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SweetDays - Celebrate Your Love Story",
+    description: "A beautiful place to celebrate and cherish your relationship. Create memories, share milestones, and strengthen your bond.",
+  },
 };
 
 export default function RootLayout({

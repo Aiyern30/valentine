@@ -62,10 +62,10 @@ export default function ValentineHero() {
         <div className="z-10 p-12 text-center">
           <div className="mb-6 relative inline-block">
             <h2 className="text-2xl md:text-3xl font-script text-rose-600 dark:text-rose-400 -rotate-6 transform">
-              Happy
+              Celebrate
             </h2>
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold bg-linear-to-r from-rose-500 via-red-500 to-pink-600 bg-clip-text text-transparent drop-shadow-sm pb-2">
-              Valentines Day
+              SweetDays
             </h1>
           </div>
 

@@ -60,7 +60,7 @@ function SidebarContent({
             <Heart className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold bg-linear-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent">
-            LoveLink
+            SweetDays
           </span>
         </div>
       </div>

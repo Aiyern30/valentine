@@ -30,7 +30,7 @@ export default async function Home() {
                   Sign in
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400">
-                  Start your romantic journey
+                  Celebrate your love story together
                 </p>
               </div>
 
@@ -50,8 +50,7 @@ export default async function Home() {
               </div>
 
               <p className="text-center text-xs sm:text-sm text-gray-400 max-w-xs mx-auto">
-                By continuing, you agree to spread love and joy on this special
-                day.
+                By continuing, you agree to celebrate and cherish every sweet day together.
               </p>
             </div>
           </div>

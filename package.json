@@ -1,7 +1,8 @@
 {
-  "name": "valentine",
+  "name": "sweetdays",
   "version": "0.1.0",
   "private": true,
+  "description": "SweetDays - Celebrate your love story, one sweet day at a time",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
