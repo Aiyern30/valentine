@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PetKind, PetBreed, ActiveScene } from "@/types/pet";
 
 const SCENE_KEYS: Record<ActiveScene, string> = {
@@ -45,6 +45,7 @@ export default function PhaserGame({
   const activeSceneRef = useRef(activeScene);
   const petKindRef = useRef(petKind);
   const petBreedRef = useRef(petBreed);
+  const [isGameReady, setIsGameReady] = useState(false);
 
   // Keep refs in sync so callbacks & effects always read the latest value
   activeSceneRef.current = activeScene;
@@ -88,20 +89,29 @@ export default function PhaserGame({
       });
 
       gameRef.current = game;
+      setIsGameReady(true);
+      console.log("[PhaserGame] Game created and ready!");
 
-      // Listen for events on all scenes
-      roomScene.events.on("petPatted", () => onPetPatted());
-      bathScene.events.on("petSplashed", () => onPetSplashed?.());
-      feedScene.events.on("petFed", (food: string) => onPetFed?.(food));
-      playScene.events.on("petPlayed", (toy: string) => onPetPlayed?.(toy));
+      // Listen for events on all scenes (with null checks)
+      if (roomScene) {
+        roomScene.events.on("petPatted", () => onPetPatted());
+      }
+      if (bathScene) {
+        bathScene.events.on("petSplashed", () => onPetSplashed?.());
+      }
+      if (feedScene) {
+        feedScene.events.on("petFed", (food: string) => onPetFed?.(food));
+      }
+      if (playScene) {
+        playScene.events.on("petPlayed", (toy: string) => onPetPlayed?.(toy));
+      }
 
       // Set initial pet data on all scenes
       const setInitialPet = (scene: Phaser.Scene) => {
         if (scene && "setPetType" in scene) {
-          (scene as { setPetType: (k: PetKind, b: PetBreed) => void }).setPetType(
-            petKindRef.current,
-            petBreedRef.current
-          );
+          (
+            scene as { setPetType: (k: PetKind, b: PetBreed) => void }
+          ).setPetType(petKindRef.current, petBreedRef.current);
         }
       };
 
@@ -109,10 +119,10 @@ export default function PhaserGame({
       // If activeScene is not "room", switch after creation.
       game.events.once("ready", () => {
         if (destroyed) return;
-        
+
         // Set pet on room scene first
         setInitialPet(roomScene);
-        
+
         const targetKey = SCENE_KEYS[activeSceneRef.current];
         if (targetKey !== "RoomScene") {
           game.scene.stop("RoomScene");
@@ -162,39 +172,53 @@ export default function PhaserGame({
 
   // 3) Update pet when kind or breed changes within the current scene
   useEffect(() => {
+    console.log("[PhaserGame Effect3] Triggered! petKind:", petKind, "petBreed:", petBreed, "isGameReady:", isGameReady);
+    
     const game = gameRef.current;
-    if (!game) return;
+    if (!game || !isGameReady) {
+      console.log("[PhaserGame Effect3] Game not ready yet:", { gameExists: !!game, isGameReady });
+      return;
+    }
 
     const targetKey = SCENE_KEYS[activeSceneRef.current];
-    const scene = game.scene.getScene(targetKey);
+    console.log("[PhaserGame Effect3] activeSceneRef.current:", activeSceneRef.current, "targetKey:", targetKey);
     
+    const scene = game.scene.getScene(targetKey);
+    console.log("[PhaserGame Effect3] scene exists:", !!scene, "has setPetType:", scene && "setPetType" in scene);
+
     if (scene && "setPetType" in scene) {
       const s = scene as unknown as {
         isSceneReady?: () => boolean;
         setPetType: (k: PetKind, b: PetBreed) => void;
       };
-      
+
       // If scene has isSceneReady check, wait for readiness
       if (s.isSceneReady) {
+        console.log("[PhaserGame Effect3] Scene has isSceneReady, checking readiness...");
         let attempts = 0;
         const maxAttempts = 30; // 3 seconds at 100ms intervals
-        
+
         const trySet = () => {
           if (s.isSceneReady?.()) {
+            console.log("[PhaserGame Effect3] Scene ready! Calling setPetType with:", petKind, petBreed);
             s.setPetType(petKind, petBreed);
           } else if (attempts < maxAttempts) {
             attempts++;
+            console.log("[PhaserGame Effect3] Scene not ready, attempt:", attempts);
             setTimeout(trySet, 100);
+          } else {
+            console.log("[PhaserGame Effect3] Scene not ready after 30 attempts, giving up");
           }
         };
-        
+
         trySet();
       } else {
         // Scene doesn't have isSceneReady, just set it directly
+        console.log("[PhaserGame Effect3] No isSceneReady, calling setPetType directly with:", petKind, petBreed);
         s.setPetType(petKind, petBreed);
       }
     }
-  }, [petKind, petBreed]);
+  }, [petKind, petBreed, isGameReady]);
 
   // 4) Pass selected food to FeedScene
   useEffect(() => {

@@ -73,11 +73,14 @@ export default function PetRegistrationDialog({
   };
 
   return (
-    <Dialog open={true} onOpenChange={(open) => {
-      if (!open && onCancel) {
-        onCancel();
-      }
-    }}>
+    <Dialog
+      open={true}
+      onOpenChange={(open) => {
+        if (!open && onCancel) {
+          onCancel();
+        }
+      }}
+    >
       <DialogContent className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-linear-to-r from-pink-300 via-purple-200 to-pink-200 -mx-6 -mt-6 px-6 py-8 mb-6">

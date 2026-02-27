@@ -185,16 +185,23 @@ export default function KawaiiRoomApp() {
     setSelectedToy(toy.id + "_" + Date.now());
   }, []);
 
-  const handlePetChange = useCallback((petId: string) => {
-    const selectedPet = allPets.find((p) => p.id === petId);
-    if (selectedPet) {
-      setSelectedPetId(petId);
-      setPetName(selectedPet.pet_name);
-      setPetKind(selectedPet.pet_type as PetKind);
-      setPetBreed(selectedPet.pet_breed as PetBreed);
-      showToast(`Switched to ${selectedPet.pet_name}!`);
-    }
-  }, [allPets, showToast]);
+  const handlePetChange = useCallback(
+    (petId: string) => {
+      console.log("[KawaiiRoomApp] handlePetChange called with petId:", petId);
+      const selectedPet = allPets.find((p) => p.id === petId);
+      console.log("[KawaiiRoomApp] Found pet:", selectedPet);
+      if (selectedPet) {
+        setSelectedPetId(petId);
+        setPetName(selectedPet.pet_name);
+        console.log("[KawaiiRoomApp] Setting petKind to:", selectedPet.pet_type);
+        setPetKind(selectedPet.pet_type as PetKind);
+        console.log("[KawaiiRoomApp] Setting petBreed to:", selectedPet.pet_breed);
+        setPetBreed(selectedPet.pet_breed as PetBreed);
+        showToast(`Switched to ${selectedPet.pet_name}!`);
+      }
+    },
+    [allPets, showToast],
+  );
 
   const handleAddPet = useCallback(() => {
     setShowRegistration(true);
@@ -212,7 +219,7 @@ export default function KawaiiRoomApp() {
       setShowRegistration(false);
       setIsPetDataReady(true);
       showToast(`Welcome ${name}! 🎉`);
-      
+
       // Fetch updated pet list
       const result = await getPetsForCurrentUser();
       if (result.pets) {
@@ -248,7 +255,7 @@ export default function KawaiiRoomApp() {
 
       {/* Pet Registration Dialog */}
       {showRegistration && (
-        <PetRegistrationDialog 
+        <PetRegistrationDialog
           onPetRegistered={handlePetRegistered}
           onCancel={allPets.length > 0 ? handleCancelRegistration : undefined}
         />
@@ -270,12 +277,13 @@ export default function KawaiiRoomApp() {
           />
 
           {/* React UI overlays */}
-          {isPetDataReady && petKind && (
+          {isPetDataReady && petKind && petBreed && (
             <HudBar
               petName={petName}
               daysTogther={daysTogether}
               patCount={patCount}
               petKind={petKind}
+              petBreed={petBreed}
               allPets={allPets}
               selectedPetId={selectedPetId}
               onPetChange={handlePetChange}

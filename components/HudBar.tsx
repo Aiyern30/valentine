@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { PetKind } from "@/types/pet";
+import { PetKind, PetBreed } from "@/types/pet";
 import { CatType } from "@/types/cat";
 import { DogType } from "@/types/dog";
 import CatFaceIcon from "./CatFaceIcon";
@@ -13,6 +13,7 @@ interface HudBarProps {
   daysTogther: number;
   patCount: number;
   petKind: PetKind;
+  petBreed: PetBreed;
   allPets: Pet[];
   selectedPetId: string | null;
   onPetChange: (petId: string) => void;
@@ -24,6 +25,7 @@ export default function HudBar({
   daysTogther,
   patCount,
   petKind,
+  petBreed,
   allPets,
   selectedPetId,
   onPetChange,
@@ -31,7 +33,7 @@ export default function HudBar({
 }: HudBarProps) {
   // Deduplicate pets by id
   const uniquePets = Array.from(
-    new Map(allPets.map((pet) => [pet.id, pet])).values()
+    new Map(allPets.map((pet) => [pet.id, pet])).values(),
   );
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -101,14 +103,13 @@ export default function HudBar({
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLButtonElement).style.backgroundColor =
               "rgba(255, 255, 255, 0.9)";
-            (e.currentTarget as HTMLButtonElement).style.transform =
-              "scale(1)";
+            (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
           }}
         >
           {isCat ? (
-            <CatFaceIcon type="siamese" size={20} />
+            <CatFaceIcon type={petBreed as CatType} size={20} />
           ) : (
-            <DogFaceIcon type="shiba_inu" size={20} />
+            <DogFaceIcon type={petBreed as DogType} size={20} />
           )}
           <span>{petName}</span>
           <span style={{ fontSize: "12px" }}>▼</span>
@@ -157,14 +158,16 @@ export default function HudBar({
                 }}
                 onMouseEnter={(e) => {
                   if (selectedPetId !== pet.id) {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                      "rgba(200, 180, 140, 0.15)";
+                    (
+                      e.currentTarget as HTMLButtonElement
+                    ).style.backgroundColor = "rgba(200, 180, 140, 0.15)";
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (selectedPetId !== pet.id) {
-                    (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                      "transparent";
+                    (
+                      e.currentTarget as HTMLButtonElement
+                    ).style.backgroundColor = "transparent";
                   }
                 }}
               >
@@ -176,7 +179,7 @@ export default function HudBar({
                 <span>{pet.pet_name}</span>
               </button>
             ))}
-            
+
             {/* Add Pet Button */}
             <button
               onClick={() => {
