@@ -74,3 +74,12 @@ export type Confession = {
   created_at: string;
   expires_at: string | null;
 };
+export type Pet = {
+  id: string;
+  relationship_id: string;
+  pet_name: string;
+  pet_type: "cat" | "dog";
+  pet_breed: string;
+  created_at: string;
+  created_by: string | null;
+};

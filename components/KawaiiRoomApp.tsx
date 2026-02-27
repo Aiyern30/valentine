@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import dynamic from "next/dynamic";
 import HudBar from "./HudBar";
 import BottomBar from "./BottomBar";
 import Toast from "./Toast";
 import FoodSelector, { FoodItem } from "./FoodSelector";
 import ToySelector, { ToyItem } from "./ToySelector";
+import PetRegistrationDialog from "./PetRegistrationDialog";
 import { PetKind, PetBreed, ActiveScene } from "@/types/pet";
+import { getPetForCurrentUser } from "@/lib/actions";
 
 // Dynamically import PhaserGame with no SSR
 const PhaserGame = dynamic(() => import("./PhaserGame"), { ssr: false });
@@ -59,9 +61,37 @@ export default function KawaiiRoomApp() {
   const [daysTogether] = useState(1047);
   const [petKind, setPetKind] = useState<PetKind>("cat");
   const [petBreed, setPetBreed] = useState<PetBreed>("siamese");
+  const [petName, setPetName] = useState("Mochi");
   const [activeScene, setActiveScene] = useState<ActiveScene>("room");
   const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
   const [selectedToy, setSelectedToy] = useState<string | null>(null);
+  const [showRegistration, setShowRegistration] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch registered pet on mount
+  useEffect(() => {
+    const fetchPet = async () => {
+      setIsLoading(true);
+      const result = await getPetForCurrentUser();
+      
+      if (result.error) {
+        console.warn("Could not fetch pet:", result.error);
+        setShowRegistration(true);
+      } else if (result.pet) {
+        // Pet exists, use it
+        setPetName(result.pet.pet_name);
+        setPetKind(result.pet.pet_type as PetKind);
+        setPetBreed(result.pet.pet_breed as PetBreed);
+      } else {
+        // No pet found, show registration
+        setShowRegistration(true);
+      }
+      
+      setIsLoading(false);
+    };
+
+    fetchPet();
+  }, []);
 
   const showToast = useCallback((msg: string) => {
     setToastMsg(msg);
@@ -83,9 +113,9 @@ export default function KawaiiRoomApp() {
 
   const handlePetFed = useCallback(
     (food: string) => {
-      showToast(`${petKind === "cat" ? "Mochi" : "Buddy"} loved the ${food}!`);
+      showToast(`${petName} loved the ${food}!`);
     },
-    [showToast, petKind],
+    [showToast, petName],
   );
 
   const handlePetPlayed = useCallback(() => {
@@ -154,7 +184,16 @@ export default function KawaiiRoomApp() {
     setPetBreed(breed);
   }, []);
 
-  const petName = petKind === "cat" ? "Mochi" : "Buddy";
+  const handlePetRegistered = useCallback(
+    (name: string, kind: PetKind, breed: PetBreed) => {
+      setPetName(name);
+      setPetKind(kind);
+      setPetBreed(breed);
+      setShowRegistration(false);
+      showToast(`Welcome ${name}! 🎉`);
+    },
+    [showToast],
+  );
 
   return (
     <div
@@ -167,41 +206,59 @@ export default function KawaiiRoomApp() {
         transition: "background-color 0.5s ease",
       }}
     >
+      {/* Loading state */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl px-8 py-6">
+            <p className="text-pink-500 font-bold">Loading your pet...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Pet Registration Dialog */}
+      {showRegistration && !isLoading && (
+        <PetRegistrationDialog onPetRegistered={handlePetRegistered} />
+      )}
+
       {/* Phaser canvas */}
-      <PhaserGame
-        onPetPatted={handlePetPatted}
-        onPetSplashed={handlePetSplashed}
-        onPetFed={handlePetFed}
-        onPetPlayed={handlePetPlayed}
-        petKind={petKind}
-        petBreed={petBreed}
-        activeScene={activeScene}
-        selectedFood={selectedFood}
-        selectedToy={selectedToy}
-      />
+      {!showRegistration && (
+        <>
+          <PhaserGame
+            onPetPatted={handlePetPatted}
+            onPetSplashed={handlePetSplashed}
+            onPetFed={handlePetFed}
+            onPetPlayed={handlePetPlayed}
+            petKind={petKind}
+            petBreed={petBreed}
+            activeScene={activeScene}
+            selectedFood={selectedFood}
+            selectedToy={selectedToy}
+          />
 
-      {/* React UI overlays */}
-      <HudBar
-        petName={petName}
-        daysTogther={daysTogether}
-        patCount={patCount}
-        petKind={petKind}
-        petBreed={petBreed}
-        onPetKindChange={handlePetKindChange}
-        onPetBreedChange={handlePetBreedChange}
-      />
+          {/* React UI overlays */}
+          <HudBar
+            petName={petName}
+            daysTogther={daysTogether}
+            patCount={patCount}
+            petKind={petKind}
+            petBreed={petBreed}
+            onPetKindChange={handlePetKindChange}
+            onPetBreedChange={handlePetBreedChange}
+          />
 
-      {/* Contextual selectors */}
-      {activeScene === "feed" && (
-        <FoodSelector petKind={petKind} onSelectFood={handleSelectFood} />
+          {/* Contextual selectors */}
+          {activeScene === "feed" && (
+            <FoodSelector petKind={petKind} onSelectFood={handleSelectFood} />
+          )}
+          {activeScene === "play" && (
+            <ToySelector petKind={petKind} onSelectToy={handleSelectToy} />
+          )}
+
+          <BottomBar onAction={handleAction} activeScene={activeScene} />
+
+          <Toast key={toastKey} message={toastMsg} visible={!!toastMsg} />
+        </>
       )}
-      {activeScene === "play" && (
-        <ToySelector petKind={petKind} onSelectToy={handleSelectToy} />
-      )}
-
-      <BottomBar onAction={handleAction} activeScene={activeScene} />
-
-      <Toast key={toastKey} message={toastMsg} visible={!!toastMsg} />
     </div>
   );
 }

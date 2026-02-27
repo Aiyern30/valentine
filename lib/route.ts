@@ -9,6 +9,7 @@ export const protectedRoutes = [
   "/photos",
   "/settings",
   "/profile",
+  "/game",
 ] as const;
 
 // Auth routes - only for login/signup pages that logged-in users shouldn't see

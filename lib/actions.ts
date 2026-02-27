@@ -874,3 +874,108 @@ export async function updatePhotoImage(photoId: string, blob: Blob) {
     return { error: "An unexpected error occurred. Please try again." };
   }
 }
+
+// Pet Management
+export async function getPetForCurrentUser() {
+  try {
+    const supabase = await createClient();
+
+    // Get current user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return { error: "Not authenticated" };
+    }
+
+    // Get user's relationship
+    const { data: relationship, error: relationshipError } = await supabase
+      .from("relationships")
+      .select("id")
+      .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
+      .single();
+
+    if (relationshipError || !relationship) {
+      return { error: "No relationship found" };
+    }
+
+    // Get pet for this relationship
+    const { data: pet, error: petError } = await supabase
+      .from("pets")
+      .select("*")
+      .eq("relationship_id", relationship.id)
+      .single();
+
+    if (petError) {
+      if (petError.code === "PGRST116") {
+        // No results found
+        return { pet: null };
+      }
+      return { error: "Failed to fetch pet" };
+    }
+
+    return { pet };
+  } catch (error) {
+    console.error("Error fetching pet:", error);
+    return { error: "An unexpected error occurred" };
+  }
+}
+
+export async function createPet(
+  petName: string,
+  petType: "cat" | "dog",
+  petBreed: string
+) {
+  try {
+    const supabase = await createClient();
+
+    // Get current user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return { error: "Not authenticated" };
+    }
+
+    // Get user's relationship
+    const { data: relationship, error: relationshipError } = await supabase
+      .from("relationships")
+      .select("id")
+      .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
+      .single();
+
+    if (relationshipError || !relationship) {
+      return { error: "No relationship found" };
+    }
+
+    // Create pet
+    const { data: pet, error: petError } = await supabase
+      .from("pets")
+      .insert([
+        {
+          relationship_id: relationship.id,
+          pet_name: petName,
+          pet_type: petType,
+          pet_breed: petBreed,
+          created_by: user.id,
+        },
+      ])
+      .select()
+      .single();
+
+    if (petError) {
+      console.error("Error creating pet:", petError);
+      return { error: "Failed to create pet" };
+    }
+
+    revalidatePath("/game");
+    return { pet, success: true };
+  } catch (error) {
+    console.error("Error in createPet:", error);
+    return { error: "An unexpected error occurred" };
+  }
+}
