@@ -193,9 +193,15 @@ export default function KawaiiRoomApp() {
       if (selectedPet) {
         setSelectedPetId(petId);
         setPetName(selectedPet.pet_name);
-        console.log("[KawaiiRoomApp] Setting petKind to:", selectedPet.pet_type);
+        console.log(
+          "[KawaiiRoomApp] Setting petKind to:",
+          selectedPet.pet_type,
+        );
         setPetKind(selectedPet.pet_type as PetKind);
-        console.log("[KawaiiRoomApp] Setting petBreed to:", selectedPet.pet_breed);
+        console.log(
+          "[KawaiiRoomApp] Setting petBreed to:",
+          selectedPet.pet_breed,
+        );
         setPetBreed(selectedPet.pet_breed as PetBreed);
         showToast(`Switched to ${selectedPet.pet_name}!`);
       }

@@ -172,19 +172,39 @@ export default function PhaserGame({
 
   // 3) Update pet when kind or breed changes within the current scene
   useEffect(() => {
-    console.log("[PhaserGame Effect3] Triggered! petKind:", petKind, "petBreed:", petBreed, "isGameReady:", isGameReady);
-    
+    console.log(
+      "[PhaserGame Effect3] Triggered! petKind:",
+      petKind,
+      "petBreed:",
+      petBreed,
+      "isGameReady:",
+      isGameReady,
+    );
+
     const game = gameRef.current;
     if (!game || !isGameReady) {
-      console.log("[PhaserGame Effect3] Game not ready yet:", { gameExists: !!game, isGameReady });
+      console.log("[PhaserGame Effect3] Game not ready yet:", {
+        gameExists: !!game,
+        isGameReady,
+      });
       return;
     }
 
     const targetKey = SCENE_KEYS[activeSceneRef.current];
-    console.log("[PhaserGame Effect3] activeSceneRef.current:", activeSceneRef.current, "targetKey:", targetKey);
-    
+    console.log(
+      "[PhaserGame Effect3] activeSceneRef.current:",
+      activeSceneRef.current,
+      "targetKey:",
+      targetKey,
+    );
+
     const scene = game.scene.getScene(targetKey);
-    console.log("[PhaserGame Effect3] scene exists:", !!scene, "has setPetType:", scene && "setPetType" in scene);
+    console.log(
+      "[PhaserGame Effect3] scene exists:",
+      !!scene,
+      "has setPetType:",
+      scene && "setPetType" in scene,
+    );
 
     if (scene && "setPetType" in scene) {
       const s = scene as unknown as {
@@ -194,27 +214,42 @@ export default function PhaserGame({
 
       // If scene has isSceneReady check, wait for readiness
       if (s.isSceneReady) {
-        console.log("[PhaserGame Effect3] Scene has isSceneReady, checking readiness...");
+        console.log(
+          "[PhaserGame Effect3] Scene has isSceneReady, checking readiness...",
+        );
         let attempts = 0;
         const maxAttempts = 30; // 3 seconds at 100ms intervals
 
         const trySet = () => {
           if (s.isSceneReady?.()) {
-            console.log("[PhaserGame Effect3] Scene ready! Calling setPetType with:", petKind, petBreed);
+            console.log(
+              "[PhaserGame Effect3] Scene ready! Calling setPetType with:",
+              petKind,
+              petBreed,
+            );
             s.setPetType(petKind, petBreed);
           } else if (attempts < maxAttempts) {
             attempts++;
-            console.log("[PhaserGame Effect3] Scene not ready, attempt:", attempts);
+            console.log(
+              "[PhaserGame Effect3] Scene not ready, attempt:",
+              attempts,
+            );
             setTimeout(trySet, 100);
           } else {
-            console.log("[PhaserGame Effect3] Scene not ready after 30 attempts, giving up");
+            console.log(
+              "[PhaserGame Effect3] Scene not ready after 30 attempts, giving up",
+            );
           }
         };
 
         trySet();
       } else {
         // Scene doesn't have isSceneReady, just set it directly
-        console.log("[PhaserGame Effect3] No isSceneReady, calling setPetType directly with:", petKind, petBreed);
+        console.log(
+          "[PhaserGame Effect3] No isSceneReady, calling setPetType directly with:",
+          petKind,
+          petBreed,
+        );
         s.setPetType(petKind, petBreed);
       }
     }

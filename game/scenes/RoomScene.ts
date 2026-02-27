@@ -386,9 +386,13 @@ export class RoomScene extends Phaser.Scene {
 
   public setPetType(kind: PetKind, breed: PetBreed) {
     console.log("[RoomScene] setPetType called with:", kind, breed);
-    console.log("[RoomScene] Current pet:", this.currentPetKind, this.currentPetBreed);
+    console.log(
+      "[RoomScene] Current pet:",
+      this.currentPetKind,
+      this.currentPetBreed,
+    );
     console.log("[RoomScene] Pet container exists:", !!this.pet);
-    
+
     this.currentPetKind = kind;
     this.currentPetBreed = breed;
 
@@ -422,7 +426,7 @@ export class RoomScene extends Phaser.Scene {
         repeat: -1,
         ease: "Sine.easeInOut",
       });
-      
+
       console.log("[RoomScene] New pet created successfully");
     } else {
       console.log("[RoomScene] No existing pet to replace");
