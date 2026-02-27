@@ -979,3 +979,47 @@ export async function createPet(
     return { error: "An unexpected error occurred" };
   }
 }
+
+export async function getPetsForCurrentUser() {
+  try {
+    const supabase = await createClient();
+
+    // Get current user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return { error: "Not authenticated" };
+    }
+
+    // Get user's relationship
+    const { data: relationship, error: relationshipError } = await supabase
+      .from("relationships")
+      .select("id")
+      .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
+      .single();
+
+    if (relationshipError || !relationship) {
+      return { error: "No relationship found" };
+    }
+
+    // Get all pets for this relationship
+    const { data: pets, error: petsError } = await supabase
+      .from("pets")
+      .select("*")
+      .eq("relationship_id", relationship.id)
+      .order("created_at", { ascending: false });
+
+    if (petsError) {
+      console.error("Error fetching pets:", petsError);
+      return { error: "Failed to fetch pets" };
+    }
+
+    return { pets: pets || [] };
+  } catch (error) {
+    console.error("Error in getPetsForCurrentUser:", error);
+    return { error: "An unexpected error occurred" };
+  }
+}

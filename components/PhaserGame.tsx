@@ -95,10 +95,24 @@ export default function PhaserGame({
       feedScene.events.on("petFed", (food: string) => onPetFed?.(food));
       playScene.events.on("petPlayed", (toy: string) => onPetPlayed?.(toy));
 
+      // Set initial pet data on all scenes
+      const setInitialPet = (scene: Phaser.Scene) => {
+        if (scene && "setPetType" in scene) {
+          (scene as { setPetType: (k: PetKind, b: PetBreed) => void }).setPetType(
+            petKindRef.current,
+            petBreedRef.current
+          );
+        }
+      };
+
       // The first scene (RoomScene) starts automatically.
       // If activeScene is not "room", switch after creation.
       game.events.once("ready", () => {
         if (destroyed) return;
+        
+        // Set pet on room scene first
+        setInitialPet(roomScene);
+        
         const targetKey = SCENE_KEYS[activeSceneRef.current];
         if (targetKey !== "RoomScene") {
           game.scene.stop("RoomScene");
@@ -152,29 +166,34 @@ export default function PhaserGame({
     if (!game) return;
 
     const targetKey = SCENE_KEYS[activeSceneRef.current];
-
-    function tryUpdate() {
-      const scene = game!.scene.getScene(targetKey);
-      if (scene && "setPetType" in scene) {
-        const s = scene as unknown as {
-          isSceneReady: () => boolean;
-          setPetType: (k: PetKind, b: PetBreed) => void;
+    const scene = game.scene.getScene(targetKey);
+    
+    if (scene && "setPetType" in scene) {
+      const s = scene as unknown as {
+        isSceneReady?: () => boolean;
+        setPetType: (k: PetKind, b: PetBreed) => void;
+      };
+      
+      // If scene has isSceneReady check, wait for readiness
+      if (s.isSceneReady) {
+        let attempts = 0;
+        const maxAttempts = 30; // 3 seconds at 100ms intervals
+        
+        const trySet = () => {
+          if (s.isSceneReady?.()) {
+            s.setPetType(petKind, petBreed);
+          } else if (attempts < maxAttempts) {
+            attempts++;
+            setTimeout(trySet, 100);
+          }
         };
-        if (s.isSceneReady()) {
-          s.setPetType(petKind, petBreed);
-          return true;
-        }
+        
+        trySet();
+      } else {
+        // Scene doesn't have isSceneReady, just set it directly
+        s.setPetType(petKind, petBreed);
       }
-      return false;
     }
-
-    if (tryUpdate()) return;
-
-    // Poll briefly if scene not ready
-    const interval = setInterval(() => {
-      if (tryUpdate()) clearInterval(interval);
-    }, 100);
-    return () => clearInterval(interval);
   }, [petKind, petBreed]);
 
   // 4) Pass selected food to FeedScene
