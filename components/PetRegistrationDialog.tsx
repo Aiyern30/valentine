@@ -9,13 +9,14 @@ import CatFaceIcon from "./CatFaceIcon";
 import DogFaceIcon from "./DogFaceIcon";
 import { CatType } from "@/types/cat";
 import { DogType } from "@/types/dog";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface PetRegistrationDialogProps {
-  onPetRegistered: (petName: string, petType: PetKind, petBreed: PetBreed) => void;
+  onPetRegistered: (
+    petName: string,
+    petType: PetKind,
+    petBreed: PetBreed,
+  ) => void;
 }
 
 export default function PetRegistrationDialog({
@@ -138,13 +139,19 @@ export default function PetRegistrationDialog({
                   setPetName(e.target.value);
                   setError("");
                 }}
-                placeholder={petType === "cat" ? "E.g., Mochi, Luna..." : "E.g., Buddy, Max..."}
+                placeholder={
+                  petType === "cat"
+                    ? "E.g., Mochi, Luna..."
+                    : "E.g., Buddy, Max..."
+                }
                 className="w-full px-4 py-3 rounded-xl border-2 border-pink-200 focus:border-pink-400 focus:outline-none font-semibold text-center placeholder-gray-400"
                 onKeyPress={(e) => e.key === "Enter" && handleNameSubmit()}
                 autoFocus
               />
 
-              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+              {error && (
+                <p className="text-red-500 text-sm text-center">{error}</p>
+              )}
 
               <div className="flex gap-3">
                 <button
@@ -179,7 +186,10 @@ export default function PetRegistrationDialog({
               </div>
 
               {/* Grid of breed icons - 6 per row for larger dialog */}
-              <div className="max-h-96 overflow-y-auto px-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div
+                className="max-h-96 overflow-y-auto px-2"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
                 <style>{`.breed-grid::-webkit-scrollbar { display: none; }`}</style>
                 <div className="breed-grid grid grid-cols-6 gap-3">
                   {availableBreeds.map((breed) => (
@@ -215,7 +225,9 @@ export default function PetRegistrationDialog({
                 </div>
               </div>
 
-              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+              {error && (
+                <p className="text-red-500 text-sm text-center">{error}</p>
+              )}
 
               <button
                 onClick={() => {

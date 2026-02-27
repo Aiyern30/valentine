@@ -926,7 +926,7 @@ export async function getPetForCurrentUser() {
 export async function createPet(
   petName: string,
   petType: "cat" | "dog",
-  petBreed: string
+  petBreed: string,
 ) {
   try {
     const supabase = await createClient();

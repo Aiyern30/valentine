@@ -73,7 +73,7 @@ export default function KawaiiRoomApp() {
     const fetchPet = async () => {
       setIsLoading(true);
       const result = await getPetForCurrentUser();
-      
+
       if (result.error) {
         console.warn("Could not fetch pet:", result.error);
         setShowRegistration(true);
@@ -86,7 +86,7 @@ export default function KawaiiRoomApp() {
         // No pet found, show registration
         setShowRegistration(true);
       }
-      
+
       setIsLoading(false);
     };
 
