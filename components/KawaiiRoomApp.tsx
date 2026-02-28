@@ -76,8 +76,11 @@ export default function KawaiiRoomApp() {
   const [isPetDataReady, setIsPetDataReady] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const userIdRef = useRef<string | null>(null);
-  const [unlockedAchievement, setUnlockedAchievement] = useState<AchievementDefinition | null>(null);
-  const [achievementQueue, setAchievementQueue] = useState<AchievementDefinition[]>([]);
+  const [unlockedAchievement, setUnlockedAchievement] =
+    useState<AchievementDefinition | null>(null);
+  const [achievementQueue, setAchievementQueue] = useState<
+    AchievementDefinition[]
+  >([]);
 
   // Get current user ID
   useEffect(() => {
@@ -193,13 +196,19 @@ export default function KawaiiRoomApp() {
         );
 
         // Check for newly unlocked achievements
-        if (result.achievements?.success && result.achievements.newlyUnlocked.length > 0) {
+        if (
+          result.achievements?.success &&
+          result.achievements.newlyUnlocked.length > 0
+        ) {
           console.log(
             "[handlePetPatted] 🏆 New achievements unlocked:",
             result.achievements.newlyUnlocked,
           );
           // Add to queue to show one by one
-          setAchievementQueue((prev) => [...prev, ...result.achievements.newlyUnlocked]);
+          setAchievementQueue((prev) => [
+            ...prev,
+            ...(result.achievements?.newlyUnlocked || []),
+          ]);
         }
       }
     })();
@@ -233,8 +242,14 @@ export default function KawaiiRoomApp() {
         });
 
         // Check for newly unlocked achievements
-        if (result.achievements?.success && result.achievements.newlyUnlocked.length > 0) {
-          setAchievementQueue((prev) => [...prev, ...result.achievements.newlyUnlocked]);
+        if (
+          result.achievements?.success &&
+          result.achievements.newlyUnlocked.length > 0
+        ) {
+          setAchievementQueue((prev) => [
+            ...prev,
+            ...(result.achievements?.newlyUnlocked || []),
+          ]);
         }
       }
     })();
@@ -268,8 +283,14 @@ export default function KawaiiRoomApp() {
           });
 
           // Check for newly unlocked achievements
-          if (result.achievements?.success && result.achievements.newlyUnlocked.length > 0) {
-            setAchievementQueue((prev) => [...prev, ...result.achievements.newlyUnlocked]);
+          if (
+            result.achievements?.success &&
+            result.achievements.newlyUnlocked.length > 0
+          ) {
+            setAchievementQueue((prev) => [
+              ...prev,
+              ...(result.achievements?.newlyUnlocked || []),
+            ]);
           }
         }
       })();
@@ -304,8 +325,14 @@ export default function KawaiiRoomApp() {
         });
 
         // Check for newly unlocked achievements
-        if (result.achievements?.success && result.achievements.newlyUnlocked.length > 0) {
-          setAchievementQueue((prev) => [...prev, ...result.achievements.newlyUnlocked]);
+        if (
+          result.achievements?.success &&
+          result.achievements.newlyUnlocked.length > 0
+        ) {
+          setAchievementQueue((prev) => [
+            ...prev,
+            ...(result.achievements?.newlyUnlocked || []),
+          ]);
         }
       }
     })();

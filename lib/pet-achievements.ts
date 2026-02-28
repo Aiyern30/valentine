@@ -121,14 +121,12 @@ export async function checkAndUnlockAchievements(petId: string) {
       if (condition.type === "counter") {
         const stat = condition.stat as string;
         const value = condition.value as number;
-        const currentValue =
-          statsData[stat as keyof typeof statsData] || 0;
+        const currentValue = statsData[stat as keyof typeof statsData] || 0;
         isUnlocked = currentValue >= value;
       } else if (condition.type === "stat") {
         const stat = condition.stat as string;
         const value = condition.value as number;
-        const currentValue =
-          statsData[stat as keyof typeof statsData] || 0;
+        const currentValue = statsData[stat as keyof typeof statsData] || 0;
         isUnlocked = currentValue >= value;
       } else if (condition.type === "all_stats") {
         const value = condition.value as number;
@@ -151,15 +149,13 @@ export async function checkAndUnlockAchievements(petId: string) {
 
       if (isUnlocked) {
         // Unlock the achievement
-        const { error } = await supabase
-          .from("pet_achievements")
-          .insert([
-            {
-              pet_id: petId,
-              achievement_id: achievement.id,
-              achievement_type: achievement.category,
-            },
-          ]);
+        const { error } = await supabase.from("pet_achievements").insert([
+          {
+            pet_id: petId,
+            achievement_id: achievement.id,
+            achievement_type: achievement.category,
+          },
+        ]);
 
         if (!error) {
           newlyUnlocked.push(achievement);
