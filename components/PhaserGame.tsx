@@ -47,94 +47,154 @@ export default function PhaserGame({
   const petBreedRef = useRef(petBreed);
   const [isGameReady, setIsGameReady] = useState(false);
 
+  // 🔥 FIX: Store callbacks in refs to avoid stale closure issues
+  const onPetPattedRef = useRef(onPetPatted);
+  const onPetSplashedRef = useRef(onPetSplashed);
+  const onPetFedRef = useRef(onPetFed);
+  const onPetPlayedRef = useRef(onPetPlayed);
+
   // Keep refs in sync so callbacks & effects always read the latest value
   activeSceneRef.current = activeScene;
   petKindRef.current = petKind;
   petBreedRef.current = petBreed;
 
+  // 🔥 FIX: Update callback refs whenever they change
+  onPetPattedRef.current = onPetPatted;
+  onPetSplashedRef.current = onPetSplashed;
+  onPetFedRef.current = onPetFed;
+  onPetPlayedRef.current = onPetPlayed;
+
   // 1) Create Phaser game with all scenes (RUNS ONLY ONCE)
   useEffect(() => {
-    if (!containerRef.current || gameRef.current) return;
+    console.log("[PhaserGame] 🚀 useEffect 1 triggered - creating game");
+    if (!containerRef.current || gameRef.current) {
+      console.log(
+        "[PhaserGame] ⚠️ Skipping init - containerRef:",
+        !!containerRef.current,
+        "gameRef:', !!gameRef.current)",
+      );
+      return;
+    }
 
     let destroyed = false;
 
     async function init() {
-      const Phaser = (await import("phaser")).default;
-      const { RoomScene } = await import("@/game/scenes/RoomScene");
-      const { SleepScene } = await import("@/game/scenes/SleepScene");
-      const { BathScene } = await import("@/game/scenes/BathScene");
-      const { FeedScene } = await import("@/game/scenes/FeedScene");
-      const { PlayScene } = await import("@/game/scenes/PlayScene");
+      try {
+        console.log("[PhaserGame] 🎮 init() starting - importing Phaser...");
+        const Phaser = (await import("phaser")).default;
+        console.log("[PhaserGame] ✅ Phaser imported");
 
-      if (destroyed || !containerRef.current) return;
+        const { RoomScene } = await import("@/game/scenes/RoomScene");
+        const { SleepScene } = await import("@/game/scenes/SleepScene");
+        const { BathScene } = await import("@/game/scenes/BathScene");
+        const { FeedScene } = await import("@/game/scenes/FeedScene");
+        const { PlayScene } = await import("@/game/scenes/PlayScene");
 
-      const roomScene = new RoomScene();
-      const sleepScene = new SleepScene();
-      const bathScene = new BathScene();
-      const feedScene = new FeedScene();
-      const playScene = new PlayScene();
-
-      const game = new Phaser.Game({
-        type: Phaser.AUTO,
-        parent: containerRef.current,
-        width: containerRef.current.clientWidth,
-        height: containerRef.current.clientHeight,
-        transparent: true,
-        scene: [roomScene, sleepScene, bathScene, feedScene, playScene],
-        scale: {
-          mode: Phaser.Scale.RESIZE,
-          autoCenter: Phaser.Scale.CENTER_BOTH,
-        },
-        physics: { default: "arcade", arcade: { debug: false } },
-      });
-
-      gameRef.current = game;
-      setIsGameReady(true);
-      console.log("[PhaserGame] Game created and ready!");
-
-      // Listen for events on all scenes (with null checks)
-      if (roomScene) {
-        roomScene.events.on("petPatted", () => onPetPatted());
-      }
-      if (bathScene) {
-        bathScene.events.on("petSplashed", () => onPetSplashed?.());
-      }
-      if (feedScene) {
-        feedScene.events.on("petFed", (food: string) => onPetFed?.(food));
-      }
-      if (playScene) {
-        playScene.events.on("petPlayed", (toy: string) => onPetPlayed?.(toy));
-      }
-
-      // Set initial pet data on all scenes
-      const setInitialPet = (scene: Phaser.Scene) => {
-        if (scene && "setPetType" in scene) {
-          (
-            scene as { setPetType: (k: PetKind, b: PetBreed) => void }
-          ).setPetType(petKindRef.current, petBreedRef.current);
+        if (destroyed || !containerRef.current) {
+          console.log("[PhaserGame] ⚠️ Destroyed or no container");
+          return;
         }
-      };
 
-      // The first scene (RoomScene) starts automatically.
-      // If activeScene is not "room", switch after creation.
-      game.events.once("ready", () => {
-        if (destroyed) return;
+        const roomScene = new RoomScene();
+        const sleepScene = new SleepScene();
+        const bathScene = new BathScene();
+        const feedScene = new FeedScene();
+        const playScene = new PlayScene();
 
-        // Set pet on room scene first
-        setInitialPet(roomScene);
+        const game = new Phaser.Game({
+          type: Phaser.AUTO,
+          parent: containerRef.current,
+          width: containerRef.current.clientWidth,
+          height: containerRef.current.clientHeight,
+          transparent: true,
+          scene: [roomScene, sleepScene, bathScene, feedScene, playScene],
+          scale: {
+            mode: Phaser.Scale.RESIZE,
+            autoCenter: Phaser.Scale.CENTER_BOTH,
+          },
+          physics: { default: "arcade", arcade: { debug: false } },
+        });
 
-        const targetKey = SCENE_KEYS[activeSceneRef.current];
-        if (targetKey !== "RoomScene") {
-          game.scene.stop("RoomScene");
-          game.scene.start(targetKey, {
-            petKind: petKindRef.current,
-            petBreed: petBreedRef.current,
-          });
-        }
-      });
+        gameRef.current = game;
+        setIsGameReady(true);
+        console.log("[PhaserGame] ✅ Game created and ready!");
+
+        // 🔥 FIX: Attach listeners AFTER game is ready and scenes are initialized
+        game.events.once("ready", () => {
+          console.log("[PhaserGame] 📡 Game ready event fired, attaching listeners to initialized scenes...");
+          
+          const roomSceneFromGame = game.scene.getScene("RoomScene");
+          if (roomSceneFromGame) {
+            console.log("[PhaserGame] ✅ Got RoomScene, attaching petPatted listener");
+            roomSceneFromGame.events.on("petPatted", () => {
+              console.log("[PhaserGame] 📥 RECEIVED petPatted event! Calling onPetPatted()");
+              onPetPattedRef.current?.();
+            });
+          }
+
+          const bathSceneFromGame = game.scene.getScene("BathScene");
+          if (bathSceneFromGame) {
+            console.log("[PhaserGame] ✅ Got BathScene, attaching petSplashed listener");
+            bathSceneFromGame.events.on("petSplashed", () => {
+              console.log("[PhaserGame] 📥 RECEIVED petSplashed event!");
+              onPetSplashedRef.current?.();
+            });
+          }
+
+          const feedSceneFromGame = game.scene.getScene("FeedScene");
+          if (feedSceneFromGame) {
+            console.log("[PhaserGame] ✅ Got FeedScene, attaching petFed listener");
+            feedSceneFromGame.events.on("petFed", (food: string) => {
+              console.log("[PhaserGame] 📥 RECEIVED petFed event with food:", food);
+              onPetFedRef.current?.(food);
+            });
+          }
+
+          const playSceneFromGame = game.scene.getScene("PlayScene");
+          if (playSceneFromGame) {
+            console.log("[PhaserGame] ✅ Got PlayScene, attaching petPlayed listener");
+            playSceneFromGame.events.on("petPlayed", (toy: string) => {
+              console.log("[PhaserGame] 📥 RECEIVED petPlayed event with toy:", toy);
+              onPetPlayedRef.current?.(toy);
+            });
+          }
+
+          console.log("[PhaserGame] ✅ All event listeners attached!");
+
+          // Also set initial pet data in the same ready handler
+          const setInitialPet = (scene: Phaser.Scene) => {
+            if (scene && "setPetType" in scene) {
+              (
+                scene as { setPetType: (k: PetKind, b: PetBreed) => void }
+              ).setPetType(petKindRef.current, petBreedRef.current);
+            }
+          };
+
+          if (destroyed) return;
+
+          // Set pet on room scene first
+          const roomSceneForPet = game.scene.getScene("RoomScene");
+          if (roomSceneForPet) {
+            setInitialPet(roomSceneForPet);
+          }
+
+          const targetKey = SCENE_KEYS[activeSceneRef.current];
+          if (targetKey !== "RoomScene") {
+            game.scene.stop("RoomScene");
+            game.scene.start(targetKey, {
+              petKind: petKindRef.current,
+              petBreed: petBreedRef.current,
+            });
+          }
+        });
+      } catch (error) {
+        console.error("[PhaserGame] ❌ Error in init():", error);
+      }
     }
 
+    console.log("[PhaserGame] 📞 Calling init()...");
     init();
+    console.log("[PhaserGame] ✅ init() called (async)");
 
     return () => {
       destroyed = true;

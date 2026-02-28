@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import HudBar from "./HudBar";
 import BottomBar from "./BottomBar";
@@ -10,6 +10,7 @@ import ToySelector, { ToyItem } from "./ToySelector";
 import PetRegistrationDialog from "./PetRegistrationDialog";
 import { PetKind, PetBreed, ActiveScene } from "@/types/pet";
 import { getPetsForCurrentUser } from "@/lib/actions";
+import { handlePetInteraction } from "@/lib/pet-interactions";
 import { Pet } from "@/types";
 
 // Dynamically import PhaserGame with no SSR
@@ -71,6 +72,31 @@ export default function KawaiiRoomApp() {
   const [showRegistration, setShowRegistration] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isPetDataReady, setIsPetDataReady] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const userIdRef = useRef<string | null>(null);
+
+  // Get current user ID
+  useEffect(() => {
+    const getUserId = async () => {
+      // Import client-side supabase
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = await createClient();
+      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      
+      if (user) {
+        console.log("[KawaiiRoomApp] User ID set:", user.id);
+        setUserId(user.id);
+        userIdRef.current = user.id;
+      } else {
+        console.warn("[KawaiiRoomApp] No user found");
+      }
+    };
+
+    getUserId();
+  }, []);
 
   // Fetch all registered pets on mount
   useEffect(() => {
@@ -108,29 +134,131 @@ export default function KawaiiRoomApp() {
 
   const handlePetPatted = useCallback(() => {
     setPatCount((c) => c + 1);
-    if (!petKind) return;
+    console.log("[handlePetPatted] 🐾 Tapped pet!", {
+      petKind,
+      selectedPetId,
+      userId: userIdRef.current,
+    });
+    
+    if (!petKind || !selectedPetId || !userIdRef.current) {
+      console.warn("[handlePetPatted] ❌ Missing required data:", {
+        petKind: !!petKind,
+        selectedPetId: !!selectedPetId,
+        userId: !!userIdRef.current,
+      });
+      showToast("Error: Missing pet data!");
+      return;
+    }
+    
     const msgs = petKind === "cat" ? PAT_MESSAGES_CAT : PAT_MESSAGES_DOG;
     const msg = msgs[Math.floor(Math.random() * msgs.length)];
     showToast(msg);
-  }, [showToast, petKind]);
+
+    // Record interaction in database
+    (async () => {
+      console.log("[handlePetPatted] 📤 Recording interaction...");
+      const result = await handlePetInteraction(
+        selectedPetId,
+        userIdRef.current!,
+        "pat",
+      );
+      
+      console.log("[handlePetPatted] 📥 Interaction result:", result);
+      
+      if ("error" in result && result.error) {
+        console.error("[handlePetPatted] ❌ Failed to record pat interaction:", {
+          error: result.error,
+          details: "details" in result ? result.details : "N/A",
+        });
+        showToast(`Error: ${result.error}`);
+      } else if ("success" in result && result.success && "moodBefore" in result) {
+        console.log("[handlePetPatted] ✅ Pat interaction recorded successfully!", {
+          before: result.moodBefore,
+          after: result.moodAfter,
+          statsUpdated: !!result.stats,
+        });
+      }
+    })();
+  }, [showToast, petKind, selectedPetId]);
 
   const handlePetSplashed = useCallback(() => {
+    if (!selectedPetId || !userIdRef.current) return;
+    
     const msg =
       SPLASH_MESSAGES[Math.floor(Math.random() * SPLASH_MESSAGES.length)];
     showToast(msg);
-  }, [showToast]);
+
+    // Record interaction in database
+    (async () => {
+      const result = await handlePetInteraction(
+        selectedPetId,
+        userIdRef.current!,
+        "bath",
+      );
+      
+      if ("error" in result && result.error) {
+        console.warn("Failed to record bath interaction:", result.error);
+      } else if ("success" in result && result.success && "moodBefore" in result) {
+        console.log("Bath interaction recorded:", {
+          before: result.moodBefore,
+          after: result.moodAfter,
+        });
+      }
+    })();
+  }, [showToast, selectedPetId]);
 
   const handlePetFed = useCallback(
     (food: string) => {
+      if (!selectedPetId || !userIdRef.current) return;
+      
       showToast(`${petName} loved the ${food}!`);
+
+      // Record interaction in database
+      (async () => {
+        const result = await handlePetInteraction(
+          selectedPetId,
+          userIdRef.current!,
+          "feed",
+        );
+        
+        if ("error" in result && result.error) {
+          console.warn("Failed to record feed interaction:", result.error);
+        } else if ("success" in result && result.success && "moodBefore" in result) {
+          console.log("Feed interaction recorded:", {
+            before: result.moodBefore,
+            after: result.moodAfter,
+            food,
+          });
+        }
+      })();
     },
-    [showToast, petName],
+    [showToast, petName, selectedPetId],
   );
 
   const handlePetPlayed = useCallback(() => {
+    if (!selectedPetId || !userIdRef.current) return;
+    
     const msg = PLAY_MESSAGES[Math.floor(Math.random() * PLAY_MESSAGES.length)];
     showToast(msg);
-  }, [showToast]);
+
+    // Record interaction in database
+    (async () => {
+      const result = await handlePetInteraction(
+        selectedPetId,
+        userIdRef.current!,
+        "play",
+      );
+      
+      if ("error" in result && result.error) {
+        console.warn("Failed to record play interaction:", result.error);
+      } else if ("success" in result && result.success && "moodBefore" in result) {
+        console.log("Play interaction recorded:", {
+          before: result.moodBefore,
+          after: result.moodAfter,
+        });
+      }
+    })();
+  }, [showToast, selectedPetId]);
 
   const handleAction = useCallback(
     (label: string) => {

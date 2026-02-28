@@ -24,17 +24,20 @@ export class RoomScene extends Phaser.Scene {
   }
 
   create() {
+    console.log("[RoomScene] 🎬 CREATE - Initializing scene");
     const W = this.scale.width;
     const H = this.scale.height;
 
     this.drawRoom(W, H);
     this.drawFurniture(W, H);
     this.drawPet(W, H);
+    console.log("[RoomScene] ✅ Pet drawn, setting up interactions");
     this.setupInteractions();
     this.startIdleAnimations();
     this.spawnSparkles(W, H);
 
     this.isReady = true;
+    console.log("[RoomScene] ✅ Scene ready!");
   }
 
   // ─── Room Background ───────────────────────────────────────────────────────
@@ -326,6 +329,7 @@ export class RoomScene extends Phaser.Scene {
   // ─── Pet Character ─────────────────────────────────────────────────────────
 
   private drawPet(W: number, H: number) {
+    console.log("[RoomScene] 🐱 Drawing pet...");
     this.pet = this.add.container(W * 0.45, H * 0.55);
 
     this.petBody = this.add.graphics();
@@ -338,7 +342,9 @@ export class RoomScene extends Phaser.Scene {
     const sparkle = this.add.text(-5, -68, "\u2728", { fontSize: "14px" });
     this.pet.add(sparkle);
 
+    console.log("[RoomScene] ✅ Pet graphics drawn, calling setupPetInteraction()");
     this.setupPetInteraction();
+    console.log("[RoomScene] ✅ Pet interaction setup complete");
   }
 
   private drawPetGraphics() {
@@ -358,12 +364,17 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private setupPetInteraction() {
+    console.log("[RoomScene] 🎯 Setting up pet interaction - petBody:", !!this.petBody);
+    
     this.petBody.setInteractive(
       new Phaser.Geom.Circle(0, -15, 50),
       Phaser.Geom.Circle.Contains,
     );
+    
+    console.log("[RoomScene] ✅ Pet body is now interactive");
 
     this.petBody.on("pointerover", () => {
+      console.log("[RoomScene] 👆 Mouse over pet");
       const name = this.currentPetBreed.replace("_", " ");
       const kind = this.currentPetKind;
       this.showTooltip(`Pat the ${name} ${kind}!`);
@@ -371,13 +382,17 @@ export class RoomScene extends Phaser.Scene {
     });
 
     this.petBody.on("pointerout", () => {
+      console.log("[RoomScene] 👋 Mouse left pet");
       this.hideTooltip();
       this.game.canvas.style.cursor = "default";
     });
 
     this.petBody.on("pointerdown", () => {
+      console.log("[RoomScene] 🖱️ CLICKED! Calling patPet()");
       this.patPet();
     });
+    
+    console.log("[RoomScene] ✅ Pet interaction listeners attached");
   }
 
   public isSceneReady(): boolean {
@@ -436,6 +451,8 @@ export class RoomScene extends Phaser.Scene {
   // ─── Interactions ───────────────────────────────────────────────────────────
 
   private patPet() {
+    console.log("[RoomScene] 🎉 PAT PET CALLED! Emitting petPatted event...");
+    
     this.tweens.add({
       targets: this.pet,
       y: this.pet.y - 20,
@@ -481,7 +498,9 @@ export class RoomScene extends Phaser.Scene {
       });
     }
 
+    console.log("[RoomScene] 📤 Emitting 'petPatted' event to listeners");
     this.events.emit("petPatted");
+    console.log("[RoomScene] ✅ Event emitted");
   }
 
   private setupInteractions() {
