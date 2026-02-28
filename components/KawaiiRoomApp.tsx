@@ -74,7 +74,6 @@ export default function KawaiiRoomApp() {
   const [showRegistration, setShowRegistration] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isPetDataReady, setIsPetDataReady] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
   const userIdRef = useRef<string | null>(null);
   const [unlockedAchievement, setUnlockedAchievement] =
     useState<AchievementDefinition | null>(null);
@@ -94,11 +93,8 @@ export default function KawaiiRoomApp() {
       } = await supabase.auth.getUser();
 
       if (user) {
-        console.log("[KawaiiRoomApp] User ID set:", user.id);
-        setUserId(user.id);
         userIdRef.current = user.id;
       } else {
-        console.warn("[KawaiiRoomApp] No user found");
       }
     };
 
@@ -112,7 +108,6 @@ export default function KawaiiRoomApp() {
       const result = await getPetsForCurrentUser();
 
       if (result.error) {
-        console.warn("Could not fetch pets:", result.error);
         setShowRegistration(true);
       } else if (result.pets && result.pets.length > 0) {
         // Pets exist, use the first one
@@ -141,18 +136,8 @@ export default function KawaiiRoomApp() {
 
   const handlePetPatted = useCallback(() => {
     setPatCount((c) => c + 1);
-    console.log("[handlePetPatted] 🐾 Tapped pet!", {
-      petKind,
-      selectedPetId,
-      userId: userIdRef.current,
-    });
 
     if (!petKind || !selectedPetId || !userIdRef.current) {
-      console.warn("[handlePetPatted] ❌ Missing required data:", {
-        petKind: !!petKind,
-        selectedPetId: !!selectedPetId,
-        userId: !!userIdRef.current,
-      });
       showToast("Error: Missing pet data!");
       return;
     }
@@ -163,47 +148,24 @@ export default function KawaiiRoomApp() {
 
     // Record interaction in database
     (async () => {
-      console.log("[handlePetPatted] 📤 Recording interaction...");
       const result = await handlePetInteraction(
         selectedPetId,
         userIdRef.current!,
         "pat",
       );
 
-      console.log("[handlePetPatted] 📥 Interaction result:", result);
-
       if ("error" in result && result.error) {
-        console.error(
-          "[handlePetPatted] ❌ Failed to record pat interaction:",
-          {
-            error: result.error,
-            details: "details" in result ? result.details : "N/A",
-          },
-        );
         showToast(`Error: ${result.error}`);
       } else if (
         "success" in result &&
         result.success &&
         "moodBefore" in result
       ) {
-        console.log(
-          "[handlePetPatted] ✅ Pat interaction recorded successfully!",
-          {
-            before: result.moodBefore,
-            after: result.moodAfter,
-            statsUpdated: !!result.stats,
-          },
-        );
-
         // Check for newly unlocked achievements
         if (
           result.achievements?.success &&
           result.achievements.newlyUnlocked.length > 0
         ) {
-          console.log(
-            "[handlePetPatted] 🏆 New achievements unlocked:",
-            result.achievements.newlyUnlocked,
-          );
           // Add to queue to show one by one
           setAchievementQueue((prev) => [
             ...prev,
@@ -230,17 +192,11 @@ export default function KawaiiRoomApp() {
       );
 
       if ("error" in result && result.error) {
-        console.warn("Failed to record bath interaction:", result.error);
       } else if (
         "success" in result &&
         result.success &&
         "moodBefore" in result
       ) {
-        console.log("Bath interaction recorded:", {
-          before: result.moodBefore,
-          after: result.moodAfter,
-        });
-
         // Check for newly unlocked achievements
         if (
           result.achievements?.success &&
@@ -276,12 +232,6 @@ export default function KawaiiRoomApp() {
           result.success &&
           "moodBefore" in result
         ) {
-          console.log("Feed interaction recorded:", {
-            before: result.moodBefore,
-            after: result.moodAfter,
-            food,
-          });
-
           // Check for newly unlocked achievements
           if (
             result.achievements?.success &&
@@ -319,11 +269,6 @@ export default function KawaiiRoomApp() {
         result.success &&
         "moodBefore" in result
       ) {
-        console.log("Play interaction recorded:", {
-          before: result.moodBefore,
-          after: result.moodAfter,
-        });
-
         // Check for newly unlocked achievements
         if (
           result.achievements?.success &&
@@ -393,21 +338,13 @@ export default function KawaiiRoomApp() {
 
   const handlePetChange = useCallback(
     (petId: string) => {
-      console.log("[KawaiiRoomApp] handlePetChange called with petId:", petId);
       const selectedPet = allPets.find((p) => p.id === petId);
-      console.log("[KawaiiRoomApp] Found pet:", selectedPet);
       if (selectedPet) {
         setSelectedPetId(petId);
         setPetName(selectedPet.pet_name);
-        console.log(
-          "[KawaiiRoomApp] Setting petKind to:",
-          selectedPet.pet_type,
-        );
+
         setPetKind(selectedPet.pet_type as PetKind);
-        console.log(
-          "[KawaiiRoomApp] Setting petBreed to:",
-          selectedPet.pet_breed,
-        );
+
         setPetBreed(selectedPet.pet_breed as PetBreed);
         showToast(`Switched to ${selectedPet.pet_name}!`);
       }
