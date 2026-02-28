@@ -355,7 +355,9 @@ export async function handlePetInteraction(
     // This way 100 pats = 1 row with total_pats incremented by 100
     // Instead of 100 rows in pet_interactions table
 
-    console.log("[handlePetInteraction] ✅ Skipping individual interaction record (using counters only)");
+    console.log(
+      "[handlePetInteraction] ✅ Skipping individual interaction record (using counters only)",
+    );
 
     // Update stats in database (includes incrementing total_pats, total_feeds, etc.)
     const statsResult = await updatePetStatsInDB(petId, updated);
@@ -369,15 +371,25 @@ export async function handlePetInteraction(
 
     console.log("[handlePetInteraction] ✅ Stats updated in database");
 
-    // Record mood history (optional - for tracking mood trends)
-    await recordMoodHistory(petId, moodAfter, {
-      happiness: updated.happiness ?? currentStats.happiness,
-      hunger: updated.hunger ?? currentStats.hunger,
-      energy: updated.energy ?? currentStats.energy,
-      cleanliness: updated.cleanliness ?? currentStats.cleanliness,
-    });
-
-    console.log("[handlePetInteraction] ✅ Mood history recorded");
+    // Record mood history ONLY when mood actually changes (not every interaction)
+    // This prevents 100 pats from creating 100 rows - only records significant mood transitions
+    if (moodBefore !== moodAfter) {
+      await recordMoodHistory(petId, moodAfter, {
+        happiness: updated.happiness ?? currentStats.happiness,
+        hunger: updated.hunger ?? currentStats.hunger,
+        energy: updated.energy ?? currentStats.energy,
+        cleanliness: updated.cleanliness ?? currentStats.cleanliness,
+      });
+      console.log(
+        "[handlePetInteraction] ✅ Mood changed, history recorded:",
+        `${moodBefore} → ${moodAfter}`,
+      );
+    } else {
+      console.log(
+        "[handlePetInteraction] ⏭️ Mood unchanged, skipping history record:",
+        moodAfter,
+      );
+    }
 
     console.log("[handlePetInteraction] ✅ All steps completed successfully");
     return {
