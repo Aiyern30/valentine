@@ -22,6 +22,7 @@ export default function PetAchievements({ petId }: AchievementsProps) {
       ]);
 
       if ("achievements" in allResult && allResult.achievements) {
+        console.log(`[PetAchievements] Loaded ${allResult.achievements.length} total achievements`);
         setAchievements(allResult.achievements || []);
       }
 
@@ -29,6 +30,7 @@ export default function PetAchievements({ petId }: AchievementsProps) {
         const ids = new Set(
           (unlockedResult.achievements || []).map((a) => a.achievement_id),
         );
+        console.log(`[PetAchievements] Pet has ${ids.size} unlocked achievements:`, Array.from(ids));
         setUnlockedIds(ids);
       }
     } catch (error) {
