@@ -336,6 +336,10 @@ export async function handlePetInteraction(
         cleanliness: currentStats.cleanliness,
         health: currentStats.health,
         affection_level: currentStats.affection_level,
+        total_pats: currentStats.total_pats,
+        total_feeds: currentStats.total_feeds,
+        total_plays: currentStats.total_plays,
+        total_baths: currentStats.total_baths,
       },
       interactionType,
     );
@@ -346,28 +350,14 @@ export async function handlePetInteraction(
       updated,
     });
 
-    // Record the interaction
-    const interactionResult = await recordPetInteraction({
-      petId,
-      interactionType,
-      performedById,
-      happinessBefore: currentStats.happiness,
-      happinessAfter: updated.happiness ?? currentStats.happiness,
-      moodBefore,
-      moodAfter,
-    });
+    // 🔥 CHANGED: Skip recording individual interactions
+    // Instead, just update the counters in pet_stats
+    // This way 100 pats = 1 row with total_pats incremented by 100
+    // Instead of 100 rows in pet_interactions table
 
-    if ("error" in interactionResult) {
-      console.error(
-        "[handlePetInteraction] ❌ Failed to record interaction:",
-        interactionResult.error,
-      );
-      return interactionResult;
-    }
+    console.log("[handlePetInteraction] ✅ Skipping individual interaction record (using counters only)");
 
-    console.log("[handlePetInteraction] ✅ Interaction recorded");
-
-    // Update stats in database
+    // Update stats in database (includes incrementing total_pats, total_feeds, etc.)
     const statsResult = await updatePetStatsInDB(petId, updated);
     if ("error" in statsResult) {
       console.error(
@@ -379,7 +369,7 @@ export async function handlePetInteraction(
 
     console.log("[handlePetInteraction] ✅ Stats updated in database");
 
-    // Record mood history
+    // Record mood history (optional - for tracking mood trends)
     await recordMoodHistory(petId, moodAfter, {
       happiness: updated.happiness ?? currentStats.happiness,
       hunger: updated.hunger ?? currentStats.hunger,
@@ -392,7 +382,6 @@ export async function handlePetInteraction(
     console.log("[handlePetInteraction] ✅ All steps completed successfully");
     return {
       success: true,
-      interaction: interactionResult.interaction,
       stats: statsResult.stats,
       moodBefore,
       moodAfter,

@@ -49,6 +49,10 @@ export function updateStatsForInteraction(
     cleanliness: number;
     health: number;
     affection_level?: number;
+    total_pats?: number;
+    total_feeds?: number;
+    total_plays?: number;
+    total_baths?: number;
   },
   interactionType: "pat" | "feed" | "play" | "bath" | "sleep",
 ): {
@@ -67,7 +71,7 @@ export function updateStatsForInteraction(
         (currentStats.affection_level || 50) + 10,
       );
       updates.energy = Math.max(0, currentStats.energy - 5);
-      updates.total_pats = (updates.total_pats || 0) + 1;
+      updates.total_pats = (currentStats.total_pats || 0) + 1;
       break;
 
     case "feed":
@@ -75,7 +79,7 @@ export function updateStatsForInteraction(
       updates.health = Math.min(100, currentStats.health + 5);
       updates.energy = Math.max(0, currentStats.energy - 10);
       updates.happiness = Math.min(100, currentStats.happiness + 10);
-      updates.total_feeds = (updates.total_feeds || 0) + 1;
+      updates.total_feeds = (currentStats.total_feeds || 0) + 1;
       updates.last_fed = new Date();
       break;
 
@@ -87,7 +91,7 @@ export function updateStatsForInteraction(
         100,
         (currentStats.affection_level || 50) + 15,
       );
-      updates.total_plays = (updates.total_plays || 0) + 1;
+      updates.total_plays = (currentStats.total_plays || 0) + 1;
       updates.last_played = new Date();
       break;
 
@@ -96,7 +100,7 @@ export function updateStatsForInteraction(
       updates.health = Math.min(100, currentStats.health + 10);
       updates.happiness = Math.max(0, currentStats.happiness - 10); // Pets don't like baths
       updates.energy = Math.max(0, currentStats.energy - 15);
-      updates.total_baths = (updates.total_baths || 0) + 1;
+      updates.total_baths = (currentStats.total_baths || 0) + 1;
       updates.last_bathed = new Date();
       break;
 
