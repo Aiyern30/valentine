@@ -3,6 +3,7 @@
 // Pet interaction database operations (server actions)
 import { createClient } from "@/lib/supabase/server";
 import { updateStatsForInteraction } from "@/lib/pet-stats-calculator";
+import { checkAndUnlockAchievements } from "@/lib/pet-achievements";
 
 // Re-define the type here so it's available in this "use server" context
 export interface PetStatsUpdate {
@@ -266,14 +267,33 @@ export async function handlePetInteraction(
         energy: updated.energy ?? currentStats.energy,
         cleanliness: updated.cleanliness ?? currentStats.cleanliness,
       });
+      console.log(
+        "[handlePetInteraction] ✅ Mood changed, history recorded:",
+        `${moodBefore} → ${moodAfter}`,
+      );
     } else {
+      console.log(
+        "[handlePetInteraction] ⏭️ Mood unchanged, skipping history record:",
+        moodAfter,
+      );
     }
 
+    // Check and unlock any new achievements
+    const achievementResult = await checkAndUnlockAchievements(petId);
+    if (achievementResult.success && achievementResult.newlyUnlocked.length > 0) {
+      console.log(
+        `[handlePetInteraction] 🏆 ${achievementResult.newlyUnlocked.length} new achievement(s) unlocked:`,
+        achievementResult.newlyUnlocked,
+      );
+    }
+
+    console.log("[handlePetInteraction] ✅ All steps completed successfully");
     return {
       success: true,
       stats: statsResult.stats,
       moodBefore,
       moodAfter,
+      achievements: achievementResult,
     };
   } catch (error) {
     console.error(

@@ -83,12 +83,24 @@ CREATE TABLE public.notes (
   CONSTRAINT notes_relationship_id_fkey FOREIGN KEY (relationship_id) REFERENCES public.relationships(id),
   CONSTRAINT notes_author_id_fkey FOREIGN KEY (author_id) REFERENCES public.profiles(id)
 );
+CREATE TABLE public.achievement_definitions (
+  id text NOT NULL PRIMARY KEY,
+  name text NOT NULL,
+  description text NOT NULL,
+  icon text,
+  category text NOT NULL,
+  rarity text DEFAULT 'common'::text,
+  unlock_condition jsonb NOT NULL,
+  display_order integer DEFAULT 0
+);
 CREATE TABLE public.pet_achievements (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   pet_id uuid NOT NULL,
+  achievement_id text NOT NULL,
   achievement_type text NOT NULL,
   achieved_at timestamp with time zone DEFAULT now(),
   CONSTRAINT pet_achievements_pkey PRIMARY KEY (id),
+  CONSTRAINT pet_achievements_achievement_id_fkey FOREIGN KEY (achievement_id) REFERENCES public.achievement_definitions(id),
   CONSTRAINT pet_achievements_pet_id_fkey FOREIGN KEY (pet_id) REFERENCES public.pets(id)
 );
 CREATE TABLE public.pet_care_streaks (
@@ -214,6 +226,43 @@ CREATE TABLE public.relationship_invitations (
   CONSTRAINT relationship_invitations_inviter_id_fkey FOREIGN KEY (inviter_id) REFERENCES public.profiles(id),
   CONSTRAINT relationship_invitations_relationship_id_fkey FOREIGN KEY (relationship_id) REFERENCES public.relationships(id)
 );
+
+-- Achievement Definitions
+INSERT INTO achievement_definitions (id, name, description, icon, category, rarity, unlock_condition, display_order) VALUES
+-- First Time Achievements
+('first_pat', 'First Love', 'Pat your pet for the first time', '💕', 'beginner', 'common', '{"type": "interaction", "requirement": "first_pat"}', 1),
+('first_feed', 'First Meal', 'Feed your pet for the first time', '🍽️', 'beginner', 'common', '{"type": "interaction", "requirement": "first_feed"}', 2),
+('first_play', 'Playtime Buddy', 'Play with your pet for the first time', '🎮', 'beginner', 'common', '{"type": "interaction", "requirement": "first_play"}', 3),
+('first_bath', 'Bath Time', 'Give your pet a bath for the first time', '🛁', 'beginner', 'common', '{"type": "interaction", "requirement": "first_bath"}', 4),
+
+-- Interaction Count Achievements
+('pat_10', 'Pat Master', 'Pat your pet 10 times', '🐾', 'interaction', 'common', '{"type": "counter", "stat": "total_pats", "value": 10}', 5),
+('pat_100', 'Century Petter', 'Pat your pet 100 times', '🎉', 'interaction', 'rare', '{"type": "counter", "stat": "total_pats", "value": 100}', 6),
+('feed_10', 'Foodie Master', 'Feed your pet 10 times', '🍖', 'interaction', 'common', '{"type": "counter", "stat": "total_feeds", "value": 10}', 7),
+('feed_50', 'Gourmet Chef', 'Feed your pet 50 times', '👨‍🍳', 'interaction', 'rare', '{"type": "counter", "stat": "total_feeds", "value": 50}', 8),
+('play_10', 'Playground Star', 'Play with your pet 10 times', '⭐', 'interaction', 'common', '{"type": "counter", "stat": "total_plays", "value": 10}', 9),
+('play_50', 'Fun Champion', 'Play with your pet 50 times', '🏆', 'interaction', 'rare', '{"type": "counter", "stat": "total_plays", "value": 50}', 10),
+('bath_5', 'Clean Machine', 'Bath your pet 5 times', '✨', 'interaction', 'common', '{"type": "counter", "stat": "total_baths", "value": 5}', 11),
+('bath_25', 'Squeaky Clean', 'Bath your pet 25 times', '🧼', 'interaction', 'rare', '{"type": "counter", "stat": "total_baths", "value": 25}', 12),
+
+-- Stat Achievements
+('happy_pet', 'Happy Pet', 'Reach happiness level 85+', '😊', 'stats', 'common', '{"type": "stat", "stat": "happiness", "value": 85}', 13),
+('very_happy', 'Overjoyed', 'Reach happiness level 95+', '🤩', 'stats', 'rare', '{"type": "stat", "stat": "happiness", "value": 95}', 14),
+('healthy_buddy', 'Healthy Buddy', 'Reach health level 85+', '💚', 'stats', 'common', '{"type": "stat", "stat": "health", "value": 85}', 15),
+('peak_health', 'Peak Condition', 'Reach health level 95+', '🩺', 'stats', 'rare', '{"type": "stat", "stat": "health", "value": 95}', 16),
+('clean_pup', 'Squeaky Clean Pup', 'Reach cleanliness level 85+', '🌟', 'stats', 'common', '{"type": "stat", "stat": "cleanliness", "value": 85}', 17),
+('energizer', 'Energizer', 'Reach energy level 90+', '⚡', 'stats', 'common', '{"type": "stat", "stat": "energy", "value": 90}', 18),
+('affectionate', 'Affectionate Bond', 'Reach affection level 80+', '💞', 'stats', 'common', '{"type": "stat", "stat": "affection_level", "value": 80}', 19),
+('devoted', 'Devoted Companion', 'Reach affection level 95+', '👑', 'stats', 'rare', '{"type": "stat", "stat": "affection_level", "value": 95}', 20),
+
+-- Combo Achievements
+('all_star', 'All Star Caretaker', 'Get all stats above 75', '⭐⭐⭐', 'combo', 'epic', '{"type": "all_stats", "value": 75}', 21),
+('perfect_pet', 'Perfect Pet Owner', 'Get all stats above 90', '👑✨', 'combo', 'legendary', '{"type": "all_stats", "value": 90}', 22),
+
+-- Consecutive Days
+('7day_streak', '7-Day Companion', 'Interact with your pet for 7 consecutive days', '🔥', 'streak', 'rare', '{"type": "streak_days", "days": 7}', 23),
+('30day_streak', '30-Day Dedicated', 'Interact with your pet for 30 consecutive days', '💪', 'streak', 'epic', '{"type": "streak_days", "days": 30}', 24);
+
 CREATE TABLE public.relationships (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   partner1_id uuid,
