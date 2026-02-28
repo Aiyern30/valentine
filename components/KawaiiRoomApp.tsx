@@ -12,6 +12,8 @@ import { PetKind, PetBreed, ActiveScene } from "@/types/pet";
 import { getPetsForCurrentUser } from "@/lib/actions";
 import { handlePetInteraction } from "@/lib/pet-interactions";
 import { Pet } from "@/types";
+import AchievementUnlockDialog from "./AchievementUnlockDialog";
+import { AchievementDefinition } from "@/lib/pet-achievements";
 
 // Dynamically import PhaserGame with no SSR
 const PhaserGame = dynamic(() => import("./PhaserGame"), { ssr: false });
@@ -74,6 +76,8 @@ export default function KawaiiRoomApp() {
   const [isPetDataReady, setIsPetDataReady] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const userIdRef = useRef<string | null>(null);
+  const [unlockedAchievement, setUnlockedAchievement] = useState<AchievementDefinition | null>(null);
+  const [achievementQueue, setAchievementQueue] = useState<AchievementDefinition[]>([]);
 
   // Get current user ID
   useEffect(() => {
@@ -187,6 +191,16 @@ export default function KawaiiRoomApp() {
             statsUpdated: !!result.stats,
           },
         );
+
+        // Check for newly unlocked achievements
+        if (result.achievements?.success && result.achievements.newlyUnlocked.length > 0) {
+          console.log(
+            "[handlePetPatted] 🏆 New achievements unlocked:",
+            result.achievements.newlyUnlocked,
+          );
+          // Add to queue to show one by one
+          setAchievementQueue((prev) => [...prev, ...result.achievements.newlyUnlocked]);
+        }
       }
     })();
   }, [showToast, petKind, selectedPetId]);
@@ -217,6 +231,11 @@ export default function KawaiiRoomApp() {
           before: result.moodBefore,
           after: result.moodAfter,
         });
+
+        // Check for newly unlocked achievements
+        if (result.achievements?.success && result.achievements.newlyUnlocked.length > 0) {
+          setAchievementQueue((prev) => [...prev, ...result.achievements.newlyUnlocked]);
+        }
       }
     })();
   }, [showToast, selectedPetId]);
@@ -247,6 +266,11 @@ export default function KawaiiRoomApp() {
             after: result.moodAfter,
             food,
           });
+
+          // Check for newly unlocked achievements
+          if (result.achievements?.success && result.achievements.newlyUnlocked.length > 0) {
+            setAchievementQueue((prev) => [...prev, ...result.achievements.newlyUnlocked]);
+          }
         }
       })();
     },
@@ -278,6 +302,11 @@ export default function KawaiiRoomApp() {
           before: result.moodBefore,
           after: result.moodAfter,
         });
+
+        // Check for newly unlocked achievements
+        if (result.achievements?.success && result.achievements.newlyUnlocked.length > 0) {
+          setAchievementQueue((prev) => [...prev, ...result.achievements.newlyUnlocked]);
+        }
       }
     })();
   }, [showToast, selectedPetId]);
@@ -389,6 +418,20 @@ export default function KawaiiRoomApp() {
     [showToast],
   );
 
+  // Handle achievement queue - show one achievement at a time
+  useEffect(() => {
+    if (achievementQueue.length > 0 && !unlockedAchievement) {
+      // Show the first achievement in queue
+      setUnlockedAchievement(achievementQueue[0]);
+      // Remove it from queue
+      setAchievementQueue((prev) => prev.slice(1));
+    }
+  }, [achievementQueue, unlockedAchievement]);
+
+  const handleCloseAchievement = () => {
+    setUnlockedAchievement(null);
+  };
+
   return (
     <div
       style={{
@@ -460,6 +503,12 @@ export default function KawaiiRoomApp() {
           <Toast key={toastKey} message={toastMsg} visible={!!toastMsg} />
         </>
       )}
+
+      {/* Achievement Unlock Dialog */}
+      <AchievementUnlockDialog
+        achievement={unlockedAchievement}
+        onClose={handleCloseAchievement}
+      />
     </div>
   );
 }

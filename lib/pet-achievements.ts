@@ -107,7 +107,7 @@ export async function checkAndUnlockAchievements(petId: string) {
       (unlockedData || []).map((a) => a.achievement_id),
     );
 
-    const newlyUnlocked: string[] = [];
+    const newlyUnlocked: AchievementDefinition[] = [];
 
     // Check each achievement
     for (const achievement of achievements) {
@@ -162,7 +162,7 @@ export async function checkAndUnlockAchievements(petId: string) {
           ]);
 
         if (!error) {
-          newlyUnlocked.push(achievement.id);
+          newlyUnlocked.push(achievement);
           console.log(
             `[checkAndUnlockAchievements] 🏆 Unlocked: ${achievement.name}`,
           );
