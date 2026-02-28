@@ -342,7 +342,9 @@ export class RoomScene extends Phaser.Scene {
     const sparkle = this.add.text(-5, -68, "\u2728", { fontSize: "14px" });
     this.pet.add(sparkle);
 
-    console.log("[RoomScene] ✅ Pet graphics drawn, calling setupPetInteraction()");
+    console.log(
+      "[RoomScene] ✅ Pet graphics drawn, calling setupPetInteraction()",
+    );
     this.setupPetInteraction();
     console.log("[RoomScene] ✅ Pet interaction setup complete");
   }
@@ -364,13 +366,16 @@ export class RoomScene extends Phaser.Scene {
   }
 
   private setupPetInteraction() {
-    console.log("[RoomScene] 🎯 Setting up pet interaction - petBody:", !!this.petBody);
-    
+    console.log(
+      "[RoomScene] 🎯 Setting up pet interaction - petBody:",
+      !!this.petBody,
+    );
+
     this.petBody.setInteractive(
       new Phaser.Geom.Circle(0, -15, 50),
       Phaser.Geom.Circle.Contains,
     );
-    
+
     console.log("[RoomScene] ✅ Pet body is now interactive");
 
     this.petBody.on("pointerover", () => {
@@ -391,7 +396,7 @@ export class RoomScene extends Phaser.Scene {
       console.log("[RoomScene] 🖱️ CLICKED! Calling patPet()");
       this.patPet();
     });
-    
+
     console.log("[RoomScene] ✅ Pet interaction listeners attached");
   }
 
@@ -452,7 +457,7 @@ export class RoomScene extends Phaser.Scene {
 
   private patPet() {
     console.log("[RoomScene] 🎉 PAT PET CALLED! Emitting petPatted event...");
-    
+
     this.tweens.add({
       targets: this.pet,
       y: this.pet.y - 20,

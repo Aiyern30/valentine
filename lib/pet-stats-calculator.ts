@@ -115,7 +115,8 @@ export function updateStatsForInteraction(
     energy: updates.energy ?? currentStats.energy,
     cleanliness: updates.cleanliness ?? currentStats.cleanliness,
     health: updates.health ?? currentStats.health,
-    affection_level: updates.affection_level ?? currentStats.affection_level ?? 50,
+    affection_level:
+      updates.affection_level ?? currentStats.affection_level ?? 50,
   };
 
   const moodAfter = calculateMood(newStats);

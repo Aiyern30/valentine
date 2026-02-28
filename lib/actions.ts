@@ -974,27 +974,28 @@ export async function createPet(
 
     // Create initial pet stats
     console.log("[createPet] Creating initial pet stats for pet:", pet.id);
-    const { error: statsError } = await supabase
-      .from("pet_stats")
-      .insert([
-        {
-          pet_id: pet.id,
-          happiness: 75,
-          hunger: 50,
-          energy: 80,
-          cleanliness: 70,
-          health: 90,
-          affection_level: 50,
-          current_mood: "happy",
-          total_pats: 0,
-          total_feeds: 0,
-          total_plays: 0,
-          total_baths: 0,
-        },
-      ]);
+    const { error: statsError } = await supabase.from("pet_stats").insert([
+      {
+        pet_id: pet.id,
+        happiness: 75,
+        hunger: 50,
+        energy: 80,
+        cleanliness: 70,
+        health: 90,
+        affection_level: 50,
+        current_mood: "happy",
+        total_pats: 0,
+        total_feeds: 0,
+        total_plays: 0,
+        total_baths: 0,
+      },
+    ]);
 
     if (statsError) {
-      console.warn("[createPet] Warning: Could not create pet stats:", statsError);
+      console.warn(
+        "[createPet] Warning: Could not create pet stats:",
+        statsError,
+      );
       // Don't fail the whole operation, stats can be created lazily
     } else {
       console.log("[createPet] Pet stats created successfully");

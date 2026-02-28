@@ -121,20 +121,28 @@ export default function PhaserGame({
 
         // 🔥 FIX: Attach listeners AFTER game is ready and scenes are initialized
         game.events.once("ready", () => {
-          console.log("[PhaserGame] 📡 Game ready event fired, attaching listeners to initialized scenes...");
-          
+          console.log(
+            "[PhaserGame] 📡 Game ready event fired, attaching listeners to initialized scenes...",
+          );
+
           const roomSceneFromGame = game.scene.getScene("RoomScene");
           if (roomSceneFromGame) {
-            console.log("[PhaserGame] ✅ Got RoomScene, attaching petPatted listener");
+            console.log(
+              "[PhaserGame] ✅ Got RoomScene, attaching petPatted listener",
+            );
             roomSceneFromGame.events.on("petPatted", () => {
-              console.log("[PhaserGame] 📥 RECEIVED petPatted event! Calling onPetPatted()");
+              console.log(
+                "[PhaserGame] 📥 RECEIVED petPatted event! Calling onPetPatted()",
+              );
               onPetPattedRef.current?.();
             });
           }
 
           const bathSceneFromGame = game.scene.getScene("BathScene");
           if (bathSceneFromGame) {
-            console.log("[PhaserGame] ✅ Got BathScene, attaching petSplashed listener");
+            console.log(
+              "[PhaserGame] ✅ Got BathScene, attaching petSplashed listener",
+            );
             bathSceneFromGame.events.on("petSplashed", () => {
               console.log("[PhaserGame] 📥 RECEIVED petSplashed event!");
               onPetSplashedRef.current?.();
@@ -143,18 +151,28 @@ export default function PhaserGame({
 
           const feedSceneFromGame = game.scene.getScene("FeedScene");
           if (feedSceneFromGame) {
-            console.log("[PhaserGame] ✅ Got FeedScene, attaching petFed listener");
+            console.log(
+              "[PhaserGame] ✅ Got FeedScene, attaching petFed listener",
+            );
             feedSceneFromGame.events.on("petFed", (food: string) => {
-              console.log("[PhaserGame] 📥 RECEIVED petFed event with food:", food);
+              console.log(
+                "[PhaserGame] 📥 RECEIVED petFed event with food:",
+                food,
+              );
               onPetFedRef.current?.(food);
             });
           }
 
           const playSceneFromGame = game.scene.getScene("PlayScene");
           if (playSceneFromGame) {
-            console.log("[PhaserGame] ✅ Got PlayScene, attaching petPlayed listener");
+            console.log(
+              "[PhaserGame] ✅ Got PlayScene, attaching petPlayed listener",
+            );
             playSceneFromGame.events.on("petPlayed", (toy: string) => {
-              console.log("[PhaserGame] 📥 RECEIVED petPlayed event with toy:", toy);
+              console.log(
+                "[PhaserGame] 📥 RECEIVED petPlayed event with toy:",
+                toy,
+              );
               onPetPlayedRef.current?.(toy);
             });
           }

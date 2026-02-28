@@ -77,19 +77,25 @@ export async function recordPetInteraction(payload: PetInteractionPayload) {
         details: error.details,
         hint: error.hint,
       });
-      return { 
+      return {
         error: "Failed to record interaction",
-        details: `${error.code}: ${error.message}`
+        details: `${error.code}: ${error.message}`,
       };
     }
 
-    console.log("[recordPetInteraction] ✅ Interaction recorded successfully:", data);
+    console.log(
+      "[recordPetInteraction] ✅ Interaction recorded successfully:",
+      data,
+    );
     return { success: true, interaction: data };
   } catch (error) {
-    console.error("[recordPetInteraction] ❌ Catch error in recordPetInteraction:", error);
-    return { 
+    console.error(
+      "[recordPetInteraction] ❌ Catch error in recordPetInteraction:",
+      error,
+    );
+    return {
       error: "An unexpected error occurred",
-      details: String(error)
+      details: String(error),
     };
   }
 }
@@ -112,7 +118,7 @@ export async function getPetStats(petId: string) {
         message: error.message,
       });
       console.log("[getPetStats] 📋 Record not found, creating default...");
-      
+
       // Try to create a default stats record
       const { data: createdData, error: createError } = await supabase
         .from("pet_stats")
@@ -132,24 +138,29 @@ export async function getPetStats(petId: string) {
         })
         .select()
         .single();
-      
+
       if (createError) {
         // If creation fails due to duplicate, it means the record was created by another request
         // Try to fetch it again
         if (createError.code === "23505") {
-          console.log("[getPetStats] 📋 Duplicate detected, fetching existing record...");
+          console.log(
+            "[getPetStats] 📋 Duplicate detected, fetching existing record...",
+          );
           const { data: existingData, error: fetchError } = await supabase
             .from("pet_stats")
             .select("*")
             .eq("pet_id", petId)
             .single();
-          
+
           if (!fetchError && existingData) {
-            console.log("[getPetStats] ✅ Found existing stats after retry:", existingData);
+            console.log(
+              "[getPetStats] ✅ Found existing stats after retry:",
+              existingData,
+            );
             return existingData;
           }
         }
-        
+
         console.warn("[getPetStats] ⚠️ Could not create stats record:", {
           code: createError.code,
           message: createError.message,
@@ -170,7 +181,7 @@ export async function getPetStats(petId: string) {
           total_baths: 0,
         };
       }
-      
+
       console.log("[getPetStats] ✅ Created default stats");
       return createdData;
     }
@@ -208,9 +219,9 @@ export async function updatePetStatsInDB(
         message: error.message,
         details: error.details,
       });
-      return { 
+      return {
         error: "Failed to update pet stats",
-        details: `${error.code}: ${error.message}`
+        details: `${error.code}: ${error.message}`,
       };
     }
 
@@ -218,9 +229,9 @@ export async function updatePetStatsInDB(
     return { success: true, stats: data };
   } catch (error) {
     console.error("[updatePetStatsInDB] ❌ Catch error:", error);
-    return { 
+    return {
       error: "An unexpected error occurred",
-      details: String(error)
+      details: String(error),
     };
   }
 }
@@ -297,19 +308,19 @@ export async function handlePetInteraction(
   interactionType: PetInteractionPayload["interactionType"],
 ) {
   try {
-    console.log("[handlePetInteraction] 🎬 Starting interaction:", { 
-      petId, 
-      performedById, 
-      interactionType 
+    console.log("[handlePetInteraction] 🎬 Starting interaction:", {
+      petId,
+      performedById,
+      interactionType,
     });
-    
+
     // Get current stats
     const currentStats = await getPetStats(petId);
     if (!currentStats) {
       console.error("[handlePetInteraction] ❌ Pet not found:", petId);
       return { error: "Pet not found" };
     }
-    
+
     console.log("[handlePetInteraction] ✅ Got current stats:", {
       happiness: currentStats.happiness,
       hunger: currentStats.hunger,
@@ -328,11 +339,11 @@ export async function handlePetInteraction(
       },
       interactionType,
     );
-    
-    console.log("[handlePetInteraction] 📊 Stats calculated:", { 
-      moodBefore, 
-      moodAfter, 
-      updated 
+
+    console.log("[handlePetInteraction] 📊 Stats calculated:", {
+      moodBefore,
+      moodAfter,
+      updated,
     });
 
     // Record the interaction
@@ -347,19 +358,25 @@ export async function handlePetInteraction(
     });
 
     if ("error" in interactionResult) {
-      console.error("[handlePetInteraction] ❌ Failed to record interaction:", interactionResult.error);
+      console.error(
+        "[handlePetInteraction] ❌ Failed to record interaction:",
+        interactionResult.error,
+      );
       return interactionResult;
     }
-    
+
     console.log("[handlePetInteraction] ✅ Interaction recorded");
 
     // Update stats in database
     const statsResult = await updatePetStatsInDB(petId, updated);
     if ("error" in statsResult) {
-      console.error("[handlePetInteraction] ❌ Failed to update stats:", statsResult.error);
+      console.error(
+        "[handlePetInteraction] ❌ Failed to update stats:",
+        statsResult.error,
+      );
       return statsResult;
     }
-    
+
     console.log("[handlePetInteraction] ✅ Stats updated in database");
 
     // Record mood history
@@ -369,7 +386,7 @@ export async function handlePetInteraction(
       energy: updated.energy ?? currentStats.energy,
       cleanliness: updated.cleanliness ?? currentStats.cleanliness,
     });
-    
+
     console.log("[handlePetInteraction] ✅ Mood history recorded");
 
     console.log("[handlePetInteraction] ✅ All steps completed successfully");
@@ -381,10 +398,13 @@ export async function handlePetInteraction(
       moodAfter,
     };
   } catch (error) {
-    console.error("[handlePetInteraction] ❌ Error in handlePetInteraction:", error);
-    return { 
+    console.error(
+      "[handlePetInteraction] ❌ Error in handlePetInteraction:",
+      error,
+    );
+    return {
       error: "An unexpected error occurred",
-      details: String(error)
+      details: String(error),
     };
   }
 }

@@ -81,11 +81,11 @@ export default function KawaiiRoomApp() {
       // Import client-side supabase
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = await createClient();
-      
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      
+
       if (user) {
         console.log("[KawaiiRoomApp] User ID set:", user.id);
         setUserId(user.id);
@@ -139,7 +139,7 @@ export default function KawaiiRoomApp() {
       selectedPetId,
       userId: userIdRef.current,
     });
-    
+
     if (!petKind || !selectedPetId || !userIdRef.current) {
       console.warn("[handlePetPatted] ❌ Missing required data:", {
         petKind: !!petKind,
@@ -149,7 +149,7 @@ export default function KawaiiRoomApp() {
       showToast("Error: Missing pet data!");
       return;
     }
-    
+
     const msgs = petKind === "cat" ? PAT_MESSAGES_CAT : PAT_MESSAGES_DOG;
     const msg = msgs[Math.floor(Math.random() * msgs.length)];
     showToast(msg);
@@ -162,28 +162,38 @@ export default function KawaiiRoomApp() {
         userIdRef.current!,
         "pat",
       );
-      
+
       console.log("[handlePetPatted] 📥 Interaction result:", result);
-      
+
       if ("error" in result && result.error) {
-        console.error("[handlePetPatted] ❌ Failed to record pat interaction:", {
-          error: result.error,
-          details: "details" in result ? result.details : "N/A",
-        });
+        console.error(
+          "[handlePetPatted] ❌ Failed to record pat interaction:",
+          {
+            error: result.error,
+            details: "details" in result ? result.details : "N/A",
+          },
+        );
         showToast(`Error: ${result.error}`);
-      } else if ("success" in result && result.success && "moodBefore" in result) {
-        console.log("[handlePetPatted] ✅ Pat interaction recorded successfully!", {
-          before: result.moodBefore,
-          after: result.moodAfter,
-          statsUpdated: !!result.stats,
-        });
+      } else if (
+        "success" in result &&
+        result.success &&
+        "moodBefore" in result
+      ) {
+        console.log(
+          "[handlePetPatted] ✅ Pat interaction recorded successfully!",
+          {
+            before: result.moodBefore,
+            after: result.moodAfter,
+            statsUpdated: !!result.stats,
+          },
+        );
       }
     })();
   }, [showToast, petKind, selectedPetId]);
 
   const handlePetSplashed = useCallback(() => {
     if (!selectedPetId || !userIdRef.current) return;
-    
+
     const msg =
       SPLASH_MESSAGES[Math.floor(Math.random() * SPLASH_MESSAGES.length)];
     showToast(msg);
@@ -195,10 +205,14 @@ export default function KawaiiRoomApp() {
         userIdRef.current!,
         "bath",
       );
-      
+
       if ("error" in result && result.error) {
         console.warn("Failed to record bath interaction:", result.error);
-      } else if ("success" in result && result.success && "moodBefore" in result) {
+      } else if (
+        "success" in result &&
+        result.success &&
+        "moodBefore" in result
+      ) {
         console.log("Bath interaction recorded:", {
           before: result.moodBefore,
           after: result.moodAfter,
@@ -210,7 +224,7 @@ export default function KawaiiRoomApp() {
   const handlePetFed = useCallback(
     (food: string) => {
       if (!selectedPetId || !userIdRef.current) return;
-      
+
       showToast(`${petName} loved the ${food}!`);
 
       // Record interaction in database
@@ -220,10 +234,14 @@ export default function KawaiiRoomApp() {
           userIdRef.current!,
           "feed",
         );
-        
+
         if ("error" in result && result.error) {
           console.warn("Failed to record feed interaction:", result.error);
-        } else if ("success" in result && result.success && "moodBefore" in result) {
+        } else if (
+          "success" in result &&
+          result.success &&
+          "moodBefore" in result
+        ) {
           console.log("Feed interaction recorded:", {
             before: result.moodBefore,
             after: result.moodAfter,
@@ -237,7 +255,7 @@ export default function KawaiiRoomApp() {
 
   const handlePetPlayed = useCallback(() => {
     if (!selectedPetId || !userIdRef.current) return;
-    
+
     const msg = PLAY_MESSAGES[Math.floor(Math.random() * PLAY_MESSAGES.length)];
     showToast(msg);
 
@@ -248,10 +266,14 @@ export default function KawaiiRoomApp() {
         userIdRef.current!,
         "play",
       );
-      
+
       if ("error" in result && result.error) {
         console.warn("Failed to record play interaction:", result.error);
-      } else if ("success" in result && result.success && "moodBefore" in result) {
+      } else if (
+        "success" in result &&
+        result.success &&
+        "moodBefore" in result
+      ) {
         console.log("Play interaction recorded:", {
           before: result.moodBefore,
           after: result.moodAfter,
