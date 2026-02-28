@@ -1,12 +1,8 @@
 "use server";
 
 // Pet interaction database operations (server actions)
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@/lib/supabase/server";
-import {
-  calculateMood,
-  updateStatsForInteraction,
-} from "@/lib/pet-stats-calculator";
+import { updateStatsForInteraction } from "@/lib/pet-stats-calculator";
 
 // Re-define the type here so it's available in this "use server" context
 export interface PetStatsUpdate {
@@ -27,83 +23,9 @@ export interface PetStatsUpdate {
   last_slept?: Date;
 }
 
-export interface PetInteractionPayload {
-  petId: string;
-  interactionType: "pat" | "feed" | "play" | "bath" | "sleep";
-  performedById: string;
-  happinessBefore: number;
-  happinessAfter: number;
-  moodBefore: string;
-  moodAfter: string;
-  detailsJSON?: Record<string, any>;
-}
-
-// Record interaction in database
-export async function recordPetInteraction(payload: PetInteractionPayload) {
-  try {
-    console.log("[recordPetInteraction] 🚀 Recording interaction:", {
-      petId: payload.petId,
-      interactionType: payload.interactionType,
-      performedById: payload.performedById,
-      happinessBefore: payload.happinessBefore,
-      happinessAfter: payload.happinessAfter,
-      moodBefore: payload.moodBefore,
-      moodAfter: payload.moodAfter,
-    });
-    const supabase = await createClient();
-    console.log("[recordPetInteraction] ✅ Supabase client created");
-
-    const { data, error } = await supabase
-      .from("pet_interactions")
-      .insert([
-        {
-          pet_id: payload.petId,
-          interaction_type: payload.interactionType,
-          performed_by: payload.performedById,
-          happiness_before: payload.happinessBefore,
-          happiness_after: payload.happinessAfter,
-          mood_before: payload.moodBefore,
-          mood_after: payload.moodAfter,
-          interaction_details: payload.detailsJSON || {},
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) {
-      console.error("[recordPetInteraction] ❌ Database error:", {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      });
-      return {
-        error: "Failed to record interaction",
-        details: `${error.code}: ${error.message}`,
-      };
-    }
-
-    console.log(
-      "[recordPetInteraction] ✅ Interaction recorded successfully:",
-      data,
-    );
-    return { success: true, interaction: data };
-  } catch (error) {
-    console.error(
-      "[recordPetInteraction] ❌ Catch error in recordPetInteraction:",
-      error,
-    );
-    return {
-      error: "An unexpected error occurred",
-      details: String(error),
-    };
-  }
-}
-
 // Get current pet stats
 export async function getPetStats(petId: string) {
   try {
-    console.log("[getPetStats] 🔍 Fetching stats for pet:", petId);
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -117,7 +39,6 @@ export async function getPetStats(petId: string) {
         code: error.code,
         message: error.message,
       });
-      console.log("[getPetStats] 📋 Record not found, creating default...");
 
       // Try to create a default stats record
       const { data: createdData, error: createError } = await supabase
@@ -143,9 +64,6 @@ export async function getPetStats(petId: string) {
         // If creation fails due to duplicate, it means the record was created by another request
         // Try to fetch it again
         if (createError.code === "23505") {
-          console.log(
-            "[getPetStats] 📋 Duplicate detected, fetching existing record...",
-          );
           const { data: existingData, error: fetchError } = await supabase
             .from("pet_stats")
             .select("*")
@@ -153,10 +71,6 @@ export async function getPetStats(petId: string) {
             .single();
 
           if (!fetchError && existingData) {
-            console.log(
-              "[getPetStats] ✅ Found existing stats after retry:",
-              existingData,
-            );
             return existingData;
           }
         }
@@ -182,11 +96,9 @@ export async function getPetStats(petId: string) {
         };
       }
 
-      console.log("[getPetStats] ✅ Created default stats");
       return createdData;
     }
 
-    console.log("[getPetStats] ✅ Found pet stats");
     return data;
   } catch (error) {
     console.error("[getPetStats] ❌ Error in getPetStats:", error);
@@ -200,7 +112,6 @@ export async function updatePetStatsInDB(
   updates: PetStatsUpdate,
 ) {
   try {
-    console.log("[updatePetStatsInDB] 🔄 Updating pet stats for:", petId);
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -225,7 +136,6 @@ export async function updatePetStatsInDB(
       };
     }
 
-    console.log("[updatePetStatsInDB] ✅ Pet stats updated successfully");
     return { success: true, stats: data };
   } catch (error) {
     console.error("[updatePetStatsInDB] ❌ Catch error:", error);
@@ -305,27 +215,15 @@ export async function getPetMoodHistory(petId: string) {
 export async function handlePetInteraction(
   petId: string,
   performedById: string,
-  interactionType: PetInteractionPayload["interactionType"],
+  interactionType: "pat" | "feed" | "play" | "bath" | "sleep",
 ) {
   try {
-    console.log("[handlePetInteraction] 🎬 Starting interaction:", {
-      petId,
-      performedById,
-      interactionType,
-    });
-
     // Get current stats
     const currentStats = await getPetStats(petId);
     if (!currentStats) {
       console.error("[handlePetInteraction] ❌ Pet not found:", petId);
       return { error: "Pet not found" };
     }
-
-    console.log("[handlePetInteraction] ✅ Got current stats:", {
-      happiness: currentStats.happiness,
-      hunger: currentStats.hunger,
-      energy: currentStats.energy,
-    });
 
     // Calculate new stats and mood
     const { updated, moodBefore, moodAfter } = updateStatsForInteraction(
@@ -344,20 +242,10 @@ export async function handlePetInteraction(
       interactionType,
     );
 
-    console.log("[handlePetInteraction] 📊 Stats calculated:", {
-      moodBefore,
-      moodAfter,
-      updated,
-    });
-
     // 🔥 CHANGED: Skip recording individual interactions
     // Instead, just update the counters in pet_stats
     // This way 100 pats = 1 row with total_pats incremented by 100
     // Instead of 100 rows in pet_interactions table
-
-    console.log(
-      "[handlePetInteraction] ✅ Skipping individual interaction record (using counters only)",
-    );
 
     // Update stats in database (includes incrementing total_pats, total_feeds, etc.)
     const statsResult = await updatePetStatsInDB(petId, updated);
@@ -369,8 +257,6 @@ export async function handlePetInteraction(
       return statsResult;
     }
 
-    console.log("[handlePetInteraction] ✅ Stats updated in database");
-
     // Record mood history ONLY when mood actually changes (not every interaction)
     // This prevents 100 pats from creating 100 rows - only records significant mood transitions
     if (moodBefore !== moodAfter) {
@@ -380,18 +266,9 @@ export async function handlePetInteraction(
         energy: updated.energy ?? currentStats.energy,
         cleanliness: updated.cleanliness ?? currentStats.cleanliness,
       });
-      console.log(
-        "[handlePetInteraction] ✅ Mood changed, history recorded:",
-        `${moodBefore} → ${moodAfter}`,
-      );
     } else {
-      console.log(
-        "[handlePetInteraction] ⏭️ Mood unchanged, skipping history record:",
-        moodAfter,
-      );
     }
 
-    console.log("[handlePetInteraction] ✅ All steps completed successfully");
     return {
       success: true,
       stats: statsResult.stats,
