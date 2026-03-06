@@ -404,7 +404,7 @@ export class FeedScene extends Phaser.Scene {
       })
       .setAlpha(0);
 
-    const bobEvent = this.time.addEvent({
+    this.time.addEvent({
       delay: 400,
       repeat: maxBobs - 1,
       callback: () => {
