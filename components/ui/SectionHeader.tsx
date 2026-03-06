@@ -64,21 +64,21 @@ export function SectionHeader({
     profile?.avatar_url || user?.user_metadata?.avatar_url || null;
 
   return (
-    <header className="flex items-center justify-between">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
-          <div className="w-10 h-10 bg-linear-to-br from-rose-500 to-pink-500 rounded-2xl flex items-center justify-center">
+    <header className="flex items-center justify-between gap-2 sm:gap-4">
+      <div className="min-w-0 flex-1">
+        <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 sm:gap-3 truncate">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-linear-to-br from-rose-500 to-pink-500 rounded-2xl flex items-center justify-center shrink-0">
             {icon}
           </div>
-          {title}
+          <span className="truncate">{title}</span>
         </h1>
         {description && (
-          <p className="text-gray-500 dark:text-gray-400 mt-1">{description}</p>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">{description}</p>
         )}
       </div>
-      <div className="flex items-center gap-4">
-        <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
-          <Bell className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
+        <button className="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
+          <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" />
         </button>
         {user && (
           <ProfileDropdown
@@ -89,7 +89,7 @@ export function SectionHeader({
             }}
           />
         )}
-        {button && <div>{button}</div>}
+        {button && <div className="hidden sm:block">{button}</div>}
       </div>
     </header>
   );
