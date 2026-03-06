@@ -342,6 +342,8 @@ export class FeedScene extends Phaser.Scene {
   // ─── Feed Pet (called from React) ─────────────────────────────────────────
 
   public feedPet(food: FoodItemData) {
+    // Don't execute if scene is not active
+    if (!this.scene.isActive("FeedScene")) return;
     if (this.isEating) return;
     this.isEating = true;
 

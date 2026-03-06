@@ -35,7 +35,6 @@ export class PlayScene extends Phaser.Scene {
     this.drawToys(W, H);
     this.drawPet(W, H);
     this.startAmbientEffects(W, H);
-    this.enableTreatToss(W, H);
 
     this.isReady = true;
   }
@@ -233,7 +232,10 @@ export class PlayScene extends Phaser.Scene {
     g.strokePath();
     ball.add(g);
 
-    g.setInteractive(new Phaser.Geom.Circle(0, 0, 16), Phaser.Geom.Circle.Contains);
+    g.setInteractive(
+      new Phaser.Geom.Circle(0, 0, 16),
+      Phaser.Geom.Circle.Contains,
+    );
     g.on("pointerover", () => {
       this.game.canvas.style.cursor = "pointer";
       ball.setScale(1.15);
@@ -270,7 +272,10 @@ export class PlayScene extends Phaser.Scene {
     g.strokePath();
     yarn.add(g);
 
-    g.setInteractive(new Phaser.Geom.Circle(0, 0, 13), Phaser.Geom.Circle.Contains);
+    g.setInteractive(
+      new Phaser.Geom.Circle(0, 0, 13),
+      Phaser.Geom.Circle.Contains,
+    );
     g.on("pointerover", () => {
       this.game.canvas.style.cursor = "pointer";
       yarn.setScale(1.15);
@@ -303,7 +308,10 @@ export class PlayScene extends Phaser.Scene {
     g.strokePath();
     mouse.add(g);
 
-    g.setInteractive(new Phaser.Geom.Ellipse(0, 0, 20, 12), Phaser.Geom.Ellipse.Contains);
+    g.setInteractive(
+      new Phaser.Geom.Ellipse(0, 0, 20, 12),
+      Phaser.Geom.Ellipse.Contains,
+    );
     g.on("pointerover", () => {
       this.game.canvas.style.cursor = "pointer";
       mouse.setScale(1.15);
@@ -331,7 +339,10 @@ export class PlayScene extends Phaser.Scene {
     g.fillCircle(30, 4, 6);
     bone.add(g);
 
-    g.setInteractive(new Phaser.Geom.Rectangle(0, 0, 30, 8), Phaser.Geom.Rectangle.Contains);
+    g.setInteractive(
+      new Phaser.Geom.Rectangle(0, 0, 30, 8),
+      Phaser.Geom.Rectangle.Contains,
+    );
     g.on("pointerover", () => {
       this.game.canvas.style.cursor = "pointer";
       bone.setScale(1.15);
@@ -360,7 +371,10 @@ export class PlayScene extends Phaser.Scene {
     g.lineBetween(0, 0, 0, 20);
     feather.add(g);
 
-    g.setInteractive(new Phaser.Geom.Circle(0, -10, 20), Phaser.Geom.Circle.Contains);
+    g.setInteractive(
+      new Phaser.Geom.Circle(0, -10, 20),
+      Phaser.Geom.Circle.Contains,
+    );
     g.on("pointerover", () => {
       this.game.canvas.style.cursor = "pointer";
       feather.setScale(1.15);
@@ -427,11 +441,11 @@ export class PlayScene extends Phaser.Scene {
     });
     this.petBody.on("pointerdown", () => {
       if (this.isPlaying) return;
-      
+
       // Random pet tricks when clicked
       const tricks = ["jump", "spin", "wiggle", "bounce"];
       const trick = tricks[Math.floor(Math.random() * tricks.length)];
-      
+
       this.performTrick(trick);
       this.events.emit("petPlayed", "pat");
     });
@@ -537,6 +551,8 @@ export class PlayScene extends Phaser.Scene {
   // ─── Play With Toy (called from React) ────────────────────────────────────
 
   public playWith(toyId: string) {
+    // Don't execute if scene is not active
+    if (!this.scene.isActive("PlayScene")) return;
     if (this.isPlaying) return;
     this.isPlaying = true;
 
@@ -671,7 +687,7 @@ export class PlayScene extends Phaser.Scene {
           this.tweens.add({
             targets: this.pet,
             x: yarn.x,
-            y: yarn.y - 20,
+            y: this.constrainPetY(yarn.y - 20),
             duration: 250,
             ease: "Back.easeOut",
             onComplete: () => {
@@ -720,7 +736,7 @@ export class PlayScene extends Phaser.Scene {
       this.tweens.add({
         targets: this.pet,
         x: W * 0.68,
-        y: H * 0.3,
+        y: this.constrainPetY(H * 0.45), // Jump up but stay in realistic bounds
         duration: 500,
         ease: "Power2",
         onComplete: () => {
@@ -767,7 +783,7 @@ export class PlayScene extends Phaser.Scene {
         this.tweens.add({
           targets: this.pet,
           x: feather.x,
-          y: feather.y + 30,
+          y: this.constrainPetY(feather.y + 30),
           duration: 300,
           ease: "Power2",
           onComplete: () => {
@@ -833,6 +849,14 @@ export class PlayScene extends Phaser.Scene {
         },
       });
     });
+  }
+
+  // Helper to constrain pet Y to floor area
+  private constrainPetY(y: number): number {
+    const H = this.scale.height;
+    const MIN_Y = H * 0.5; // Don't go above this (window area)
+    const MAX_Y = H * 0.75; // Don't go below this (floor limit)
+    return Math.max(MIN_Y, Math.min(MAX_Y, y));
   }
 
   private showPlayReaction(text: string) {
@@ -952,126 +976,9 @@ export class PlayScene extends Phaser.Scene {
 
   // ─── Interactive Features ──────────────────────────────────────────────────
 
-  private enableTreatToss(W: number, H: number) {
-    // Click anywhere on the background to toss a treat
-    const zone = this.add.zone(0, 0, W, H).setOrigin(0);
-    zone.setInteractive();
-    
-    zone.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-      if (this.isPlaying) return;
-      
-      // Don't trigger if clicking on a toy or pet
-      const clickedOnToy = Array.from(this.groundToys.values()).some(toy => {
-        const bounds = toy.getBounds();
-        return bounds.contains(pointer.x, pointer.y);
-      });
-      
-      const petBounds = this.pet.getBounds();
-      if (clickedOnToy || petBounds.contains(pointer.x, pointer.y)) {
-        return;
-      }
-      
-      // Toss a treat!
-      this.tossTreat(pointer.x, pointer.y);
-    });
-  }
-
-  private tossTreat(targetX: number, targetY: number) {
-    const W = this.scale.width;
-    const H = this.scale.height;
-    
-    // Create treat
-    const treat = this.add.container(W * 0.5, H * 0.2);
-    const treatG = this.add.graphics();
-    treatG.fillStyle(0xffcc77, 1);
-    treatG.fillCircle(0, 0, 8);
-    treatG.fillStyle(0xffaa55, 1);
-    treatG.fillCircle(-2, -2, 3);
-    treatG.fillCircle(2, 1, 2);
-    treat.add(treatG);
-    
-    // Animate treat falling
-    this.tweens.add({
-      targets: treat,
-      x: targetX,
-      y: targetY,
-      duration: 600,
-      ease: "Power2",
-      onComplete: () => {
-        // Pet runs to get treat
-        this.isPlaying = true;
-        this.tweens.add({
-          targets: this.pet,
-          x: targetX,
-          y: targetY - 20,
-          duration: 400,
-          ease: "Power2",
-          onComplete: () => {
-            // Pet eats treat
-            treat.destroy();
-            this.tweens.add({
-              targets: this.pet,
-              scaleX: { from: 1, to: 1.1 },
-              scaleY: { from: 1, to: 0.9 },
-              duration: 150,
-              yoyo: true,
-              repeat: 1,
-            });
-            
-            // Show reaction
-            const reactions = ["Yum!", "Nom nom!", "Tasty!", "Delicious!"];
-            this.showPlayReaction(reactions[Math.floor(Math.random() * reactions.length)]);
-            
-            // Hearts
-            for (let i = 0; i < 3; i++) {
-              this.time.delayedCall(i * 100, () => {
-                const heart = this.add.text(
-                  this.pet.x + Phaser.Math.Between(-25, 25),
-                  this.pet.y - 50,
-                  "💕",
-                  { fontSize: "16px" },
-                );
-                this.tweens.add({
-                  targets: heart,
-                  y: heart.y - 40,
-                  alpha: 0,
-                  duration: 800,
-                  onComplete: () => heart.destroy(),
-                });
-              });
-            }
-            
-            // Return to center
-            this.time.delayedCall(800, () => {
-              this.tweens.add({
-                targets: this.pet,
-                x: W * 0.5,
-                y: H * 0.56,
-                duration: 500,
-                ease: "Power2",
-                onComplete: () => {
-                  this.isPlaying = false;
-                  this.events.emit("petPlayed", "treat");
-                },
-              });
-            });
-          },
-        });
-      },
-    });
-    
-    // Rotate treat as it falls
-    this.tweens.add({
-      targets: treatG,
-      rotation: Math.PI * 2,
-      duration: 600,
-      ease: "Linear",
-    });
-  }
-
   public enableLaserPointer() {
     if (this.laserPointer) return;
-    
+
     // Create laser dot
     this.laserPointer = this.add.graphics();
     this.laserPointer.fillStyle(0xff0000, 0.9);
@@ -1079,30 +986,35 @@ export class PlayScene extends Phaser.Scene {
     this.laserPointer.fillStyle(0xff6666, 0.6);
     this.laserPointer.fillCircle(0, 0, 8);
     this.laserPointer.setVisible(false);
-    
+
     // Follow mouse
     this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
       if (this.laserPointer && this.laserPointer.visible) {
         this.laserPointer.setPosition(pointer.x, pointer.y);
-        
+
         // Pet chases laser (if not playing)
-        if (!this.isPlaying && Phaser.Math.Distance.Between(
-          this.pet.x,
-          this.pet.y,
-          pointer.x,
-          pointer.y,
-        ) > 40) {
+        if (
+          !this.isPlaying &&
+          Phaser.Math.Distance.Between(
+            this.pet.x,
+            this.pet.y,
+            pointer.x,
+            pointer.y,
+          ) > 40
+        ) {
           this.tweens.add({
             targets: this.pet,
             x: pointer.x + Phaser.Math.Between(-30, 30),
-            y: pointer.y + Phaser.Math.Between(-30, 30),
+            y: this.constrainPetY(
+              pointer.y + Phaser.Math.Between(-30, 30),
+            ),
             duration: 300,
             ease: "Power2",
           });
         }
       }
     });
-    
+
     this.laserPointer.setVisible(true);
     this.showPlayReaction("Laser mode!");
   }
