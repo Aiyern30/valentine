@@ -71,7 +71,7 @@ export default function PetDailyStatsCard({
   );
 
   return (
-    <div className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl shadow-lg">
+    <div className="p-6 bg-linear-to-br from-purple-50 to-pink-50 rounded-2xl shadow-lg">
       <h3 className="text-xl font-bold text-gray-800 mb-4">
         {petName}&apos;s Activity
       </h3>
@@ -122,21 +122,9 @@ export default function PetDailyStatsCard({
         </h4>
         <div className="grid grid-cols-2 gap-3">
           <StatItem label="Total Pats" value={weeklyTotals.pats} emoji="🐾" />
-          <StatItem
-            label="Total Feeds"
-            value={weeklyTotals.feeds}
-            emoji="🍖"
-          />
-          <StatItem
-            label="Total Plays"
-            value={weeklyTotals.plays}
-            emoji="🎮"
-          />
-          <StatItem
-            label="Total Baths"
-            value={weeklyTotals.baths}
-            emoji="🛁"
-          />
+          <StatItem label="Total Feeds" value={weeklyTotals.feeds} emoji="🍖" />
+          <StatItem label="Total Plays" value={weeklyTotals.plays} emoji="🎮" />
+          <StatItem label="Total Baths" value={weeklyTotals.baths} emoji="🛁" />
           <StatItem
             label="Play time"
             value={`${weeklyTotals.playTime}m`}

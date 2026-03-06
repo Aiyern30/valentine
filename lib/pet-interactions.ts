@@ -420,7 +420,10 @@ export async function handlePetInteraction(
 
     // Check and unlock any new achievements
     const achievementResult = await checkAndUnlockAchievements(petId);
-    if (achievementResult.success && achievementResult.newlyUnlocked.length > 0) {
+    if (
+      achievementResult.success &&
+      achievementResult.newlyUnlocked.length > 0
+    ) {
       console.log(
         `[handlePetInteraction] 🏆 ${achievementResult.newlyUnlocked.length} new achievement(s) unlocked:`,
         achievementResult.newlyUnlocked,
