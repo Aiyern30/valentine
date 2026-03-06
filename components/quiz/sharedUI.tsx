@@ -141,7 +141,7 @@ export function OptionInput({
       <button
         onClick={onSelect}
         className={cn(
-          "w-7 h-7 rounded-full text-xs font-bold border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200",
+          "w-7 h-7 rounded-full text-xs font-bold border-2 shrink-0 flex items-center justify-center transition-all duration-200",
           isSelected
             ? "bg-pink-500 border-pink-500 text-white shadow-lg shadow-pink-500/30"
             : "border-rose-300 text-rose-500 hover:border-rose-400",
@@ -161,7 +161,7 @@ export function OptionInput({
       <button
         onClick={onDelete}
         disabled={!canDelete}
-        className="text-rose-400 hover:text-red-500 disabled:opacity-20 transition-colors flex-shrink-0"
+        className="text-rose-400 hover:text-red-500 disabled:opacity-20 transition-colors shrink-0"
       >
         ✕
       </button>

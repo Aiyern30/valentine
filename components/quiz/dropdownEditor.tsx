@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ChoiceOption } from "@/types/quiz";
 import { Plus, ChevronDown } from "lucide-react";
 import { SectionLabel } from "./sharedUI";
@@ -19,29 +20,61 @@ export function DropdownEditor({
   onChange,
   onCorrectChange,
 }: DropdownEditorProps) {
+  useEffect(() => {
+    const isSequential = options.every((opt, idx) => opt.key === KEYS[idx]);
+    if (isSequential) return;
+
+    const keyMap = new Map<string, string>();
+    const normalized = options.map((opt, idx) => {
+      const newKey = KEYS[idx];
+      keyMap.set(opt.key, newKey);
+      return { ...opt, key: newKey };
+    });
+
+    onChange(normalized);
+
+    if (correctOption) {
+      onCorrectChange(keyMap.get(correctOption) ?? normalized[0]?.key ?? "");
+    }
+  }, [options, correctOption, onChange, onCorrectChange]);
+
   const updateLabel = (idx: number, label: string) =>
     onChange(options.map((o, i) => (i === idx ? { ...o, label } : o)));
 
   const addOption = () => {
     if (options.length >= 6) return;
-    onChange([...options, { key: KEYS[options.length], label: "" }]);
+    const normalized = options.map((opt, idx) => ({ ...opt, key: KEYS[idx] }));
+    onChange([...normalized, { key: KEYS[normalized.length], label: "" }]);
   };
 
   const removeOption = (idx: number) => {
     if (options.length <= 2) return;
-    const next = options.filter((_, i) => i !== idx);
-    onChange(next);
-    if (correctOption === options[idx].key) onCorrectChange(next[0].key);
-  };
+    const removedKey = options[idx].key;
+    const filtered = options.filter((_, i) => i !== idx);
+    const keyMap = new Map<string, string>();
+    const normalized = filtered.map((opt, i) => {
+      const newKey = KEYS[i];
+      keyMap.set(opt.key, newKey);
+      return { ...opt, key: newKey };
+    });
 
-  const selectedOption = options.find((o) => o.key === correctOption);
+    onChange(normalized);
+
+    if (!correctOption) return;
+    if (correctOption === removedKey) {
+      onCorrectChange(normalized[0]?.key ?? "");
+      return;
+    }
+
+    onCorrectChange(keyMap.get(correctOption) ?? normalized[0]?.key ?? "");
+  };
 
   return (
     <div>
       <SectionLabel>Dropdown options</SectionLabel>
       <div className="space-y-2 mb-3">
         {options.map((opt, idx) => (
-          <div key={opt.key} className="flex items-center gap-2">
+          <div key={`${opt.key}-${idx}`} className="flex items-center gap-2">
             <span className="w-6 text-center text-xs text-rose-500 font-mono shrink-0">
               {idx + 1}
             </span>
@@ -80,7 +113,11 @@ export function DropdownEditor({
           className="w-full appearance-none bg-white border border-rose-200 rounded-lg px-3 py-2 text-sm text-rose-900 focus:outline-none focus:border-pink-400 pr-8"
         >
           {options.map((opt) => (
-            <option key={opt.key} value={opt.key} className="bg-white text-rose-900">
+            <option
+              key={`${opt.key}-${opt.label}`}
+              value={opt.key}
+              className="bg-white text-rose-900"
+            >
               {opt.label || `Option ${opt.key}`}
             </option>
           ))}

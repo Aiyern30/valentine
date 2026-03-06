@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo } from "react";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ChoiceOption } from "@/types/quiz";
@@ -20,7 +21,30 @@ export function CheckboxesEditor({
   onChange,
   onCorrectChange,
 }: CheckboxesEditorProps) {
-  const selected = correctOption ? correctOption.split(",") : [];
+  const selected = useMemo(
+    () => (correctOption ? correctOption.split(",") : []),
+    [correctOption],
+  );
+  useEffect(() => {
+    const isSequential = options.every((opt, idx) => opt.key === KEYS[idx]);
+    if (isSequential) return;
+
+    const keyMap = new Map<string, string>();
+    const normalized = options.map((opt, idx) => {
+      const newKey = KEYS[idx];
+      keyMap.set(opt.key, newKey);
+      return { ...opt, key: newKey };
+    });
+
+    onChange(normalized);
+
+    if (selected.length > 0) {
+      const remappedSelected = selected
+        .map((k) => keyMap.get(k))
+        .filter((k): k is string => Boolean(k));
+      onCorrectChange(remappedSelected.join(","));
+    }
+  }, [options, selected, onChange, onCorrectChange]);
 
   const toggleSelected = (key: string) => {
     const next = selected.includes(key)
@@ -34,14 +58,28 @@ export function CheckboxesEditor({
 
   const addOption = () => {
     if (options.length >= 6) return;
-    onChange([...options, { key: KEYS[options.length], label: "" }]);
+    const normalized = options.map((opt, idx) => ({ ...opt, key: KEYS[idx] }));
+    onChange([...normalized, { key: KEYS[normalized.length], label: "" }]);
   };
 
   const removeOption = (idx: number) => {
     if (options.length <= 2) return;
     const removedKey = options[idx].key;
-    onChange(options.filter((_, i) => i !== idx));
-    onCorrectChange(selected.filter((k) => k !== removedKey).join(","));
+    const filtered = options.filter((_, i) => i !== idx);
+    const keyMap = new Map<string, string>();
+    const normalized = filtered.map((opt, i) => {
+      const newKey = KEYS[i];
+      keyMap.set(opt.key, newKey);
+      return { ...opt, key: newKey };
+    });
+
+    onChange(normalized);
+
+    const remappedSelected = selected
+      .filter((k) => k !== removedKey)
+      .map((k) => keyMap.get(k))
+      .filter((k): k is string => Boolean(k));
+    onCorrectChange(remappedSelected.join(","));
   };
 
   return (
@@ -49,7 +87,7 @@ export function CheckboxesEditor({
       <SectionLabel>Options — tick all that apply (your answers)</SectionLabel>
       <div className="space-y-2">
         {options.map((opt, idx) => (
-          <div key={opt.key} className="flex items-center gap-2">
+          <div key={`${opt.key}-${idx}`} className="flex items-center gap-2">
             {/* Checkbox toggle */}
             <button
               onClick={() => toggleSelected(opt.key)}

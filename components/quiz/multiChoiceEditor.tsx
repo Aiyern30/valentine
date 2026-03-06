@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ChoiceOption } from "@/types/quiz";
 import { Plus } from "lucide-react";
 import { SectionLabel, OptionInput } from "./sharedUI";
@@ -19,19 +20,53 @@ export function MultipleChoiceEditor({
   onChange,
   onCorrectChange,
 }: MultipleChoiceEditorProps) {
+  useEffect(() => {
+    const isSequential = options.every((opt, idx) => opt.key === KEYS[idx]);
+    if (isSequential) return;
+
+    const keyMap = new Map<string, string>();
+    const normalized = options.map((opt, idx) => {
+      const newKey = KEYS[idx];
+      keyMap.set(opt.key, newKey);
+      return { ...opt, key: newKey };
+    });
+
+    onChange(normalized);
+
+    if (correctOption) {
+      onCorrectChange(keyMap.get(correctOption) ?? normalized[0]?.key ?? "");
+    }
+  }, [options, correctOption, onChange, onCorrectChange]);
+
   const updateLabel = (idx: number, label: string) =>
     onChange(options.map((o, i) => (i === idx ? { ...o, label } : o)));
 
   const addOption = () => {
     if (options.length >= 6) return;
-    onChange([...options, { key: KEYS[options.length], label: "" }]);
+    const normalized = options.map((opt, idx) => ({ ...opt, key: KEYS[idx] }));
+    onChange([...normalized, { key: KEYS[normalized.length], label: "" }]);
   };
 
   const removeOption = (idx: number) => {
     if (options.length <= 2) return;
-    const next = options.filter((_, i) => i !== idx);
-    onChange(next);
-    if (correctOption === options[idx].key) onCorrectChange(next[0].key);
+    const removedKey = options[idx].key;
+    const filtered = options.filter((_, i) => i !== idx);
+    const keyMap = new Map<string, string>();
+    const normalized = filtered.map((opt, i) => {
+      const newKey = KEYS[i];
+      keyMap.set(opt.key, newKey);
+      return { ...opt, key: newKey };
+    });
+
+    onChange(normalized);
+
+    if (!correctOption) return;
+    if (correctOption === removedKey) {
+      onCorrectChange(normalized[0]?.key ?? "");
+      return;
+    }
+
+    onCorrectChange(keyMap.get(correctOption) ?? normalized[0]?.key ?? "");
   };
 
   return (
@@ -40,7 +75,7 @@ export function MultipleChoiceEditor({
       <div className="space-y-2">
         {options.map((opt, idx) => (
           <OptionInput
-            key={opt.key}
+            key={`${opt.key}-${idx}`}
             label={opt.key}
             value={opt.label}
             isSelected={correctOption === opt.key}

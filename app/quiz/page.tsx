@@ -89,7 +89,7 @@ function QuestionCardInner({
           <div
             {...dragHandleProps}
             className={cn(
-              "flex flex-col items-center gap-1.5 pt-1 flex-shrink-0 select-none",
+              "flex flex-col items-center gap-1.5 pt-1 shrink-0 select-none",
               isDragging ? "cursor-grabbing" : "cursor-grab",
             )}
           >
@@ -303,8 +303,8 @@ export default function QuizBuilderPage() {
     <div className="min-h-screen">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-pink-600/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-violet-600/8 blur-[100px] rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 h-75 bg-pink-600/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-0 right-0 w-100 h-75 bg-violet-600/8 blur-[100px] rounded-full" />
       </div>
 
       <div className="relative max-w-2xl mx-auto px-4 py-10 pb-32">
