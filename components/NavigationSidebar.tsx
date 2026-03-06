@@ -13,6 +13,7 @@ import {
   LogOut,
   User,
   Gamepad2,
+  MessageSquareHeart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -24,6 +25,7 @@ const navigation = [
   { name: "Milestones", href: "/milestones", icon: Heart },
   { name: "Confessions", href: "/confessions", icon: MessageCircle },
   { name: "Diaries", href: "/diaries", icon: BookOpen },
+  { name: "Quiz", href: "/quiz", icon: MessageSquareHeart },
   { name: "Game", href: "/game", icon: Gamepad2 },
   { name: "Profile", href: "/profile", icon: User },
 ];
