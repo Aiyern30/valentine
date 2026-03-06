@@ -66,6 +66,7 @@ CREATE TABLE public.couple_challenges (
   notes text,
   completed_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
+  display_order integer NOT NULL DEFAULT 0,
   CONSTRAINT couple_challenges_pkey PRIMARY KEY (id),
   CONSTRAINT couple_challenges_relationship_id_fkey FOREIGN KEY (relationship_id) REFERENCES public.relationships(id),
   CONSTRAINT couple_challenges_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
@@ -255,6 +256,7 @@ CREATE TABLE public.qa_questions (
   category text,
   is_answered boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT now(),
+  display_order integer NOT NULL DEFAULT 0,
   CONSTRAINT qa_questions_pkey PRIMARY KEY (id),
   CONSTRAINT qa_questions_relationship_id_fkey FOREIGN KEY (relationship_id) REFERENCES public.relationships(id),
   CONSTRAINT qa_questions_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
@@ -267,7 +269,7 @@ CREATE TABLE public.quiz_questions (
   question_type text NOT NULL,
   options jsonb,
   correct_option text,
-  display_order integer DEFAULT 0,
+  display_order integer NOT NULL DEFAULT 0,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT quiz_questions_pkey PRIMARY KEY (id),
   CONSTRAINT quiz_questions_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.quiz_sessions(id),
@@ -343,6 +345,7 @@ CREATE TABLE public.shared_goals (
   completed_at timestamp with time zone,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
+  display_order integer NOT NULL DEFAULT 0,
   CONSTRAINT shared_goals_pkey PRIMARY KEY (id),
   CONSTRAINT shared_goals_relationship_id_fkey FOREIGN KEY (relationship_id) REFERENCES public.relationships(id),
   CONSTRAINT shared_goals_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
