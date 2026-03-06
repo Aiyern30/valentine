@@ -10,8 +10,9 @@ import { Pet } from "@/types";
 
 interface HudBarProps {
   petName: string;
-  daysTogther: number;
-  patCount: number;
+  daysTogether: number;
+  totalPats: number;
+  petMood: string;
   petKind: PetKind;
   petBreed: PetBreed;
   allPets: Pet[];
@@ -22,8 +23,9 @@ interface HudBarProps {
 
 export default function HudBar({
   petName,
-  daysTogther,
-  patCount,
+  daysTogether,
+  totalPats,
+  petMood,
   petKind,
   petBreed,
   allPets,
@@ -61,24 +63,41 @@ export default function HudBar({
   }, [dropdownOpen]);
 
   const isCat = petKind === "cat";
+  const moodLabel = petMood
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (ch) => ch.toUpperCase());
+  const moodEmoji =
+    {
+      ecstatic: "🤩",
+      happy: "😊",
+      content: "🙂",
+      neutral: "😐",
+      tired: "🥱",
+      hungry: "😿",
+      grumpy: "😾",
+      sad: "🥺",
+    }[petMood.toLowerCase()] ?? "💖";
 
   return (
     <div
       style={{
-        backgroundColor: "rgba(139, 69, 19, 0.8)",
-        borderRadius: "10px",
-        padding: "10px 20px",
+        position: "absolute",
+        top: "12px",
+        left: "12px",
+        right: "12px",
+        zIndex: 30,
         display: "flex",
         justifyContent: "space-between",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: "20px",
-        border: "3px solid rgb(101, 50, 15)",
-        maxWidth: "800px",
-        margin: "0 auto",
+        pointerEvents: "none",
       }}
     >
       {/* Pet Selector Dropdown */}
-      <div ref={dropdownRef} style={{ position: "relative" }}>
+      <div
+        ref={dropdownRef}
+        style={{ position: "relative", pointerEvents: "auto" }}
+      >
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}
           style={{
@@ -221,19 +240,63 @@ export default function HudBar({
       <div
         style={{
           display: "flex",
-          gap: "30px",
-          fontSize: "14px",
+          gap: "10px",
+          fontSize: "13px",
           fontWeight: "600",
-          color: "white",
+          color: "#5a3a1c",
+          pointerEvents: "auto",
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <span style={{ fontSize: "12px", opacity: 0.8 }}>Days Together</span>
-          <span>{daysTogther}</span>
+        <div
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.92)",
+            border: "2px solid rgba(101, 50, 15, 0.22)",
+            borderRadius: "10px",
+            padding: "8px 10px",
+            minWidth: "84px",
+            textAlign: "right",
+          }}
+        >
+          <span style={{ fontSize: "11px", opacity: 0.75, display: "block" }}>
+            Days Together
+          </span>
+          <span style={{ fontSize: "16px", fontWeight: 700 }}>
+            {daysTogether}
+          </span>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <span style={{ fontSize: "12px", opacity: 0.8 }}>Pats</span>
-          <span>{patCount}</span>
+
+        <div
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.92)",
+            border: "2px solid rgba(101, 50, 15, 0.22)",
+            borderRadius: "10px",
+            padding: "8px 10px",
+            minWidth: "84px",
+            textAlign: "right",
+          }}
+        >
+          <span style={{ fontSize: "11px", opacity: 0.75, display: "block" }}>
+            Total Pats
+          </span>
+          <span style={{ fontSize: "16px", fontWeight: 700 }}>{totalPats}</span>
+        </div>
+
+        <div
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.92)",
+            border: "2px solid rgba(101, 50, 15, 0.22)",
+            borderRadius: "10px",
+            padding: "8px 10px",
+            minWidth: "110px",
+            textAlign: "right",
+          }}
+        >
+          <span style={{ fontSize: "11px", opacity: 0.75, display: "block" }}>
+            Pet Mood
+          </span>
+          <span style={{ fontSize: "15px", fontWeight: 700 }}>
+            {moodEmoji} {moodLabel}
+          </span>
         </div>
       </div>
     </div>

@@ -33,74 +33,77 @@ export async function getPetStats(petId: string) {
       .from("pet_stats")
       .select("*")
       .eq("pet_id", petId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.warn("[getPetStats] ⚠️ Error fetching pet stats:", {
         code: error.code,
         message: error.message,
       });
-
-      // Try to create a default stats record
-      const { data: createdData, error: createError } = await supabase
-        .from("pet_stats")
-        .insert({
-          pet_id: petId,
-          happiness: 75,
-          hunger: 50,
-          energy: 80,
-          cleanliness: 70,
-          health: 90,
-          affection_level: 50,
-          current_mood: "happy",
-          total_pats: 0,
-          total_feeds: 0,
-          total_plays: 0,
-          total_baths: 0,
-        })
-        .select()
-        .single();
-
-      if (createError) {
-        // If creation fails due to duplicate, it means the record was created by another request
-        // Try to fetch it again
-        if (createError.code === "23505") {
-          const { data: existingData, error: fetchError } = await supabase
-            .from("pet_stats")
-            .select("*")
-            .eq("pet_id", petId)
-            .single();
-
-          if (!fetchError && existingData) {
-            return existingData;
-          }
-        }
-
-        console.warn("[getPetStats] ⚠️ Could not create stats record:", {
-          code: createError.code,
-          message: createError.message,
-        });
-        // Return defaults as fallback
-        return {
-          pet_id: petId,
-          happiness: 75,
-          hunger: 50,
-          energy: 80,
-          cleanliness: 70,
-          health: 90,
-          affection_level: 50,
-          current_mood: "happy",
-          total_pats: 0,
-          total_feeds: 0,
-          total_plays: 0,
-          total_baths: 0,
-        };
-      }
-
-      return createdData;
+      return null;
     }
 
-    return data;
+    // Existing stats found
+    if (data) {
+      return data;
+    }
+
+    // No stats row yet, create a default one
+    const { data: createdData, error: createError } = await supabase
+      .from("pet_stats")
+      .insert({
+        pet_id: petId,
+        happiness: 75,
+        hunger: 50,
+        energy: 80,
+        cleanliness: 70,
+        health: 90,
+        affection_level: 50,
+        current_mood: "happy",
+        total_pats: 0,
+        total_feeds: 0,
+        total_plays: 0,
+        total_baths: 0,
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      // If creation fails due to duplicate, another request created it first
+      if (createError.code === "23505") {
+        const { data: existingData, error: fetchError } = await supabase
+          .from("pet_stats")
+          .select("*")
+          .eq("pet_id", petId)
+          .maybeSingle();
+
+        if (!fetchError && existingData) {
+          return existingData;
+        }
+      }
+
+      console.warn("[getPetStats] ⚠️ Could not create stats record:", {
+        code: createError.code,
+        message: createError.message,
+      });
+      // Return defaults as fallback
+      return {
+        pet_id: petId,
+        happiness: 75,
+        hunger: 50,
+        energy: 80,
+        cleanliness: 70,
+        health: 90,
+        affection_level: 50,
+        current_mood: "happy",
+        total_pats: 0,
+        total_feeds: 0,
+        total_plays: 0,
+        total_baths: 0,
+      };
+    }
+
+    return createdData;
   } catch (error) {
     console.error("[getPetStats] ❌ Error in getPetStats:", error);
     return null;

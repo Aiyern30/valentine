@@ -10,7 +10,7 @@ import ToySelector, { ToyItem } from "./ToySelector";
 import PetRegistrationDialog from "./PetRegistrationDialog";
 import { PetKind, PetBreed, ActiveScene } from "@/types/pet";
 import { getPetsForCurrentUser } from "@/lib/actions";
-import { handlePetInteraction } from "@/lib/pet-interactions";
+import { handlePetInteraction, getPetStats } from "@/lib/pet-interactions";
 import { Pet } from "@/types";
 import AchievementUnlockDialog from "./AchievementUnlockDialog";
 import { AchievementDefinition } from "@/lib/pet-achievements";
@@ -59,10 +59,11 @@ const SCENE_BG: Record<ActiveScene, string> = {
 };
 
 export default function KawaiiRoomApp() {
-  const [patCount, setPatCount] = useState(0);
   const [toastMsg, setToastMsg] = useState("");
   const [toastKey, setToastKey] = useState(0);
-  const [daysTogether] = useState(1047);
+  const [daysTogether, setDaysTogether] = useState(0);
+  const [hudTotalPats, setHudTotalPats] = useState(0);
+  const [hudMood, setHudMood] = useState("happy");
   const [petKind, setPetKind] = useState<PetKind | null>(null);
   const [petBreed, setPetBreed] = useState<PetBreed | null>(null);
   const [petName, setPetName] = useState("");
@@ -75,11 +76,14 @@ export default function KawaiiRoomApp() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPetDataReady, setIsPetDataReady] = useState(false);
   const userIdRef = useRef<string | null>(null);
+  const selectedPetIdRef = useRef<string | null>(null);
   const [unlockedAchievement, setUnlockedAchievement] =
     useState<AchievementDefinition | null>(null);
   const [achievementQueue, setAchievementQueue] = useState<
     AchievementDefinition[]
   >([]);
+
+  selectedPetIdRef.current = selectedPetId;
 
   // Get current user ID
   useEffect(() => {
@@ -134,12 +138,51 @@ export default function KawaiiRoomApp() {
     setToastKey((k) => k + 1);
   }, []);
 
-  const handlePetPatted = useCallback(() => {
-    setPatCount((c) => c + 1);
+  const refreshHudStats = useCallback(
+    async (petId: string) => {
+      const selectedPet = allPets.find((pet) => pet.id === petId);
 
+      if (selectedPet?.created_at) {
+        const createdAtMs = new Date(selectedPet.created_at).getTime();
+
+        if (Number.isFinite(createdAtMs)) {
+          const diffMs = Date.now() - createdAtMs;
+          const totalDays = Math.max(1, Math.floor(diffMs / 86_400_000) + 1);
+          setDaysTogether(totalDays);
+        } else {
+          setDaysTogether(0);
+        }
+      } else {
+        setDaysTogether(0);
+      }
+
+      const stats = await getPetStats(petId);
+      setHudTotalPats(stats?.total_pats ?? 0);
+      setHudMood(stats?.current_mood ?? "happy");
+    },
+    [allPets],
+  );
+
+  useEffect(() => {
+    if (!selectedPetId) {
+      setDaysTogether(0);
+      setHudTotalPats(0);
+      setHudMood("happy");
+      return;
+    }
+
+    refreshHudStats(selectedPetId);
+  }, [selectedPetId, refreshHudStats]);
+
+  const handlePetPatted = useCallback(() => {
     if (!petKind || !selectedPetId || !userIdRef.current) {
       showToast("Error: Missing pet data!");
       return;
+    }
+
+    // Optimistic UI: update pats immediately, then sync with DB.
+    if (selectedPetIdRef.current === selectedPetId) {
+      setHudTotalPats((prev) => prev + 1);
     }
 
     const msgs = petKind === "cat" ? PAT_MESSAGES_CAT : PAT_MESSAGES_DOG;
@@ -155,12 +198,20 @@ export default function KawaiiRoomApp() {
       );
 
       if ("error" in result && result.error) {
+        // Roll back optimistic update if write failed.
+        if (selectedPetIdRef.current === selectedPetId) {
+          setHudTotalPats((prev) => Math.max(0, prev - 1));
+        }
         showToast(`Error: ${result.error}`);
       } else if (
         "success" in result &&
         result.success &&
         "moodBefore" in result
       ) {
+        if (selectedPetIdRef.current === selectedPetId) {
+          refreshHudStats(selectedPetId);
+        }
+
         // Check for newly unlocked achievements
         if (
           result.achievements?.success &&
@@ -174,7 +225,7 @@ export default function KawaiiRoomApp() {
         }
       }
     })();
-  }, [showToast, petKind, selectedPetId]);
+  }, [showToast, petKind, selectedPetId, refreshHudStats]);
 
   const handlePetSplashed = useCallback(() => {
     if (!selectedPetId || !userIdRef.current) return;
@@ -197,6 +248,8 @@ export default function KawaiiRoomApp() {
         result.success &&
         "moodBefore" in result
       ) {
+        refreshHudStats(selectedPetId);
+
         // Check for newly unlocked achievements
         if (
           result.achievements?.success &&
@@ -209,7 +262,7 @@ export default function KawaiiRoomApp() {
         }
       }
     })();
-  }, [showToast, selectedPetId]);
+  }, [showToast, selectedPetId, refreshHudStats]);
 
   const handlePetFed = useCallback(
     (food: string) => {
@@ -232,6 +285,8 @@ export default function KawaiiRoomApp() {
           result.success &&
           "moodBefore" in result
         ) {
+          refreshHudStats(selectedPetId);
+
           // Check for newly unlocked achievements
           if (
             result.achievements?.success &&
@@ -245,7 +300,7 @@ export default function KawaiiRoomApp() {
         }
       })();
     },
-    [showToast, petName, selectedPetId],
+    [showToast, petName, selectedPetId, refreshHudStats],
   );
 
   const handlePetPlayed = useCallback(() => {
@@ -269,6 +324,8 @@ export default function KawaiiRoomApp() {
         result.success &&
         "moodBefore" in result
       ) {
+        refreshHudStats(selectedPetId);
+
         // Check for newly unlocked achievements
         if (
           result.achievements?.success &&
@@ -281,7 +338,7 @@ export default function KawaiiRoomApp() {
         }
       }
     })();
-  }, [showToast, selectedPetId]);
+  }, [showToast, selectedPetId, refreshHudStats]);
 
   const handleAction = useCallback(
     (label: string) => {
@@ -443,8 +500,9 @@ export default function KawaiiRoomApp() {
           {isPetDataReady && petKind && petBreed && (
             <HudBar
               petName={petName}
-              daysTogther={daysTogether}
-              patCount={patCount}
+              daysTogether={daysTogether}
+              totalPats={hudTotalPats}
+              petMood={hudMood}
               petKind={petKind}
               petBreed={petBreed}
               allPets={allPets}
