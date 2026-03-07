@@ -35,11 +35,14 @@ export function LinearScaleEditor({
           <input
             type="number"
             min={0}
-            max={config.max - 1}
+            max={1}
             value={config.min}
-            onChange={(e) =>
-              onConfigChange({ ...config, min: parseInt(e.target.value) || 0 })
-            }
+            onChange={(e) => {
+              let val = parseInt(e.target.value) || 0;
+              if (val < 0) val = 0;
+              if (val > 1) val = 1;
+              onConfigChange({ ...config, min: val });
+            }}
             className="w-full bg-white border border-rose-200 rounded-lg px-3 py-1.5 text-sm text-rose-900 focus:outline-none focus:border-pink-400"
           />
         </div>
@@ -49,15 +52,15 @@ export function LinearScaleEditor({
           </label>
           <input
             type="number"
-            min={config.min + 1}
-            max={20}
+            min={Math.max(2, config.min + 1)}
+            max={10}
             value={config.max}
-            onChange={(e) =>
-              onConfigChange({
-                ...config,
-                max: parseInt(e.target.value) || 10,
-              })
-            }
+            onChange={(e) => {
+              let val = parseInt(e.target.value) || 10;
+              if (val > 10) val = 10;
+              if (val <= config.min) val = config.min + 1;
+              onConfigChange({ ...config, max: val });
+            }}
             className="w-full bg-white border border-rose-200 rounded-lg px-3 py-1.5 text-sm text-rose-900 focus:outline-none focus:border-pink-400"
           />
         </div>

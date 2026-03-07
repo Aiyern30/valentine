@@ -6,7 +6,7 @@
  *   npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
  */
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -45,6 +45,7 @@ import { TypeDropdown } from "@/components/quiz/sharedUI";
 import {
   Question,
   QuestionType,
+  ChoiceOption,
   makeDefaultsForType,
   makeDefaultQuestion,
 } from "@/types/quiz";
@@ -196,6 +197,8 @@ export default function QuizBuilderPage() {
   ]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [titleError, setTitleError] = useState("");
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   // dnd-kit sensors — Pointer for mouse/touch, Keyboard for a11y
   const sensors = useSensors(
@@ -262,6 +265,13 @@ export default function QuizBuilderPage() {
   // ── Publish ──────────────────────────────────────────────────────────────────
 
   const handlePublish = async () => {
+    if (!title.trim()) {
+      setTitleError("Quiz title is required");
+      titleInputRef.current?.focus();
+      return;
+    }
+    setTitleError("");
+
     setIsPublishing(true);
 
     const payload = {
@@ -293,9 +303,21 @@ export default function QuizBuilderPage() {
     setIsPublishing(false);
   };
 
-  const completedCount = questions.filter(
-    (q) => q.question_text.trim() && q.correct_option,
-  ).length;
+  const isQuestionReady = (q: Question) => {
+    if (!q.question_text.trim() || !q.correct_option) return false;
+
+    if (
+      ["multiple_choice", "checkboxes", "dropdown"].includes(q.question_type)
+    ) {
+      const opts = q.options as ChoiceOption[];
+      if (!opts || opts.length < 2) return false;
+      if (opts.some((o) => !o.label.trim())) return false;
+    }
+
+    return true;
+  };
+
+  const completedCount = questions.filter(isQuestionReady).length;
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -328,13 +350,25 @@ export default function QuizBuilderPage() {
         {/* Quiz title */}
         <div className="mb-8">
           <Label className="text-xs text-rose-500 uppercase tracking-wider mb-2 block">
-            Quiz Title
+            Quiz Title <span className="text-red-500">*</span>
           </Label>
           <Input
+            ref={titleInputRef}
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (e.target.value.trim()) setTitleError("");
+            }}
             placeholder="e.g. How well do you know me? 💘"
+            className={cn(
+              titleError && "border-red-500 focus-visible:ring-red-500",
+            )}
           />
+          {titleError && (
+            <p className="text-red-500 text-xs mt-1.5 font-medium">
+              {titleError}
+            </p>
+          )}
         </div>
 
         {/* Drag-and-drop question list */}
@@ -413,7 +447,11 @@ export default function QuizBuilderPage() {
             <Button
               size="sm"
               onClick={handlePublish}
-              disabled={isPublishing || !title.trim() || completedCount === 0}
+              disabled={
+                isPublishing ||
+                questions.length === 0 ||
+                completedCount < questions.length
+              }
               className="bg-pink-600 hover:bg-pink-500 text-white font-semibold px-5 shadow-lg shadow-pink-900/40 disabled:opacity-40"
             >
               {isPublishing ? (

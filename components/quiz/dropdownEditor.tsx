@@ -2,6 +2,7 @@
 
 import { ChoiceOption } from "@/types/quiz";
 import { Plus, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { SectionLabel } from "./sharedUI";
 
 const KEYS = ["A", "B", "C", "D", "E", "F"];
@@ -56,23 +57,35 @@ export function DropdownEditor({
       <SectionLabel>Dropdown options</SectionLabel>
       <div className="space-y-2 mb-3">
         {options.map((opt, idx) => (
-          <div key={`${opt.key}-${idx}`} className="flex items-center gap-2">
-            <span className="w-6 text-center text-xs text-rose-500 font-mono shrink-0">
-              {idx + 1}
-            </span>
-            <input
-              value={opt.label}
-              onChange={(e) => updateLabel(idx, e.target.value)}
-              placeholder={`Option ${idx + 1}`}
-              className="flex-1 bg-white border border-rose-200 rounded-lg px-3 py-1.5 text-sm text-rose-900 placeholder:text-rose-300 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400/20"
-            />
-            <button
-              onClick={() => removeOption(idx)}
-              disabled={options.length <= 2}
-              className="text-rose-400 hover:text-red-500 disabled:opacity-20 transition-colors"
-            >
-              ✕
-            </button>
+          <div key={`${opt.key}-${idx}`} className="flex flex-col w-full">
+            <div className="flex items-center gap-2">
+              <span className="w-6 text-center text-xs text-rose-500 font-mono shrink-0">
+                {idx + 1}
+              </span>
+              <input
+                value={opt.label}
+                onChange={(e) => updateLabel(idx, e.target.value)}
+                placeholder={`Option ${idx + 1}`}
+                className={cn(
+                  "flex-1 bg-white border rounded-lg px-3 py-1.5 text-sm text-rose-900 placeholder:text-rose-300 focus:outline-none",
+                  !opt.label.trim()
+                    ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500/20"
+                    : "border-rose-200 focus:border-pink-400 focus:ring-1 focus:ring-pink-400/20",
+                )}
+              />
+              <button
+                onClick={() => removeOption(idx)}
+                disabled={options.length <= 2}
+                className="text-rose-400 hover:text-red-500 disabled:opacity-20 transition-colors shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+            {!opt.label.trim() && (
+              <p className="text-red-500 text-[10px] font-medium mt-1 ml-8">
+                * Option text cannot be empty
+              </p>
+            )}
           </div>
         ))}
       </div>
