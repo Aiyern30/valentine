@@ -80,7 +80,12 @@ export function TypeDropdown({ value, onChange }: TypeDropdownProps) {
               {items.map((meta) => (
                 <button
                   key={meta.value}
-                  onClick={() => onChange(meta.value)}
+                  onClick={(e) => {
+                    onChange(meta.value);
+                    if (document.activeElement instanceof HTMLElement) {
+                      document.activeElement.blur();
+                    }
+                  }}
                   className={cn(
                     "w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors",
                     value === meta.value

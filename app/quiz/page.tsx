@@ -7,6 +7,8 @@
  */
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { submitQuiz } from "@/lib/quiz-actions";
 import {
   DndContext,
   DragEndEvent,
@@ -199,6 +201,7 @@ export default function QuizBuilderPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [titleError, setTitleError] = useState("");
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   // dnd-kit sensors — Pointer for mouse/touch, Keyboard for a11y
   const sensors = useSensors(
@@ -274,33 +277,20 @@ export default function QuizBuilderPage() {
 
     setIsPublishing(true);
 
-    const payload = {
-      title,
-      status: "published",
-      total_questions: questions.length,
-      questions: questions.map((q, i) => ({
-        question_text: q.question_text,
-        question_type: q.question_type,
-        options: q.options,
-        correct_option: q.correct_option,
-        display_order: i, // ← persisted in DB
-      })),
-    };
+    try {
+      const result = await submitQuiz(title, questions, "published");
 
-    console.log("Submitting:", JSON.stringify(payload, null, 2));
-
-    // TODO: wire up Supabase
-    // const { data: session } = await supabase
-    //   .from("quiz_sessions")
-    //   .insert({ title, relationship_id, created_by: user.id, status: "published", total_questions: questions.length })
-    //   .select().single();
-    //
-    // await supabase.from("quiz_questions").insert(
-    //   questions.map((q, i) => ({ ...q, session_id: session.id, created_by: user.id, display_order: i }))
-    // );
-
-    await new Promise((r) => setTimeout(r, 1200));
-    setIsPublishing(false);
+      if (result.success) {
+        alert("Quiz created successfully! 🎉");
+        router.push("/dashboard");
+      } else {
+        alert(result.error || "Failed to publish quiz");
+      }
+    } catch (e) {
+      alert("An unexpected error occurred.");
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   const isQuestionReady = (q: Question) => {
