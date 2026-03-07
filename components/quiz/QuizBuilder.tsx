@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import isEqual from "lodash/isEqual";
 import { submitQuiz, updateQuiz } from "@/lib/quiz-actions";
 import {
   DndContext,
@@ -215,6 +216,12 @@ export function QuizBuilder({ initialQuiz }: QuizBuilderProps) {
   );
 
   const activeQuestion = questions.find((q) => q.id === activeId) ?? null;
+
+  // Have details changed?
+  const isPristine =
+    isEditing &&
+    title === initialQuiz.title &&
+    isEqual(questions, initialQuiz.questions);
 
   // ── Drag handlers ────────────────────────────────────────────────────────────
 
@@ -447,7 +454,8 @@ export function QuizBuilder({ initialQuiz }: QuizBuilderProps) {
               disabled={
                 isPublishing ||
                 questions.length === 0 ||
-                completedCount < questions.length
+                completedCount < questions.length ||
+                isPristine
               }
               className="bg-pink-600 hover:bg-pink-500 text-white font-semibold px-5 shadow-lg shadow-pink-900/40 disabled:opacity-40"
             >
