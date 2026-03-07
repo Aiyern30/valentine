@@ -132,3 +132,68 @@ export async function deleteQuiz(id: string) {
     return { success: false, error: error.message };
   }
 }
+
+export async function updateQuiz(
+  sessionId: string,
+  title: string,
+  questions: Question[],
+  status: "draft" | "published" = "published",
+) {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) throw new Error("You must be logged in to update a quiz");
+
+    // Verify session belongs to user
+    const { data: sessionData, error: verifyError } = await supabase
+      .from("quiz_sessions")
+      .select("id")
+      .eq("id", sessionId)
+      .eq("created_by", user.id)
+      .single();
+
+    if (verifyError || !sessionData)
+      throw new Error("Quiz not found or you don't have permission");
+
+    // Update session title
+    const { error: sessionError } = await supabase
+      .from("quiz_sessions")
+      .update({ title, status })
+      .eq("id", sessionId);
+
+    if (sessionError)
+      throw new Error(`Failed to update quiz session: ${sessionError.message}`);
+
+    // Delete existing questions
+    await supabase.from("quiz_questions").delete().eq("session_id", sessionId);
+
+    // Re-insert new questions
+    const questionsToInsert = questions.map((q, i) => ({
+      session_id: sessionId,
+      created_by: user.id,
+      question_text: q.question_text,
+      question_type: q.question_type,
+      options: q.options,
+      correct_option: q.correct_option,
+      display_order: i,
+    }));
+
+    const { error: questionsError } = await supabase
+      .from("quiz_questions")
+      .insert(questionsToInsert);
+
+    if (questionsError)
+      throw new Error(`Failed to update questions: ${questionsError.message}`);
+
+    revalidatePath("/quiz");
+    revalidatePath(`/quiz/${sessionId}`);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Quiz update error:", error);
+    return { success: false, error: error.message || "Failed to update quiz" };
+  }
+}
