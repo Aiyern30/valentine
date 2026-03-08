@@ -1,462 +1,173 @@
-"use client";
-
-/**
- * Page: /qa-questions
- * Feature: 情侣走心互答 — Heartfelt Q&A
- * Table: qa_questions + qa_answers
- *
- * Flow:
- *  - Partner A opens this page and writes questions for Partner B
- *  - Each card = one qa_questions row (created_by = me, relationship_id = shared)
- *  - Partner B will see these cards and submit answers via a separate answer page
- *
- * Install: npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
- */
-
-import { useState } from "react";
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  KeyboardSensor,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import {
-  GripVertical,
-  Heart,
-  MessageCircle,
-  Plus,
-  Send,
-  Sparkles,
-  Tag,
-  Trash2,
-} from "lucide-react";
+import { getQASessions } from "@/lib/qa-actions";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { MessageCircle, Plus, Sparkles, Heart } from "lucide-react";
+import { DashboardQACard } from "@/components/qa/DashboardQACard";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { QAFilters } from "@/components/qa/QAFilters";
+import { Suspense } from "react";
+import { NavigationSidebar } from "@/components/NavigationSidebar";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+export const dynamic = "force-dynamic";
 
-type QACategory = "memory" | "future" | "values" | "fun" | "deep" | "";
-
-interface QAQuestion {
-  id: string;
-  question_text: string;
-  category: QACategory;
-  display_order: number;
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const CATEGORIES: {
-  value: QACategory;
-  label: string;
-  color: string;
-  emoji: string;
-}[] = [
-  {
-    value: "",
-    label: "No tag",
-    color: "border-zinc-700 text-zinc-500",
-    emoji: "—",
-  },
-  {
-    value: "memory",
-    label: "Memory",
-    color: "border-amber-500/40 text-amber-400 bg-amber-500/10",
-    emoji: "🌸",
-  },
-  {
-    value: "future",
-    label: "Future",
-    color: "border-violet-500/40 text-violet-400 bg-violet-500/10",
-    emoji: "✨",
-  },
-  {
-    value: "values",
-    label: "Values",
-    color: "border-sky-500/40 text-sky-400 bg-sky-500/10",
-    emoji: "💡",
-  },
-  {
-    value: "fun",
-    label: "Fun",
-    color: "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
-    emoji: "🎉",
-  },
-  {
-    value: "deep",
-    label: "Deep",
-    color: "border-rose-500/40 text-rose-400 bg-rose-500/10",
-    emoji: "💭",
-  },
-];
-
-function genId() {
-  return Math.random().toString(36).slice(2, 9);
-}
-
-function makeQuestion(order: number): QAQuestion {
-  return { id: genId(), question_text: "", category: "", display_order: order };
-}
-
-// ─── Category Picker ──────────────────────────────────────────────────────────
-
-function CategoryPicker({
-  value,
-  onChange,
+export default async function QADashboard({
+  searchParams,
 }: {
-  value: QACategory;
-  onChange: (v: QACategory) => void;
+  searchParams: Promise<{ sortBy?: string; filter?: string }>;
 }) {
-  const active = CATEGORIES.find((c) => c.value === value)!;
+  const params = await searchParams;
+  const sortBy = params?.sortBy || "date_desc";
+  const filter = params?.filter || "all";
 
-  return (
-    <div className="flex items-center gap-1.5 flex-wrap mt-2">
-      <Tag size={11} className="text-zinc-600 flex-shrink-0" />
-      {CATEGORIES.map((cat) => (
-        <button
-          key={cat.value}
-          onClick={() => onChange(cat.value)}
-          className={cn(
-            "px-2 py-0.5 rounded-full text-xs border transition-all duration-150",
-            value === cat.value
-              ? cat.color
-              : "border-zinc-800 text-zinc-600 hover:border-zinc-600 hover:text-zinc-400",
-          )}
-        >
-          {cat.emoji} {cat.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// ─── Card inner ───────────────────────────────────────────────────────────────
-
-function QACardInner({
-  question,
-  index,
-  onUpdate,
-  onDelete,
-  isDragging = false,
-  dragHandleProps,
-}: {
-  question: QAQuestion;
-  index: number;
-  onUpdate: (q: QAQuestion) => void;
-  onDelete: () => void;
-  isDragging?: boolean;
-  dragHandleProps?: React.HTMLAttributes<HTMLDivElement>;
-}) {
-  return (
-    <Card
-      className={cn(
-        "border transition-all duration-200 group",
-        isDragging
-          ? "bg-zinc-800 border-pink-500/60 shadow-2xl shadow-pink-900/30 scale-[1.02] opacity-95"
-          : "bg-zinc-900/80 border-zinc-800 shadow-lg shadow-black/20 hover:border-zinc-700",
-      )}
-    >
-      <CardContent className="p-5">
-        <div className="flex items-start gap-3">
-          {/* Handle */}
-          <div
-            {...dragHandleProps}
-            className={cn(
-              "flex flex-col items-center gap-1.5 pt-1 flex-shrink-0 select-none",
-              isDragging ? "cursor-grabbing" : "cursor-grab",
-            )}
-          >
-            <GripVertical
-              size={16}
-              className={cn(
-                "transition-colors",
-                isDragging
-                  ? "text-pink-400"
-                  : "text-zinc-700 group-hover:text-zinc-400",
-              )}
-            />
-            <span className="text-xs font-bold text-zinc-600 w-5 text-center">
-              {index + 1}
-            </span>
-          </div>
-
-          <div className="flex-1 min-w-0">
-            {/* Top row */}
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-zinc-600 font-medium">
-                Question for your partner
-              </span>
-              <button
-                onClick={onDelete}
-                className="text-zinc-700 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-
-            {/* Question input */}
-            <textarea
-              value={question.question_text}
-              onChange={(e) =>
-                onUpdate({ ...question, question_text: e.target.value })
-              }
-              placeholder="e.g. What's your favourite memory of us? 🌸"
-              rows={2}
-              className="w-full bg-zinc-800/60 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/20 resize-none leading-relaxed"
-            />
-
-            {/* Category picker */}
-            {!isDragging && (
-              <CategoryPicker
-                value={question.category}
-                onChange={(cat) => onUpdate({ ...question, category: cat })}
-              />
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ─── Sortable wrapper ─────────────────────────────────────────────────────────
-
-function SortableQACard({
-  question,
-  index,
-  onUpdate,
-  onDelete,
-}: {
-  question: QAQuestion;
-  index: number;
-  onUpdate: (q: QAQuestion) => void;
-  onDelete: () => void;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: question.id });
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0 : 1,
-      }}
-    >
-      <QACardInner
-        question={question}
-        index={index}
-        onUpdate={onUpdate}
-        onDelete={onDelete}
-        dragHandleProps={{ ...attributes, ...listeners }}
-      />
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-export default function QAQuestionsPage() {
-  const [questions, setQuestions] = useState<QAQuestion[]>([makeQuestion(0)]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [isSending, setIsSending] = useState(false);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
+  const { success, sessions, error, userId } = await getQASessions(
+    sortBy as any,
+    filter as any,
   );
 
-  const activeQuestion = questions.find((q) => q.id === activeId) ?? null;
-
-  const handleDragStart = (e: DragStartEvent) =>
-    setActiveId(e.active.id as string);
-  const handleDragEnd = (e: DragEndEvent) => {
-    setActiveId(null);
-    if (!e.over || e.active.id === e.over.id) return;
-    setQuestions((prev) => {
-      const from = prev.findIndex((q) => q.id === e.active.id);
-      const to = prev.findIndex((q) => q.id === e.over!.id);
-      const next = arrayMove(prev, from, to).map((q, i) => ({
-        ...q,
-        display_order: i,
-      }));
-
-      // TODO: persist reorder
-      // await supabase.rpc("reorder_rows", {
-      //   p_table: "qa_questions",
-      //   p_scope_col: "relationship_id",
-      //   p_scope_id: relationshipId,
-      //   p_ordered_ids: next.map((q) => q.id),
-      // });
-
-      return next;
-    });
-  };
-
-  const addQuestion = () =>
-    setQuestions((prev) => [...prev, makeQuestion(prev.length)]);
-
-  const updateQuestion = (id: string, updated: QAQuestion) =>
-    setQuestions((prev) => prev.map((q) => (q.id === id ? updated : q)));
-
-  const deleteQuestion = (id: string) => {
-    if (questions.length === 1) return;
-    setQuestions((prev) =>
-      prev
-        .filter((q) => q.id !== id)
-        .map((q, i) => ({ ...q, display_order: i })),
-    );
-  };
-
-  const handleSend = async () => {
-    setIsSending(true);
-
-    const payload = questions.map((q, i) => ({
-      question_text: q.question_text,
-      category: q.category || null,
-      display_order: i,
-      // relationship_id: relationshipId,   ← inject from context
-      // created_by: user.id,               ← inject from auth
-    }));
-
-    console.log("Inserting qa_questions:", JSON.stringify(payload, null, 2));
-
-    // TODO: Supabase insert
-    // await supabase.from("qa_questions").insert(payload);
-
-    await new Promise((r) => setTimeout(r, 1000));
-    setIsSending(false);
-  };
-
-  const readyCount = questions.filter((q) => q.question_text.trim()).length;
-
-  return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Glow */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[250px] bg-rose-600/10 blur-[120px] rounded-full" />
-      </div>
-
-      <div className="relative max-w-2xl mx-auto px-4 py-10 pb-32">
-        {/* Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-2 mb-2">
-            <Heart size={16} className="text-rose-400" fill="currentColor" />
-            <span className="text-xs text-zinc-500 uppercase tracking-widest font-medium">
-              情侣走心互答
-            </span>
-          </div>
-          <h1 className="text-3xl font-bold text-zinc-50 tracking-tight mb-1">
-            Ask Your Partner
-          </h1>
-          <p className="text-zinc-500 text-sm">
-            Write heartfelt questions — your partner will answer them one by one
-            💌
+  if (!success || !userId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-rose-50/30 px-4">
+        <div className="bg-white p-8 rounded-2xl shadow-xl border border-rose-100 text-center max-w-sm w-full">
+          <p className="text-rose-600 font-medium">
+            {error || "Please log in to view Q&A"}
           </p>
+          <Link href="/login" className="mt-4 block">
+            <Button className="w-full bg-rose-600 hover:bg-rose-500 text-white">
+              Go to Login
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const ownSessions = sessions?.filter((s) => s.created_by === userId) || [];
+  const partnerSessions =
+    sessions?.filter((s) => s.created_by !== userId && s.status !== "draft") ||
+    [];
+
+  return (
+    <NavigationSidebar>
+      <div className="min-h-screen pb-32">
+        {/* Ambient glow */}
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-rose-600/10 blur-[120px] rounded-full" />
+          <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-amber-600/5 blur-[100px] rounded-full" />
         </div>
 
-        {/* Cards */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={questions.map((q) => q.id)}
-            strategy={verticalListSortingStrategy}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+          <SectionHeader
+            icon={<MessageCircle className="w-6 h-6 text-white" />}
+            title="Heartfelt Q&A"
+            description={
+              "Ask your partner deep questions and share heartfelt answers."
+            }
+            button={
+              <Link href="/qa_questions/new">
+                <Button className="bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-900/20 w-full md:w-auto">
+                  <Plus size={16} className="mr-2" />
+                  Ask Questions
+                </Button>
+              </Link>
+            }
+          />
+
+          <Suspense
+            fallback={
+              <div className="h-16 mb-8 bg-rose-50/50 rounded-2xl animate-pulse" />
+            }
           >
-            <div className="space-y-4 mb-6">
-              {questions.map((q, i) => (
-                <SortableQACard
-                  key={q.id}
-                  question={q}
-                  index={i}
-                  onUpdate={(updated) => updateQuestion(q.id, updated)}
-                  onDelete={() => deleteQuestion(q.id)}
-                />
-              ))}
+            <QAFilters />
+          </Suspense>
+
+          {!success ? (
+            <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-200">
+              Error loading Q&A: {error}
             </div>
-          </SortableContext>
+          ) : !sessions || sessions.length === 0 ? (
+            <div className="text-center py-20 px-4 border-2 border-dashed border-rose-200 rounded-3xl bg-white/50 backdrop-blur-sm">
+              <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles size={24} className="text-rose-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-rose-900 mb-2">
+                No Q&A found!
+              </h3>
+              <p className="text-rose-500 text-sm max-w-sm mx-auto mb-6">
+                {filter !== "all"
+                  ? "Try changing your filters to see more results."
+                  : "Start by asking your partner some heartfelt questions."}
+              </p>
+              {filter === "all" && (
+                <Link href="/qa_questions/new">
+                  <Button
+                    variant="outline"
+                    className="border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-800"
+                  >
+                    Create first Q&A
+                  </Button>
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-12">
+              {/* Own Section */}
+              {ownSessions.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="p-2 bg-rose-100 rounded-lg">
+                      <Heart size={20} className="text-rose-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Sent by You
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {ownSessions.map((session) => (
+                      <DashboardQACard
+                        key={session.id}
+                        session={session}
+                        userId={userId}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          <DragOverlay dropAnimation={{ duration: 180, easing: "ease" }}>
-            {activeQuestion && (
-              <QACardInner
-                question={activeQuestion}
-                index={questions.findIndex((q) => q.id === activeQuestion.id)}
-                onUpdate={() => {}}
-                onDelete={() => {}}
-                isDragging
-              />
-            )}
-          </DragOverlay>
-        </DndContext>
+              {/* Partner Section */}
+              {partnerSessions.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="p-2 bg-amber-100 rounded-lg">
+                      <MessageCircle size={20} className="text-amber-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Sent by Partner
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {partnerSessions.map((session) => (
+                      <DashboardQACard
+                        key={session.id}
+                        session={session}
+                        userId={userId}
+                        isPartnerQA
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
-        <button
-          onClick={addQuestion}
-          className="w-full py-3.5 rounded-xl border-2 border-dashed border-zinc-700 text-zinc-500 hover:border-rose-500/50 hover:text-rose-400 hover:bg-rose-500/5 transition-all duration-200 flex items-center justify-center gap-2 text-sm font-medium"
-        >
-          <Plus size={16} /> Add Question
-        </button>
-      </div>
-
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-800">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MessageCircle size={15} className="text-zinc-500" />
-            <span className="text-sm text-zinc-500">
-              <span className="text-zinc-200 font-semibold">{readyCount}</span>/
-              {questions.length} questions written
-            </span>
-            {readyCount === questions.length && questions.length > 0 && (
-              <span className="flex items-center gap-1 text-xs text-emerald-400">
-                <Sparkles size={12} /> Ready!
-              </span>
-            )}
-          </div>
-          <Button
-            size="sm"
-            onClick={handleSend}
-            disabled={isSending || readyCount === 0}
-            className="bg-rose-600 hover:bg-rose-500 text-white font-semibold px-5 shadow-lg shadow-rose-900/40 disabled:opacity-40"
-          >
-            {isSending ? (
-              <span className="flex items-center gap-2">
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Sending...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Send size={13} /> Send to Partner
-              </span>
-            )}
-          </Button>
+              {ownSessions.length === 0 && partnerSessions.length === 0 && (
+                <div className="text-center py-20">
+                  <p className="text-rose-400 italic">
+                    No items match your current filters.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </NavigationSidebar>
   );
 }
