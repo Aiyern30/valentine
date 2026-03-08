@@ -4,13 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { Question } from "@/types/quiz";
 import { revalidatePath } from "next/cache";
 
-// Type definitions for quiz lists
 export type QuizSession = {
   id: string;
   title: string;
   status: string;
   created_at: string;
   total_questions: number;
+  created_by: string;
 };
 
 export async function submitQuiz(
@@ -104,13 +104,13 @@ export async function getQuizzes() {
 
     const { data, error } = await supabase
       .from("quiz_sessions")
-      .select("id, title, status, created_at, total_questions")
+      .select("id, title, status, created_at, total_questions, created_by")
       .eq("relationship_id", relationshipData.id)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    return { success: true, quizzes: data as QuizSession[] };
+    return { success: true, quizzes: data as QuizSession[], userId: user.id };
   } catch (error: any) {
     return { success: false, error: error.message };
   }

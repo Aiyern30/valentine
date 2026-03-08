@@ -2,12 +2,15 @@ import { getQuizzes } from "@/lib/quiz-actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Plus, Trash2, Edit2, Play } from "lucide-react";
+import { Heart, Plus, Trash2, Edit2, Play, Users } from "lucide-react";
 import { format } from "date-fns";
 import { QuizDeleteButton } from "@/components/quiz/QuizDeleteButton";
 
 export default async function QuizDashboard() {
-  const { success, quizzes, error } = await getQuizzes();
+  const { success, quizzes, error, userId } = await getQuizzes();
+
+  const ownQuizzes = quizzes?.filter((q) => q.created_by === userId) || [];
+  const partnerQuizzes = quizzes?.filter((q) => q.created_by !== userId) || [];
 
   return (
     <div className="min-h-screen pb-32">
@@ -67,62 +70,171 @@ export default async function QuizDashboard() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {quizzes.map((quiz) => (
-              <Card
-                key={quiz.id}
-                className="bg-white/95 border-rose-200 shadow-xl shadow-rose-200/20 hover:border-rose-300 transition-all"
-              >
-                <CardContent className="p-5 flex flex-col h-full">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="font-semibold text-lg text-rose-900 line-clamp-2">
-                      {quiz.title}
-                    </h3>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-4">
-                      {quiz.status === "draft" ? (
-                        <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[10px] uppercase tracking-wider font-semibold">
-                          Draft
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600 text-[10px] uppercase tracking-wider font-semibold">
-                          Published
-                        </span>
-                      )}
-                    </div>
-                  </div>
+          <div className="space-y-12">
+            {/* Own Quizzes Section */}
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-2 bg-pink-100 rounded-lg">
+                  <Heart size={20} className="text-pink-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Created by You
+                </h2>
+              </div>
+              {ownQuizzes.length === 0 ? (
+                <div className="text-center py-10 px-4 border-2 border-dashed border-rose-200 rounded-2xl bg-white/50 backdrop-blur-sm">
+                  <p className="text-rose-500 text-sm">
+                    You haven't created any quizzes yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ownQuizzes.map((quiz) => (
+                    <Card
+                      key={quiz.id}
+                      className="bg-white/95 border-rose-200 shadow-xl shadow-rose-200/20 hover:border-rose-300 transition-all"
+                    >
+                      <CardContent className="p-5 flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="font-semibold text-lg text-rose-900 line-clamp-2">
+                            {quiz.title}
+                          </h3>
+                          <div className="flex items-center gap-1.5 shrink-0 ml-4">
+                            {quiz.status === "draft" ? (
+                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[10px] uppercase tracking-wider font-semibold">
+                                Draft
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600 text-[10px] uppercase tracking-wider font-semibold">
+                                Published
+                              </span>
+                            )}
+                          </div>
+                        </div>
 
-                  <div className="mt-auto space-y-4">
-                    <div className="flex items-center justify-between text-xs text-rose-500 border-b border-rose-100 pb-3">
-                      <span>{quiz.total_questions} Questions</span>
-                      <span>
-                        {format(new Date(quiz.created_at), "MMM d, yyyy")}
-                      </span>
-                    </div>
+                        <div className="mt-auto space-y-4">
+                          <div className="flex items-center justify-between text-xs text-rose-500 border-b border-rose-100 pb-3">
+                            <span>{quiz.total_questions} Questions</span>
+                            <span>
+                              {format(new Date(quiz.created_at), "MMM d, yyyy")}
+                            </span>
+                          </div>
 
-                    <div className="flex items-center justify-between">
-                      <Link href={`/quiz/${quiz.id}`} className="flex-1 mr-2">
-                        <Button
-                          variant="secondary"
-                          className="w-full bg-rose-50 text-rose-700 hover:bg-rose-100"
-                          size="sm"
-                        >
-                          {quiz.status === "draft" ? (
-                            <>
-                              <Edit2 size={13} className="mr-1.5" /> Edit
-                            </>
-                          ) : (
-                            <>
-                              <Play size={13} className="mr-1.5" /> View / Play
-                            </>
-                          )}
-                        </Button>
-                      </Link>
-                      <QuizDeleteButton id={quiz.id} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                          <div className="flex items-center justify-between">
+                            <Link
+                              href={`/quiz/${quiz.id}`}
+                              className="flex-1 mr-2"
+                            >
+                              <Button
+                                variant="secondary"
+                                className="w-full bg-rose-50 text-rose-700 hover:bg-rose-100"
+                                size="sm"
+                              >
+                                {quiz.status === "draft" ? (
+                                  <>
+                                    <Edit2 size={13} className="mr-1.5" /> Edit
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play size={13} className="mr-1.5" /> View /
+                                    Play
+                                  </>
+                                )}
+                              </Button>
+                            </Link>
+                            <QuizDeleteButton id={quiz.id} />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Partner Quizzes Section */}
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-2 bg-violet-100 rounded-lg">
+                  <Users size={20} className="text-violet-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Created by Partner
+                </h2>
+              </div>
+              {partnerQuizzes.length === 0 ? (
+                <div className="text-center py-10 px-4 border-2 border-dashed border-violet-200 rounded-2xl bg-white/50 backdrop-blur-sm">
+                  <p className="text-violet-500 text-sm">
+                    Your partner hasn't created any quizzes yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {partnerQuizzes.map((quiz) => (
+                    <Card
+                      key={quiz.id}
+                      className="bg-white/95 border-violet-200 shadow-xl shadow-violet-200/20 hover:border-violet-300 transition-all"
+                    >
+                      <CardContent className="p-5 flex flex-col h-full">
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="font-semibold text-lg text-violet-900 line-clamp-2">
+                            {quiz.title}
+                          </h3>
+                          <div className="flex items-center gap-1.5 shrink-0 ml-4">
+                            {quiz.status === "draft" ? (
+                              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] uppercase tracking-wider font-semibold">
+                                Draft
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-600 text-[10px] uppercase tracking-wider font-semibold">
+                                Published
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="mt-auto space-y-4">
+                          <div className="flex items-center justify-between text-xs text-violet-500 border-b border-violet-100 pb-3">
+                            <span>{quiz.total_questions} Questions</span>
+                            <span>
+                              {format(new Date(quiz.created_at), "MMM d, yyyy")}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            {quiz.status === "draft" ? (
+                              <Button
+                                variant="secondary"
+                                className="w-full bg-slate-50 text-slate-500 hover:bg-slate-50 cursor-not-allowed opacity-75"
+                                size="sm"
+                                disabled
+                              >
+                                <Play size={13} className="mr-1.5" /> Partner's
+                                Draft
+                              </Button>
+                            ) : (
+                              <Link
+                                href={`/quiz/${quiz.id}`}
+                                className="flex-1"
+                              >
+                                <Button
+                                  variant="secondary"
+                                  className="w-full bg-violet-50 text-violet-700 hover:bg-violet-100"
+                                  size="sm"
+                                >
+                                  <Play size={13} className="mr-1.5" /> Play
+                                  Quiz
+                                </Button>
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
