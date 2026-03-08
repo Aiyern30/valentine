@@ -91,7 +91,7 @@ export function SectionHeader({
             }}
           />
         )}
-        {button && <div className="hidden sm:block">{button}</div>}
+        {button && <div>{button}</div>}
       </div>
     </header>
   );

@@ -59,7 +59,7 @@ export default async function EditQuizPage({
   if (session.created_by !== user.id && session.status === "draft") {
     return (
       <div className="min-h-screen pt-20 px-4 flex justify-center bg-rose-50/30">
-        <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-xl shadow-rose-200/50 text-center border border-rose-100">
+        <div className="max-w-4xl w-full bg-white p-8 rounded-2xl shadow-xl shadow-rose-200/50 text-center border border-rose-100">
           <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Lock className="text-rose-500 w-8 h-8" />
           </div>

@@ -323,7 +323,7 @@ export function QuizBuilder({ initialQuiz }: QuizBuilderProps) {
         <div className="absolute bottom-0 right-0 w-100 h-75 bg-violet-600/8 blur-[100px] rounded-full" />
       </div>
 
-      <div className="relative max-w-2xl mx-auto px-4 py-10 pb-32">
+      <div className="relative max-w-4xl mx-auto px-4 py-10 pb-32">
         {/* Header */}
         <SectionHeader
           icon={<Heart className="w-6 h-6 text-white" />}
