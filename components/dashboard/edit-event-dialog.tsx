@@ -289,7 +289,7 @@ export function EditEventDialog({
                             value={date.getMonth().toString()}
                             onValueChange={(val) => changeMonth(parseInt(val))}
                           >
-                            <SelectTrigger className="h-8 w-[100px] text-xs font-bold rounded-lg border-gray-200">
+                            <SelectTrigger className="h-8 w-[100px] px-2.5 py-0 text-xs font-bold rounded-lg border-gray-200">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl">
@@ -309,7 +309,7 @@ export function EditEventDialog({
                             value={date.getFullYear().toString()}
                             onValueChange={(val) => changeYear(parseInt(val))}
                           >
-                            <SelectTrigger className="h-8 w-[80px] text-xs font-bold rounded-lg border-gray-200">
+                            <SelectTrigger className="h-8 w-[80px] px-2.5 py-0 text-xs font-bold rounded-lg border-gray-200">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl">
@@ -385,7 +385,7 @@ export function EditEventDialog({
                                 changeMonth(parseInt(val))
                               }
                             >
-                              <SelectTrigger className="h-8 w-[100px] text-xs font-bold rounded-lg border-gray-200">
+                              <SelectTrigger className="h-8 w-[100px] px-2.5 py-0 text-xs font-bold rounded-lg border-gray-200">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="rounded-xl">
@@ -405,7 +405,7 @@ export function EditEventDialog({
                               value={date.getFullYear().toString()}
                               onValueChange={(val) => changeYear(parseInt(val))}
                             >
-                              <SelectTrigger className="h-8 w-[80px] text-xs font-bold rounded-lg border-gray-200">
+                              <SelectTrigger className="h-8 w-[80px] px-2.5 py-0 text-xs font-bold rounded-lg border-gray-200">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="rounded-xl">

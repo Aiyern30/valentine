@@ -134,6 +134,15 @@
           cursor: pointer;
         }
 
+        /* Ensure SelectTriggers are flex-row and vertical alignment is correct */
+        .rbc-toolbar-label button,
+        .custom-calendar button {
+          display: flex !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+        }
+
         .rbc-toolbar button:hover {
           background: var(--accent);
           color: var(--accent-foreground);

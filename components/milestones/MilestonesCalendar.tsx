@@ -232,7 +232,7 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
             value={toolbar.date.getMonth().toString()}
             onValueChange={handleMonthChange}
           >
-            <SelectTrigger className="w-[140px] bg-background border-2 font-bold rounded-2xl">
+            <SelectTrigger className="h-10 w-[140px] px-3 py-0 bg-background border-2 font-bold rounded-2xl">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded-2xl border-2">
@@ -248,7 +248,7 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
             value={toolbar.date.getFullYear().toString()}
             onValueChange={handleYearChange}
           >
-            <SelectTrigger className="w-[110px] bg-background border-2 font-bold rounded-2xl">
+            <SelectTrigger className="h-10 w-[110px] px-3 py-0 bg-background border-2 font-bold rounded-2xl">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded-2xl border-2">
