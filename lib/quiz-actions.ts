@@ -178,10 +178,14 @@ export async function updateQuiz(
     if (verifyError || !sessionData)
       throw new Error("Quiz not found or you don't have permission");
 
-    // Update session title
+    // Update session title and question count
     const { error: sessionError } = await supabase
       .from("quiz_sessions")
-      .update({ title, status })
+      .update({
+        title,
+        status,
+        total_questions: questions.length,
+      })
       .eq("id", sessionId);
 
     if (sessionError)
