@@ -328,3 +328,54 @@ export async function getPartnerProfile(userId: string) {
 
   return partnerProfile;
 }
+
+export async function getRelationshipPulse(userId: string) {
+  const supabase = await createClient();
+
+  // 1. Get relationship
+  const relationship = await getRelationship(userId);
+  if (!relationship) return null;
+
+  // 2. Get Goals Stats
+  const { count: goalsCount } = await supabase
+    .from("shared_goals")
+    .select("*", { count: "exact", head: true })
+    .eq("relationship_id", relationship.id);
+
+  const { count: completedGoalsCount } = await supabase
+    .from("shared_goals")
+    .select("*", { count: "exact", head: true })
+    .eq("relationship_id", relationship.id)
+    .eq("status", "completed");
+
+  // 3. Get Q&A Stats
+  const { count: qaCount } = await supabase
+    .from("qa_sessions")
+    .select("*", { count: "exact", head: true })
+    .eq("relationship_id", relationship.id)
+    .eq("status", "completed");
+
+  // 4. Get Latest Check-in (Heartbeat)
+  const { data: latestCheckin } = await supabase
+    .from("goal_checkins")
+    .select("*, profiles(display_name), shared_goals(title)")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // 5. Get Pending Q&A for the user
+  const { count: pendingQACount } = await supabase
+    .from("qa_sessions")
+    .select("*", { count: "exact", head: true })
+    .eq("relationship_id", relationship.id)
+    .neq("status", "completed")
+    .neq("created_by", userId); // Sent by partner
+
+  return {
+    goalsCount: goalsCount || 0,
+    completedGoalsCount: completedGoalsCount || 0,
+    qaCount: qaCount || 0,
+    latestCheckin: latestCheckin as any,
+    pendingQACount: pendingQACount || 0,
+  };
+}

@@ -11,6 +11,7 @@ import {
   getRecentPhotos,
   isProfileComplete,
   getProfile,
+  getRelationshipPulse,
 } from "@/lib/data";
 import { Home } from "lucide-react";
 import { PartnerCard } from "@/components/PartnerCard";
@@ -19,6 +20,7 @@ import { ProfileCompletionDialog } from "@/components/ProfileCompletionDialog";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { InvitePartnerCard } from "@/components/InvitePartnerCards";
 import { Metadata } from "next";
+import { RelationshipPulse } from "@/components/dashboard/RelationshipPulse";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -29,6 +31,8 @@ export const metadata: Metadata = {
     "relationship timeline",
     "couple dashboard",
     "anniversary countdown",
+    "relationship goal progress",
+    "shared Q&A status",
   ],
 };
 
@@ -56,9 +60,9 @@ export default async function DashboardPage() {
 
   // ✅ Fetch relationship (active OR pending with partner1_id = current user)
   const relationship = await getRelationship(user.id);
+  const pulseData = await getRelationshipPulse(user.id);
 
   const milestones = await getMilestonesByUser(user.id, 5);
-
   const recentPhotos = relationship
     ? await getRecentPhotos(relationship.id)
     : [];
@@ -88,7 +92,7 @@ export default async function DashboardPage() {
     user.email?.split("@")[0];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
       <SectionHeader
         icon={<Home className="w-6 h-6 text-white" />}
         title={
@@ -108,10 +112,13 @@ export default async function DashboardPage() {
         )}
       </section>
 
+      {/* NEW: Relationship Pulse (Goal & Q&A Summary) */}
+      <RelationshipPulse data={pulseData} />
+
       {/* Quick Actions - Always Visible */}
       <section>
-        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
-          Quick Actions
+        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <span>Quick Actions</span>
         </h2>
         <DashboardActions />
       </section>
