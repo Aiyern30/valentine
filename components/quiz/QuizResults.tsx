@@ -11,6 +11,7 @@ import { Heart, Star, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 
 interface QuizResultsProps {
   quiz: {
@@ -251,32 +252,33 @@ export function QuizResults({ quiz, userId }: { quiz: any; userId: string }) {
       </div>
 
       <div className="relative max-w-2xl mx-auto px-4 py-12 pb-32">
-        <div className="flex items-center justify-between mb-12">
-          <div>
+        <SectionHeader
+          icon={<Heart className="w-6 h-6 text-white" />}
+          title={session.title}
+          description={
+            <div className="flex items-center gap-3">
+              <div className="px-3 py-1 bg-pink-500 text-white rounded-full text-xs font-black shadow-lg shadow-pink-200">
+                {Math.round(session.match_score)}% MATCH
+              </div>
+              <span className="text-rose-400 text-xs font-medium">
+                Results Analysis 💕
+              </span>
+            </div>
+          }
+          button={
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.push("/quiz")}
-              className="mb-4 text-rose-500 hover:text-rose-700 hover:bg-rose-50 -ml-2"
+              className="text-rose-500 hover:text-rose-700 hover:bg-rose-50"
             >
               <ArrowLeft size={16} className="mr-1.5" />
               Dashboard
             </Button>
-            <h1 className="text-4xl font-black text-rose-950 tracking-tight mb-2">
-              {session.title}
-            </h1>
-            <div className="flex items-center gap-3">
-              <div className="px-3 py-1 bg-pink-500 text-white rounded-full text-sm font-black shadow-lg shadow-pink-200">
-                {Math.round(session.match_score)}% MATCH
-              </div>
-              <span className="text-rose-400 text-sm font-medium">
-                Results Analysis 💕
-              </span>
-            </div>
-          </div>
-        </div>
+          }
+        />
 
-        <div className="space-y-8">
+        <div className="space-y-8 my-8">
           {questions.map((q: Question, i: number) => {
             const resp = getResponseForQuestion(q.id);
             const isMatch = resp?.is_match;

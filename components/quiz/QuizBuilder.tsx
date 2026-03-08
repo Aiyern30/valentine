@@ -47,6 +47,7 @@ import {
   makeDefaultsForType,
   makeDefaultQuestion,
 } from "@/types/quiz";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 
 // ─── Question Card Inner (shared between sortable + overlay) ──────────────────
 
@@ -324,14 +325,15 @@ export function QuizBuilder({ initialQuiz }: QuizBuilderProps) {
 
       <div className="relative max-w-2xl mx-auto px-4 py-10 pb-32">
         {/* Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-2 mb-2 justify-between">
-            <div className="flex items-center gap-2">
-              <Heart size={16} className="text-pink-500" fill="currentColor" />
-              <span className="text-xs text-rose-500 uppercase tracking-widest font-medium">
-                双人默契大比拼
-              </span>
-            </div>
+        <SectionHeader
+          icon={<Heart className="w-6 h-6 text-white" />}
+          title={isEditing ? "Edit Quiz" : "Create a Quiz"}
+          description={
+            isEditing
+              ? "Update your questions and let your partner try again 💕"
+              : "Write questions for your partner — let's see how well they know you 💕"
+          }
+          button={
             <Button
               variant="ghost"
               size="sm"
@@ -340,19 +342,11 @@ export function QuizBuilder({ initialQuiz }: QuizBuilderProps) {
             >
               Cancel
             </Button>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-1">
-            {isEditing ? "Edit Quiz" : "Create a Quiz"}
-          </h1>
-          <p className="text-rose-600 text-sm">
-            {isEditing
-              ? "Update your questions and let your partner try again 💕"
-              : "Write questions for your partner — let's see how well they know you 💕"}
-          </p>
-        </div>
+          }
+        />
 
         {/* Quiz title */}
-        <div className="mb-8">
+        <div className="my-8">
           <Label className="text-xs text-rose-500 uppercase tracking-wider mb-2 block">
             Quiz Title <span className="text-red-500">*</span>
           </Label>

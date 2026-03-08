@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 
 interface QuizPlayerProps {
   quiz: { id: string; title: string; questions: Question[] };
@@ -323,14 +324,11 @@ export function QuizPlayer({ quiz }: QuizPlayerProps) {
 
       <div className="relative max-w-2xl mx-auto px-4 py-10 pb-32">
         {/* Header */}
-        <div className="mb-10">
-          <div className="flex items-center gap-2 mb-2 justify-between">
-            <div className="flex items-center gap-2">
-              <Heart size={16} className="text-pink-500" fill="currentColor" />
-              <span className="text-xs text-rose-500 uppercase tracking-widest font-medium">
-                双人默契大比拼
-              </span>
-            </div>
+        <SectionHeader
+          icon={<Heart className="w-6 h-6 text-white" />}
+          title={quiz.title || "Untitle Quiz"}
+          description="Show your partner how well you know them! Answer all questions below. 💕"
+          button={
             <Button
               variant="ghost"
               size="sm"
@@ -340,18 +338,11 @@ export function QuizPlayer({ quiz }: QuizPlayerProps) {
               <ArrowLeft size={16} className="mr-1.5" />
               Cancel
             </Button>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-1">
-            {quiz.title || "Untitle Quiz"}
-          </h1>
-          <p className="text-rose-600 text-sm">
-            Show your partner how well you know them! Answer all questions
-            below. 💕
-          </p>
-        </div>
+          }
+        />
 
         {/* Questions List */}
-        <div className="space-y-6">
+        <div className="space-y-6 my-8">
           {quiz.questions.map((q, i) => (
             <Card
               key={q.id}
