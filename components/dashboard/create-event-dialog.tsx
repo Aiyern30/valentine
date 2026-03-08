@@ -193,7 +193,7 @@ export function CreateEventDialog({
                     selected={startDate}
                     onChange={(date: Date | null) => setStartDate(date)}
                     dateFormat="MM/dd/yyyy"
-                    className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                    className="w-full px-5 py-3.5 rounded-2xl border-2 border-rose-200 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-950/30 text-rose-900 dark:text-rose-100 hover:border-rose-300 dark:hover:border-rose-700/60 hover:bg-rose-50 dark:hover:bg-rose-900/20 focus:bg-white dark:focus:bg-rose-950/40 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all"
                     calendarClassName="custom-calendar"
                     showPopperArrow={false}
                     popperPlacement="bottom-start"
@@ -223,7 +223,7 @@ export function CreateEventDialog({
                             value={date.getMonth().toString()}
                             onValueChange={(val) => changeMonth(parseInt(val))}
                           >
-                            <SelectTrigger className="h-8 w-[100px] px-2.5 py-0 text-xs font-bold rounded-lg border-gray-200">
+                            <SelectTrigger className="h-8 w-[100px] px-2.5 py-0 text-xs font-bold rounded-lg border-rose-100">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl">
@@ -243,7 +243,7 @@ export function CreateEventDialog({
                             value={date.getFullYear().toString()}
                             onValueChange={(val) => changeYear(parseInt(val))}
                           >
-                            <SelectTrigger className="h-8 w-[80px] px-2.5 py-0 text-xs font-bold rounded-lg border-gray-200">
+                            <SelectTrigger className="h-8 w-[80px] px-2.5 py-0 text-xs font-bold rounded-lg border-rose-100">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl">
@@ -284,7 +284,7 @@ export function CreateEventDialog({
                       onChange={(date: Date | null) => setEndDate(date)}
                       dateFormat="MM/dd/yyyy"
                       minDate={startDate || undefined}
-                      className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all text-gray-900 dark:text-gray-100"
+                      className="w-full px-5 py-3.5 rounded-2xl border-2 border-rose-200 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-950/30 text-rose-900 dark:text-rose-100 hover:border-rose-300 dark:hover:border-rose-700/60 hover:bg-rose-50 dark:hover:bg-rose-900/20 focus:bg-white dark:focus:bg-rose-950/40 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all"
                       calendarClassName="custom-calendar"
                       showPopperArrow={false}
                       popperPlacement="bottom-start"
@@ -315,7 +315,7 @@ export function CreateEventDialog({
                                 changeMonth(parseInt(val))
                               }
                             >
-                              <SelectTrigger className="h-8 w-[100px] text-xs font-bold rounded-lg border-gray-200">
+                              <SelectTrigger className="h-8 w-[100px] text-xs font-bold rounded-lg border-rose-100">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="rounded-xl">
@@ -335,7 +335,7 @@ export function CreateEventDialog({
                               value={date.getFullYear().toString()}
                               onValueChange={(val) => changeYear(parseInt(val))}
                             >
-                              <SelectTrigger className="h-8 w-[80px] text-xs font-bold rounded-lg border-gray-200">
+                              <SelectTrigger className="h-8 w-[80px] text-xs font-bold rounded-lg border-rose-100">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="rounded-xl">
@@ -411,7 +411,7 @@ export function CreateEventDialog({
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-gray-400" />
+                  <Bell className="w-4 h-4 text-pink-400" />
                   Reminder
                 </Label>
                 <input
