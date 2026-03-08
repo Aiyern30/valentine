@@ -1,0 +1,211 @@
+"use client";
+
+import {
+  SharedGoal,
+  updateSharedGoal,
+  addGoalCheckin,
+} from "@/lib/goal-actions";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Target,
+  Calendar,
+  CheckCircle2,
+  TrendingUp,
+  Plus,
+  MoreHorizontal,
+  ChevronRight,
+  MessageSquare,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { useState } from "react";
+import { toast } from "sonner";
+
+const CATEGORY_STYLES: Record<string, { color: string; icon: string }> = {
+  health: { color: "from-rose-400 to-pink-500", icon: "💪" },
+  finance: { color: "from-amber-400 to-orange-500", icon: "💰" },
+  travel: { color: "from-sky-400 to-blue-500", icon: "✈️" },
+  lifestyle: { color: "from-emerald-400 to-teal-500", icon: "🌿" },
+  learning: { color: "from-violet-400 to-purple-500", icon: "📚" },
+};
+
+export function GoalCard({
+  goal,
+  userId,
+}: {
+  goal: SharedGoal;
+  userId: string;
+}) {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const style = CATEGORY_STYLES[goal.category] || CATEGORY_STYLES.lifestyle;
+
+  const isCompleted = goal.status === "completed";
+
+  const handleToggleComplete = async () => {
+    setIsUpdating(true);
+    const newStatus = isCompleted ? "active" : "completed";
+    const result = await updateSharedGoal(goal.id, {
+      status: newStatus,
+      completed_at: newStatus === "completed" ? new Date().toISOString() : null,
+    });
+
+    if (result.success) {
+      toast.success(
+        newStatus === "completed"
+          ? "Goal achieved! 🎉"
+          : "Goal reactivated! 🌱",
+      );
+    } else {
+      toast.error("Failed to update goal");
+    }
+    setIsUpdating(false);
+  };
+
+  const handleCheckin = async () => {
+    // Basic checkin for habits
+    setIsUpdating(true);
+    const result = await addGoalCheckin(goal.id, 1, "Quick check-in! ❤️");
+    if (result.success) {
+      toast.success("Progress logged! ✨");
+    } else {
+      toast.error("Failed to log progress");
+    }
+    setIsUpdating(false);
+  };
+
+  return (
+    <Card
+      className={cn(
+        "group relative overflow-hidden transition-all duration-300 border-none shadow-xl",
+        isCompleted
+          ? "bg-white/40 grayscale-[0.3]"
+          : "bg-white/90 hover:scale-[1.01]",
+      )}
+    >
+      {/* Top Banner with Category Color */}
+      <div className={cn("h-1.5 w-full bg-linear-to-r", style.color)} />
+
+      <CardContent className="p-5">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                "w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm bg-linear-to-br transition-transform group-hover:rotate-6",
+                style.color,
+                "bg-opacity-10 text-white",
+              )}
+            >
+              {style.icon}
+            </div>
+            <div>
+              <h3
+                className={cn(
+                  "font-bold text-lg leading-snug",
+                  isCompleted ? "text-gray-400 line-through" : "text-gray-800",
+                )}
+              >
+                {goal.title}
+              </h3>
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-gray-400">
+                <span>{goal.goal_type}</span>
+                {goal.frequency && (
+                  <>
+                    <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                    <span>{goal.frequency}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-end gap-1">
+            <span
+              className={cn(
+                "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border",
+                isCompleted
+                  ? "bg-emerald-50 border-emerald-100 text-emerald-500"
+                  : "bg-rose-50 border-rose-100 text-rose-500",
+              )}
+            >
+              {isCompleted ? "Achieved" : "Building"}
+            </span>
+          </div>
+        </div>
+
+        {goal.description && (
+          <p className="text-sm text-gray-500 line-clamp-2 mb-4 italic leading-relaxed">
+            "{goal.description}"
+          </p>
+        )}
+
+        {/* Progress Section (Placeholder for now, logic can be added later) */}
+        <div className="space-y-2 mb-6">
+          <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase tracking-tight">
+            <span>Progress</span>
+            <span>{isCompleted ? "100%" : "Keep going!"}</span>
+          </div>
+          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className={cn(
+                "h-full transition-all duration-1000 bg-linear-to-r",
+                style.color,
+              )}
+              style={{ width: isCompleted ? "100%" : "35%" }}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 pt-4 border-t border-gray-50">
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <span className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">
+                Started
+              </span>
+              <span className="text-xs text-gray-600 font-medium">
+                {format(new Date(goal.start_date), "MMM d")}
+              </span>
+            </div>
+            {goal.end_date && (
+              <div className="flex flex-col">
+                <span className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">
+                  Target
+                </span>
+                <span className="text-xs text-gray-600 font-medium">
+                  {format(new Date(goal.end_date), "MMM d")}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            {!isCompleted && goal.goal_type === "habit" && (
+              <Button
+                size="sm"
+                onClick={handleCheckin}
+                disabled={isUpdating}
+                className="bg-white hover:bg-rose-50 border border-rose-100 text-rose-500 font-bold h-8 px-3 rounded-lg text-[11px]"
+              >
+                <Plus size={14} className="mr-1" /> Log Today
+              </Button>
+            )}
+
+            <Button
+              size="sm"
+              onClick={handleToggleComplete}
+              disabled={isUpdating}
+              className={cn(
+                "h-8 px-4 rounded-lg font-bold text-[11px] shadow-sm transition-all",
+                isCompleted
+                  ? "bg-gray-100 hover:bg-gray-200 text-gray-500"
+                  : "bg-rose-600 hover:bg-rose-500 text-white shadow-rose-200",
+              )}
+            >
+              {isCompleted ? "Unarchive" : "Mark as Done"}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
