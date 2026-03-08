@@ -161,7 +161,7 @@ export function GoalCard({
 
           {/* Progress Section */}
           <div
-            className="space-y-2 mb-6 cursor-pointer hover:opacity-80 transition-opacity"
+            className="space-y-2 mb-4 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => setShowHistory(!showHistory)}
           >
             <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase tracking-tight">
@@ -169,7 +169,13 @@ export function GoalCard({
                 <History size={10} />
                 Check-ins {history.length > 0 && `(${history.length})`}
               </span>
-              <span>{isCompleted ? "100%" : "Tap for history"}</span>
+              <span>
+                {isCompleted
+                  ? "100%"
+                  : showHistory
+                    ? "Tap to close"
+                    : "Tap for history"}
+              </span>
             </div>
             <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
               <div
@@ -181,6 +187,47 @@ export function GoalCard({
               />
             </div>
           </div>
+
+          {/* History List (Nested) */}
+          {showHistory && (
+            <div className="mb-6 bg-rose-50/30 rounded-2xl border border-rose-100/20 p-4 space-y-3 animate-in fade-in slide-in-from-top-1 duration-300">
+              <h4 className="text-[10px] uppercase tracking-widest font-black text-rose-300 flex items-center gap-2 mb-2">
+                <Clock size={12} /> Recent Heartbeats
+              </h4>
+
+              {history.length === 0 ? (
+                <p className="text-xs text-gray-400 italic text-center py-4">
+                  No check-ins yet. Be the first! ✨
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {history.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex gap-3 items-start bg-white/70 p-3 rounded-xl shadow-sm border border-white"
+                    >
+                      <span className="text-lg bg-white w-8 h-8 rounded-lg flex items-center justify-center shadow-sm shrink-0">
+                        {item.mood}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="text-[10px] font-bold text-gray-500">
+                            {item.profiles?.display_name || "Someone special"}
+                          </span>
+                          <span className="text-[8px] text-gray-400 uppercase font-bold">
+                            {format(new Date(item.created_at), "MMM d, h:mm a")}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 italic leading-relaxed">
+                          {item.note || "No message shared."}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center justify-between gap-3 pt-4 border-t border-gray-50">
             <div className="flex items-center gap-4">
@@ -233,47 +280,6 @@ export function GoalCard({
           </div>
         </CardContent>
       </Card>
-
-      {/* History List (Collapsible) */}
-      {showHistory && (
-        <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-rose-50 p-4 shadow-inner space-y-3 animate-in slide-in-from-top-2 duration-300">
-          <h4 className="text-[10px] uppercase tracking-widest font-black text-rose-300 flex items-center gap-2 mb-2">
-            <Clock size={12} /> Recent Heartbeats
-          </h4>
-
-          {history.length === 0 ? (
-            <p className="text-xs text-gray-400 italic text-center py-4">
-              No check-ins yet. Be the first! ✨
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {history.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex gap-3 items-start bg-white/60 p-3 rounded-xl border border-white shadow-sm"
-                >
-                  <span className="text-lg bg-white w-8 h-8 rounded-lg flex items-center justify-center shadow-sm shrink-0">
-                    {item.mood}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center mb-0.5">
-                      <span className="text-[10px] font-bold text-gray-500">
-                        {item.profiles?.display_name || "Someone special"}
-                      </span>
-                      <span className="text-[8px] text-gray-400 uppercase font-bold">
-                        {format(new Date(item.created_at), "MMM d, h:mm a")}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600 italic leading-relaxed">
-                      {item.note || "No message shared."}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Checkin Dialog */}
       <GoalCheckinDialog
