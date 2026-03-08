@@ -254,36 +254,40 @@ export async function submitQuizResponses(
       };
     });
 
-    // Delete any previous answers from this user for this session
-    await supabase
-      .from("quiz_responses")
-      .delete()
-      .eq("session_id", sessionId)
-      .eq("answered_by", user.id);
-
-    // Insert new responses
+    // Use upsert to handle existing responses gracefully.
+    // The conflict target is likely question_id + answered_by.
     const { error: insertError } = await supabase
       .from("quiz_responses")
-      .insert(responsesToInsert);
+      .upsert(responsesToInsert, {
+        onConflict: "question_id,answered_by",
+      });
 
     if (insertError) {
       throw new Error(`Failed to save responses: ${insertError.message}`);
     }
 
     // Calculate match score
-    const matchScore = (matchCount / questions.length) * 100;
+    const matchScore =
+      questions.length > 0 ? (matchCount / questions.length) * 100 : 0;
 
     // Update match score and status
-    await supabase
+    const { error: updateError } = await supabase
       .from("quiz_sessions")
       .update({
         match_score: matchScore,
         completed_at: new Date().toISOString(),
+        status: "published", // Ensure it's not draft anymore
       })
       .eq("id", sessionId);
 
-    revalidatePath("/quiz");
-    revalidatePath(`/quiz/${sessionId}`);
+    if (updateError) {
+      console.error("Update match score error:", updateError);
+      throw new Error(`Failed to update quiz status: ${updateError.message}`);
+    }
+
+    // Force revalidation for the specific quiz and the dashboard
+    revalidatePath("/quiz", "page");
+    revalidatePath(`/quiz/${sessionId}`, "page");
 
     return { success: true, matchScore };
   } catch (error: any) {

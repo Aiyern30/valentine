@@ -9,6 +9,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Lock } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditQuizPage({
   params,
 }: {
@@ -35,11 +37,19 @@ export default async function EditQuizPage({
 
   if (!session) return notFound();
 
-  // If quiz is completed, show results to everyone in the relationship
-  if (session.match_score !== null) {
+  // Fetch responses count for the current user to see if they've already played
+  const { count: responseCount } = await supabase
+    .from("quiz_responses")
+    .select("*", { count: "exact", head: true })
+    .eq("session_id", id)
+    .eq("answered_by", user.id);
+
+  // If quiz is completed (score is set) OR user has already submitted answers, show results
+  if (session.match_score !== null || (responseCount && responseCount > 0)) {
     const results = await getQuizResults(id);
-    if (!results.success) return notFound();
-    return <QuizResults quiz={results as any} />;
+    if (results.success) {
+      return <QuizResults quiz={results as any} userId={user.id} />;
+    }
   }
 
   // If draft, only creator can see

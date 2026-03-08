@@ -91,12 +91,23 @@ export function QuizPlayer({ quiz }: QuizPlayerProps) {
               </span>{" "}
               match!
             </p>
-            <Button
-              className="w-full bg-pink-600 hover:bg-pink-500 text-white"
-              onClick={() => router.push("/quiz")}
-            >
-              Back to Dashboard
-            </Button>
+            <div className="space-y-3">
+              <Button
+                className="w-full bg-pink-600 hover:bg-pink-500 text-white shadow-lg shadow-pink-200"
+                onClick={() => {
+                  window.location.reload(); // Force a full reload to show the Server-side Results component
+                }}
+              >
+                View Full Results
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full text-rose-500 hover:text-rose-700 hover:bg-rose-50"
+                onClick={() => router.push("/quiz")}
+              >
+                Back to Dashboard
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

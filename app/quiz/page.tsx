@@ -6,6 +6,8 @@ import { Heart, Plus, Trash2, Edit2, Play, Users } from "lucide-react";
 import { format } from "date-fns";
 import { QuizDeleteButton } from "@/components/quiz/QuizDeleteButton";
 
+export const dynamic = "force-dynamic";
+
 export default async function QuizDashboard() {
   const { success, quizzes, error, userId } = await getQuizzes();
 
@@ -134,7 +136,8 @@ export default async function QuizDashboard() {
                                 className="w-full bg-rose-50 text-rose-700 hover:bg-rose-100"
                                 size="sm"
                               >
-                                {quiz.match_score !== null ? (
+                                {quiz.match_score !== null ||
+                                quiz.completed_at ? (
                                   <>
                                     <Play size={13} className="mr-1.5" /> View
                                     Results
@@ -142,11 +145,12 @@ export default async function QuizDashboard() {
                                 ) : quiz.status === "draft" ? (
                                   <>
                                     <Edit2 size={13} className="mr-1.5" /> Edit
+                                    Draft
                                   </>
                                 ) : (
                                   <>
-                                    <Play size={13} className="mr-1.5" /> View /
-                                    Play
+                                    <Users size={13} className="mr-1.5" />{" "}
+                                    Waiting for Partner
                                   </>
                                 )}
                               </Button>
@@ -217,7 +221,7 @@ export default async function QuizDashboard() {
                           </div>
 
                           <div className="flex items-center justify-between">
-                            {quiz.match_score !== null ? (
+                            {quiz.match_score !== null || quiz.completed_at ? (
                               <Link
                                 href={`/quiz/${quiz.id}`}
                                 className="flex-1"
