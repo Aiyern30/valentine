@@ -4,11 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Heart, Plus, Users } from "lucide-react";
 import { DashboardQuizCard } from "@/components/quiz/DashboardQuizCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { QuizFilters } from "@/components/quiz/QuizFilters";
+import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
-export default async function QuizDashboard() {
-  const { success, quizzes, error, userId } = await getQuizzes();
+export default async function QuizDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ sortBy?: string; filter?: string }>;
+}) {
+  const params = await searchParams;
+  const sortBy = params?.sortBy || "date_desc";
+  const filter = params?.filter || "all";
+
+  const { success, quizzes, error, userId } = await getQuizzes(
+    sortBy as any,
+    filter as any,
+  );
 
   if (!success || !userId) {
     return (
@@ -55,6 +68,15 @@ export default async function QuizDashboard() {
           }
         />
 
+        {/* Sorting and Filtering UI */}
+        <Suspense
+          fallback={
+            <div className="h-16 mb-8 bg-rose-50/50 rounded-2xl animate-pulse" />
+          }
+        >
+          <QuizFilters />
+        </Suspense>
+
         {!success ? (
           <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-200">
             Error loading quizzes: {error}
@@ -65,80 +87,80 @@ export default async function QuizDashboard() {
               <Heart size={24} className="text-pink-400" />
             </div>
             <h3 className="text-lg font-semibold text-rose-900 mb-2">
-              No quizzes yet!
+              No quizzes found!
             </h3>
             <p className="text-rose-500 text-sm max-w-sm mx-auto mb-6">
-              Create your first quiz and test how well your partner knows you.
+              {filter !== "all"
+                ? "Try changing your filters to see more results."
+                : "Create your first quiz and test how well your partner knows you."}
             </p>
-            <Link href="/quiz/new">
-              <Button
-                variant="outline"
-                className="border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-800"
-              >
-                Create your first quiz
-              </Button>
-            </Link>
+            {filter === "all" && (
+              <Link href="/quiz/new">
+                <Button
+                  variant="outline"
+                  className="border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-800"
+                >
+                  Create your first quiz
+                </Button>
+              </Link>
+            )}
           </div>
         ) : (
-          <div className="space-y-12 pt-8">
+          <div className="space-y-12">
             {/* Own Quizzes Section */}
-            <div>
-              <div className="flex items-center gap-2 mb-6">
-                <div className="p-2 bg-pink-100 rounded-lg">
-                  <Heart size={20} className="text-pink-600" />
+            {ownQuizzes.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="p-2 bg-pink-100 rounded-lg">
+                    <Heart size={20} className="text-pink-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Created by You
+                  </h2>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Created by You
-                </h2>
-              </div>
-              {ownQuizzes.length === 0 ? (
-                <div className="text-center py-10 px-4 border-2 border-dashed border-rose-200 rounded-2xl bg-white/50 backdrop-blur-sm">
-                  <p className="text-rose-500 text-sm">
-                    You haven't created any quizzes yet.
-                  </p>
-                </div>
-              ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {ownQuizzes.map((quiz) => (
                     <DashboardQuizCard
                       key={quiz.id}
                       quiz={quiz}
-                      userId={userId!}
+                      userId={userId}
                     />
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Partner Quizzes Section */}
-            <div>
-              <div className="flex items-center gap-2 mb-6">
-                <div className="p-2 bg-violet-100 rounded-lg">
-                  <Users size={20} className="text-violet-600" />
+            {partnerQuizzes.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-6">
+                  <div className="p-2 bg-violet-100 rounded-lg">
+                    <Users size={20} className="text-violet-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Created by Partner
+                  </h2>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Created by Partner
-                </h2>
-              </div>
-              {partnerQuizzes.length === 0 ? (
-                <div className="text-center py-10 px-4 border-2 border-dashed border-violet-200 rounded-2xl bg-white/50 backdrop-blur-sm">
-                  <p className="text-violet-500 text-sm">
-                    Your partner hasn't created any quizzes yet.
-                  </p>
-                </div>
-              ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {partnerQuizzes.map((quiz) => (
                     <DashboardQuizCard
                       key={quiz.id}
                       quiz={quiz}
-                      userId={userId!}
+                      userId={userId}
                       isPartnerQuiz
                     />
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {ownQuizzes.length === 0 && partnerQuizzes.length === 0 && (
+              <div className="text-center py-20">
+                <p className="text-rose-400 italic">
+                  No quizzes match your current filters.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

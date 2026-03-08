@@ -85,7 +85,10 @@ export async function submitQuiz(
   }
 }
 
-export async function getQuizzes() {
+export async function getQuizzes(
+  sortBy: "date_desc" | "date_asc" | "score_desc" | "score_asc" = "date_desc",
+  filter: "all" | "completed" | "pending" | "draft" = "all",
+) {
   try {
     const supabase = await createClient();
     const {
@@ -104,13 +107,40 @@ export async function getQuizzes() {
     if (!relationshipData)
       return { success: false, error: "No active relationship" };
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("quiz_sessions")
       .select(
         "id, title, status, created_at, total_questions, created_by, match_score, completed_at",
       )
-      .eq("relationship_id", relationshipData.id)
-      .order("created_at", { ascending: false });
+      .eq("relationship_id", relationshipData.id);
+
+    // Filter logic
+    if (filter === "completed") {
+      query = query.eq("status", "completed");
+    } else if (filter === "pending") {
+      query = query.eq("status", "published");
+    } else if (filter === "draft") {
+      query = query.eq("status", "draft");
+    }
+
+    // Sort logic
+    if (sortBy === "date_desc") {
+      query = query.order("created_at", { ascending: false });
+    } else if (sortBy === "date_asc") {
+      query = query.order("created_at", { ascending: true });
+    } else if (sortBy === "score_desc") {
+      query = query.order("match_score", {
+        ascending: false,
+        nullsFirst: false,
+      });
+    } else if (sortBy === "score_asc") {
+      query = query.order("match_score", {
+        ascending: true,
+        nullsFirst: false,
+      });
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 

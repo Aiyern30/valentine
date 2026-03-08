@@ -64,14 +64,15 @@ export function DashboardQuizCard({
   const isCompleted = quiz.match_score !== null || quiz.completed_at !== null;
   const isDraft = quiz.status === "draft";
 
-  // Use violet theme for partner quizzes
-  const theme = isPartnerQuiz ? "violet" : "rose";
-  const themeBg = isPartnerQuiz
-    ? "bg-violet-50 text-violet-700 hover:bg-violet-100"
-    : "bg-rose-50 text-rose-700 hover:bg-rose-100";
-  const borderClass = isPartnerQuiz
-    ? "border-violet-200 hover:border-violet-300 shadow-violet-200/20"
-    : "border-rose-200 hover:border-rose-300 shadow-rose-200/20";
+  // Visual Styling based on status and partner/creator
+  const borderClass = isCompleted
+    ? isPartnerQuiz
+      ? "border-violet-300 ring-1 ring-violet-100 bg-violet-50/30"
+      : "border-pink-300 ring-1 ring-pink-100 bg-pink-50/20 shadow-pink-200/40"
+    : isPartnerQuiz
+      ? "border-violet-200 hover:border-violet-300 shadow-violet-200/20"
+      : "border-rose-200 hover:border-rose-300 shadow-rose-200/20";
+
   const textClass = isPartnerQuiz ? "text-violet-900" : "text-rose-900";
   const subTextClass = isPartnerQuiz ? "text-violet-500" : "text-rose-500";
 
@@ -128,6 +129,22 @@ export function DashboardQuizCard({
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
+            {isCompleted && (
+              <div className="flex -space-x-1 mr-1">
+                {[1, 2, 3].map((i) => (
+                  <Heart
+                    key={i}
+                    size={10}
+                    className={cn(
+                      "animate-pulse",
+                      isPartnerQuiz ? "text-violet-400" : "text-pink-400",
+                    )}
+                    fill="currentColor"
+                    style={{ animationDelay: `${i * 0.2}s` }}
+                  />
+                ))}
+              </div>
+            )}
             <span
               className={cn(
                 "px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold shadow-sm",
@@ -158,35 +175,59 @@ export function DashboardQuizCard({
           </div>
 
           <div className="flex items-center justify-between gap-2">
-            <Link href={`/quiz/${quiz.id}`} className="flex-1">
-              <Button
-                variant="secondary"
-                className={cn(
-                  "w-full h-9 font-bold transition-all active:scale-95",
-                  themeBg,
-                )}
-                size="sm"
-              >
-                {isCompleted ? (
-                  <>
-                    <Play size={13} className="mr-1.5" /> View Results
-                  </>
-                ) : isCreator ? (
-                  <>
-                    <Edit2 size={13} className="mr-1.5" /> Edit Quiz
-                  </>
-                ) : (
-                  <>
-                    <Play size={13} className="mr-1.5" /> Play Quiz
-                  </>
-                )}
-              </Button>
-            </Link>
-            {isCreator && !isCompleted && (
-              <div className="shrink-0">
-                <QuizDeleteButton id={quiz.id} />
-              </div>
-            )}
+            <div className="flex gap-2 flex-1">
+              {isPartnerQuiz ? (
+                <Link
+                  href={isCompleted ? `/quiz/${quiz.id}` : `/quiz/${quiz.id}`}
+                  className="flex-1"
+                >
+                  <Button
+                    size="sm"
+                    className="w-full bg-violet-600 hover:bg-violet-700 text-white shadow-md shadow-violet-200"
+                  >
+                    {isCompleted ? (
+                      <>
+                        <Users size={14} className="mr-2" />
+                        View Results
+                      </>
+                    ) : (
+                      <>
+                        <Play size={14} className="mr-2" />
+                        Play Quiz
+                      </>
+                    )}
+                  </Button>
+                </Link>
+              ) : (
+                <Link
+                  href={isCompleted ? `/quiz/${quiz.id}` : `/quiz/${quiz.id}`}
+                  className="flex-1"
+                >
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className={cn(
+                      "w-full border-rose-200 text-rose-700 hover:bg-rose-50",
+                      isCompleted && "bg-pink-50 border-pink-200",
+                    )}
+                  >
+                    {isCompleted ? (
+                      <>
+                        <Users size={14} className="mr-2" />
+                        View Results
+                      </>
+                    ) : (
+                      <>
+                        <Edit2 size={14} className="mr-2" />
+                        Edit Quiz
+                      </>
+                    )}
+                  </Button>
+                </Link>
+              )}
+            </div>
+
+            {isCreator && !isCompleted && <QuizDeleteButton id={quiz.id} />}
           </div>
         </div>
       </CardContent>
