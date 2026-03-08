@@ -16,6 +16,8 @@ import {
 import { Trash2 } from "lucide-react";
 import { deleteQuiz } from "@/lib/quiz-actions";
 
+import { toast } from "sonner";
+
 export function QuizDeleteButton({ id }: { id: string }) {
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -24,9 +26,9 @@ export function QuizDeleteButton({ id }: { id: string }) {
     const result = await deleteQuiz(id);
 
     if (result.success) {
-      alert("Quiz deleted successfully");
+      toast.success("Quiz deleted successfully");
     } else {
-      alert(result.error || "Failed to delete quiz");
+      toast.error(result.error || "Failed to delete quiz");
       setIsDeleting(false);
     }
   };

@@ -82,6 +82,8 @@ export const metadata: Metadata = {
   themeColor: "#f43f5e",
 };
 
+import { Toaster } from "sonner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -93,6 +95,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable} antialiased`}
       >
         {children}
+        <Toaster richColors position="top-center" />
         <Analytics />
       </body>
     </html>

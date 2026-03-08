@@ -2,7 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import { QuizBuilder } from "@/components/quiz/QuizBuilder";
 import { QuizPlayer } from "@/components/quiz/QuizPlayer";
+import { QuizResults } from "@/components/quiz/QuizResults";
 import { Question } from "@/types/quiz";
+import { getQuizResults } from "@/lib/quiz-actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Lock } from "lucide-react";
@@ -21,11 +23,10 @@ export default async function EditQuizPage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    // If not logged in, redirect to home page or login
-    redirect("/auth/login"); // or "/" if there's no auth/login
+    redirect("/auth/login");
   }
 
-  // Fetch the session
+  // Fetch session
   const { data: session } = await supabase
     .from("quiz_sessions")
     .select("*")
@@ -34,6 +35,14 @@ export default async function EditQuizPage({
 
   if (!session) return notFound();
 
+  // If quiz is completed, show results to everyone in the relationship
+  if (session.match_score !== null) {
+    const results = await getQuizResults(id);
+    if (!results.success) return notFound();
+    return <QuizResults quiz={results as any} />;
+  }
+
+  // If draft, only creator can see
   if (session.created_by !== user.id && session.status === "draft") {
     return (
       <div className="min-h-screen pt-20 px-4 flex justify-center bg-rose-50/30">

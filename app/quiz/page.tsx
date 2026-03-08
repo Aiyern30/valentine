@@ -100,7 +100,11 @@ export default async function QuizDashboard() {
                             {quiz.title}
                           </h3>
                           <div className="flex items-center gap-1.5 shrink-0 ml-4">
-                            {quiz.status === "draft" ? (
+                            {quiz.match_score !== null ? (
+                              <span className="px-2 py-0.5 rounded-full bg-pink-500 text-white text-[10px] uppercase tracking-wider font-bold shadow-sm">
+                                {Math.round(quiz.match_score)}% Score
+                              </span>
+                            ) : quiz.status === "draft" ? (
                               <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[10px] uppercase tracking-wider font-semibold">
                                 Draft
                               </span>
@@ -130,7 +134,12 @@ export default async function QuizDashboard() {
                                 className="w-full bg-rose-50 text-rose-700 hover:bg-rose-100"
                                 size="sm"
                               >
-                                {quiz.status === "draft" ? (
+                                {quiz.match_score !== null ? (
+                                  <>
+                                    <Play size={13} className="mr-1.5" /> View
+                                    Results
+                                  </>
+                                ) : quiz.status === "draft" ? (
                                   <>
                                     <Edit2 size={13} className="mr-1.5" /> Edit
                                   </>
@@ -142,7 +151,9 @@ export default async function QuizDashboard() {
                                 )}
                               </Button>
                             </Link>
-                            <QuizDeleteButton id={quiz.id} />
+                            {quiz.match_score === null && (
+                              <QuizDeleteButton id={quiz.id} />
+                            )}
                           </div>
                         </div>
                       </CardContent>
@@ -181,7 +192,11 @@ export default async function QuizDashboard() {
                             {quiz.title}
                           </h3>
                           <div className="flex items-center gap-1.5 shrink-0 ml-4">
-                            {quiz.status === "draft" ? (
+                            {quiz.match_score !== null ? (
+                              <span className="px-2 py-0.5 rounded-full bg-violet-500 text-white text-[10px] uppercase tracking-wider font-bold shadow-sm">
+                                {Math.round(quiz.match_score)}% Score
+                              </span>
+                            ) : quiz.status === "draft" ? (
                               <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] uppercase tracking-wider font-semibold">
                                 Draft
                               </span>
@@ -202,7 +217,21 @@ export default async function QuizDashboard() {
                           </div>
 
                           <div className="flex items-center justify-between">
-                            {quiz.status === "draft" ? (
+                            {quiz.match_score !== null ? (
+                              <Link
+                                href={`/quiz/${quiz.id}`}
+                                className="flex-1"
+                              >
+                                <Button
+                                  variant="secondary"
+                                  className="w-full bg-violet-50 text-violet-700 hover:bg-violet-100"
+                                  size="sm"
+                                >
+                                  <Play size={13} className="mr-1.5" /> View
+                                  Results
+                                </Button>
+                              </Link>
+                            ) : quiz.status === "draft" ? (
                               <Button
                                 variant="secondary"
                                 className="w-full bg-slate-50 text-slate-500 hover:bg-slate-50 cursor-not-allowed opacity-75"

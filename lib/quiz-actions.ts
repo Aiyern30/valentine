@@ -11,6 +11,8 @@ export type QuizSession = {
   created_at: string;
   total_questions: number;
   created_by: string;
+  match_score: number | null;
+  completed_at: string | null;
 };
 
 export async function submitQuiz(
@@ -104,7 +106,9 @@ export async function getQuizzes() {
 
     const { data, error } = await supabase
       .from("quiz_sessions")
-      .select("id, title, status, created_at, total_questions, created_by")
+      .select(
+        "id, title, status, created_at, total_questions, created_by, match_score, completed_at",
+      )
       .eq("relationship_id", relationshipData.id)
       .order("created_at", { ascending: false });
 
@@ -212,6 +216,19 @@ export async function submitQuizResponses(
       throw new Error("You must be logged in to answer a quiz");
     }
 
+    // Check if already answered
+    const { data: session } = await supabase
+      .from("quiz_sessions")
+      .select("match_score")
+      .eq("id", sessionId)
+      .single();
+
+    if (session?.match_score !== null) {
+      throw new Error(
+        "You have already answered this quiz. Answers cannot be changed.",
+      );
+    }
+
     // Fetch questions to calculate if match
     const { data: questions, error: questionsError } = await supabase
       .from("quiz_questions")
@@ -275,5 +292,46 @@ export async function submitQuizResponses(
       success: false,
       error: error.message || "Failed to submit answers",
     };
+  }
+}
+
+export async function getQuizResults(sessionId: string) {
+  try {
+    const supabase = await createClient();
+
+    // Fetch session
+    const { data: session, error: sessionError } = await supabase
+      .from("quiz_sessions")
+      .select("*")
+      .eq("id", sessionId)
+      .single();
+
+    if (sessionError || !session) throw new Error("Quiz not found");
+
+    // Fetch questions
+    const { data: questions, error: questionsError } = await supabase
+      .from("quiz_questions")
+      .select("*")
+      .eq("session_id", sessionId)
+      .order("display_order", { ascending: true });
+
+    if (questionsError) throw questionsError;
+
+    // Fetch responses (partner's answers)
+    const { data: responses, error: responsesError } = await supabase
+      .from("quiz_responses")
+      .select("*")
+      .eq("session_id", sessionId);
+
+    if (responsesError) throw responsesError;
+
+    return {
+      success: true,
+      session,
+      questions: questions as Question[],
+      responses,
+    };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }

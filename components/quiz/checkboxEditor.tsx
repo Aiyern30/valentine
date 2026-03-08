@@ -30,7 +30,7 @@ export function CheckboxesEditor({
     const next = selected.includes(key)
       ? selected.filter((k) => k !== key)
       : [...selected, key];
-    onCorrectChange(next.join(","));
+    onCorrectChange(next.sort().join(","));
   };
 
   const updateLabel = (idx: number, label: string) =>

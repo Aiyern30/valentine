@@ -191,6 +191,8 @@ interface QuizBuilderProps {
   initialQuiz?: { id: string; title: string; questions: Question[] };
 }
 
+import { toast } from "sonner";
+
 export function QuizBuilder({ initialQuiz }: QuizBuilderProps) {
   const [title, setTitle] = useState(initialQuiz?.title || "");
   const [questions, setQuestions] = useState<Question[]>(
@@ -255,9 +257,9 @@ export function QuizBuilder({ initialQuiz }: QuizBuilderProps) {
     setQuestions((prev) => prev.filter((q) => q.id !== id));
   };
 
-  // ── Publish ──────────────────────────────────────────────────────────────────
+  // ── Save/Publish ──────────────────────────────────────────────────────────────
 
-  const handlePublish = async () => {
+  const handleSave = async (status: "draft" | "published") => {
     if (!title.trim()) {
       setTitleError("Quiz title is required");
       titleInputRef.current?.focus();
@@ -270,32 +272,30 @@ export function QuizBuilder({ initialQuiz }: QuizBuilderProps) {
     try {
       let result;
       if (isEditing) {
-        result = await updateQuiz(
-          initialQuiz.id,
-          title,
-          questions,
-          "published",
-        );
+        result = await updateQuiz(initialQuiz.id, title, questions, status);
       } else {
-        result = await submitQuiz(title, questions, "published");
+        result = await submitQuiz(title, questions, status);
       }
 
       if (result.success) {
-        alert(
-          isEditing
-            ? "Quiz updated successfully! 🎉"
-            : "Quiz created successfully! 🎉",
+        toast.success(
+          status === "published"
+            ? "Quiz sent to partner! 🎉"
+            : "Draft saved successfully! 💾",
         );
         router.push("/quiz");
       } else {
-        alert(result.error || "Failed to save quiz");
+        toast.error(result.error || "Failed to save quiz");
       }
     } catch (e) {
-      alert("An unexpected error occurred.");
+      toast.error("An unexpected error occurred.");
     } finally {
       setIsPublishing(false);
     }
   };
+
+  const handlePublish = () => handleSave("published");
+  const handleSaveDraft = () => handleSave("draft");
 
   const isQuestionReady = (q: Question) => {
     if (!q.question_text.trim() || !q.correct_option) return false;
@@ -444,6 +444,8 @@ export function QuizBuilder({ initialQuiz }: QuizBuilderProps) {
             <Button
               variant="outline"
               size="sm"
+              onClick={handleSaveDraft}
+              disabled={isPublishing || isPristine}
               className="border-rose-200 text-rose-600 hover:text-rose-800 hover:bg-rose-50 bg-transparent"
             >
               Save Draft
