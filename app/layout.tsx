@@ -4,6 +4,7 @@ import "./globals.css";
 import "./calendar.css";
 import "./markdown-preview.css";
 import { Analytics } from "@vercel/analytics/next";
+import { Toaster } from "sonner";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -94,6 +95,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable} antialiased`}
       >
         {children}
+        <Toaster richColors position="top-center" />
         <Analytics />
       </body>
     </html>
