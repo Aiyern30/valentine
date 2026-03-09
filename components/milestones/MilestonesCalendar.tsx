@@ -53,6 +53,7 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
     null,
   );
@@ -232,7 +233,7 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
             value={toolbar.date.getMonth().toString()}
             onValueChange={handleMonthChange}
           >
-            <SelectTrigger className="h-10 w-[140px] px-3 py-0 bg-background border-2 font-bold rounded-2xl">
+            <SelectTrigger className="h-10 w-35 px-3 py-0 bg-background border-2 font-bold rounded-2xl">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded-2xl border-2">
@@ -248,7 +249,7 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
             value={toolbar.date.getFullYear().toString()}
             onValueChange={handleYearChange}
           >
-            <SelectTrigger className="h-10 w-[110px] px-3 py-0 bg-background border-2 font-bold rounded-2xl">
+            <SelectTrigger className="h-10 w-27.5 px-3 py-0 bg-background border-2 font-bold rounded-2xl">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded-2xl border-2">
@@ -310,6 +311,8 @@ export function MilestoneCalendar({ milestones }: MilestoneCalendarProps) {
           toolbar: CustomToolbar,
         }}
         popup
+        date={currentDate}
+        onNavigate={setCurrentDate}
         tooltipAccessor={(event: any) =>
           event.resource.description || event.title
         }

@@ -9,7 +9,7 @@ const KEYS = ["A", "B", "C", "D", "E", "F"];
 interface MultipleChoiceEditorProps {
   options: ChoiceOption[];
   correctOption: string; // single key e.g. "A"
-  onChange: (opts: ChoiceOption[], newCorrect?: string) => void;
+  onChange: (opts: ChoiceOption[]) => void;
   onCorrectChange: (key: string) => void;
 }
 
@@ -39,16 +39,15 @@ export function MultipleChoiceEditor({
       return { ...opt, key: newKey };
     });
 
-    if (!correctOption) {
-      onChange(normalized);
-      return;
-    }
+    onChange(normalized);
+
+    if (!correctOption) return;
     if (correctOption === removedKey) {
-      onChange(normalized, normalized[0]?.key ?? "");
+      onCorrectChange(normalized[0]?.key ?? "");
       return;
     }
 
-    onChange(normalized, keyMap.get(correctOption) ?? normalized[0]?.key ?? "");
+    onCorrectChange(keyMap.get(correctOption) ?? normalized[0]?.key ?? "");
   };
 
   return (
