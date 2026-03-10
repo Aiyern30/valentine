@@ -48,7 +48,7 @@ export function AnimatedEnvelope({
   isOpen: controlledIsOpen,
   onOpenChange,
   envelopeColor = "#F5E6D3",
-  pocketColor = "#EDD9C4", 
+  pocketColor = "#EDD9C4",
   flapColor = "#F2E3D0",
   flapBackColor = "#E6D2BC",
   cardColor = "#FAFAF7",
@@ -60,10 +60,11 @@ export function AnimatedEnvelope({
 }: AnimatedEnvelopeProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [scope, animate] = useAnimate();
-  
+
   // Use controlled state if provided, otherwise use internal state
-  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
-  
+  const isOpen =
+    controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+
   // Helper to extract embed URL
   const getEmbedUrl = (url: string) => {
     if (!url) return null;
@@ -278,14 +279,26 @@ export function AnimatedEnvelope({
                 <div className="w-8 h-8 rounded-full bg-[#F5E6D3] flex items-center justify-center mb-1">
                   <SparklesIcon className="w-4 h-4 text-[#8C7B66]" />
                 </div>
-                <h3 className="font-serif text-xl tracking-wide" style={{ color: titleColor }}>
+                <h3
+                  className="font-serif text-xl tracking-wide"
+                  style={{ color: titleColor }}
+                >
                   {title}
                 </h3>
-                <div className="w-12 h-px my-2" style={{ backgroundColor: textColor }} />
-                <p className="text-[10px] uppercase tracking-widest font-medium" style={{ color: textColor }}>
+                <div
+                  className="w-12 h-px my-2"
+                  style={{ backgroundColor: textColor }}
+                />
+                <p
+                  className="text-[10px] uppercase tracking-widest font-medium"
+                  style={{ color: textColor }}
+                >
                   For: {recipient || "Someone Special"}
                 </p>
-                <p className="text-xs leading-relaxed max-w-[180px]" style={{ color: textColor }}>
+                <p
+                  className="text-xs leading-relaxed max-w-[180px]"
+                  style={{ color: textColor }}
+                >
                   {message}
                 </p>
               </div>

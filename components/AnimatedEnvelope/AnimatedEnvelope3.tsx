@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/purity */
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Heart, Sparkles } from "lucide-react";
 import { easeInOut } from "framer-motion";
 
@@ -42,13 +42,11 @@ interface AnimatedEnvelopeProps {
   music?: string;
 }
 
-type EnvelopeStatus = "idle" | "cracking" | "revealed";
-
 export function AnimatedEnvelope({
   title = "Neon Dreams for You",
   message = "Like neon lights in the dark, you illuminate my world.",
   sender = "Your Night Light",
-  recipient,
+  recipient = "Beautiful Soul",
   isOpen: controlledIsOpen,
   onOpenChange,
   envelopeColor = "#0f0f23",
@@ -62,11 +60,18 @@ export function AnimatedEnvelope({
   categories = [],
   music,
 }: AnimatedEnvelopeProps) {
-  const [status, setStatus] = useState<EnvelopeStatus>("idle");
-  const [isCardFoldOpen, setIsCardFoldOpen] = useState(false);
-
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [lastOpenPageIndex, setLastOpenPageIndex] = useState(0);
   const isOpen =
-    controlledIsOpen !== undefined ? controlledIsOpen : status === "revealed";
+    controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+
+  // Reset state on close
+  useEffect(() => {
+    if (!isOpen) {
+      const timer = setTimeout(() => setLastOpenPageIndex(0), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Helper to extract embed URL
   const getEmbedUrl = (url: string) => {
@@ -102,559 +107,534 @@ export function AnimatedEnvelope({
     [music],
   );
 
+  // Prepare Content (following base envelope pattern)
   const delimiter = "<<<PAGE_BREAK>>>";
-  const messageChunks = message ? message.split(delimiter) : [""];
+  let messageChunks = message ? message.split(delimiter) : [""];
+  if (messageChunks.length === 1 && messageChunks[0].length > 600) {
+    messageChunks = message.match(/[\s\S]{1,500}/g) || [message];
+  }
 
-  // Helper to render a message page content
-  const renderMessagePage = (pageIndex: number, isRight: boolean = false) => {
-    const chunk = messageChunks[pageIndex];
-    if (chunk === undefined) return null;
+  // Create leaves structure (like base envelope)
+  const leaves: any[] = [];
+  const totalCategoryItems = categories.reduce(
+    (sum, cat) => sum + cat.items.length,
+    0,
+  );
+  const totalPages = messageChunks.length + totalCategoryItems;
 
-    return (
-      <div className="block">
-        {pagePhotos[pageIndex] && pagePhotos[pageIndex].url && (
-          <div
-            className={`w-1/3 mb-2 animate-in fade-in zoom-in duration-700 ${
-              pagePhotos[pageIndex].position === "right"
-                ? "float-right ml-4"
-                : "float-left mr-4"
-            }`}
-          >
-            <img
-              src={pagePhotos[pageIndex].url}
-              alt={`Page ${pageIndex + 1}`}
-              className="w-full rounded-lg shadow-sm border border-black/5 object-cover aspect-3/4 grayscale hover:grayscale-0 transition-all duration-500"
-            />
-          </div>
-        )}
-        <p className="font-mono text-sm leading-relaxed text-cyan-100 tracking-wide">
-          {chunk}
-        </p>
-      </div>
-    );
-  };
+  // Leaf 0: Front=Cover, Back=Page 1
+  leaves.push({
+    index: 0,
+    type: "cover",
+    front: { type: "cover" },
+    back:
+      messageChunks.length > 0
+        ? {
+            type: "message",
+            text: messageChunks[0],
+            page: 1,
+            total: totalPages,
+          }
+        : { type: "empty" },
+  });
 
-  const renderMemories = () => {
-    const allItems = categories.flatMap((cat) =>
-      cat.items.map((item) => ({ ...item, categoryName: cat.name })),
-    );
-    if (!allItems.length) return null;
+  // Data Chunks (Message + Memories)
+  const allContentChunks = [
+    ...messageChunks.slice(1).map((text, i) => ({
+      type: "message",
+      text,
+      page: i + 2,
+      total: totalPages,
+    })),
+    ...categories.flatMap((cat) =>
+      cat.items.map((item) => ({
+        type: "memory",
+        ...item,
+        categoryName: cat.name,
+      })),
+    ),
+  ];
 
-    return (
-      <div className="mt-8 space-y-6 pt-6 border-t border-cyan-400/30">
-        <h3 className="text-center font-mono italic text-cyan-400 text-xs tracking-widest uppercase">
-          Digital Memories
-        </h3>
-        <div className="grid grid-cols-1 gap-6">
-          {allItems.map((item, i) => (
-            <div key={i} className="group flex flex-col items-center">
-              <span className="text-[9px] uppercase tracking-[0.3em] text-stone-400 font-bold mb-3">
-                {item.categoryName}
-              </span>
-              <div className="relative w-full aspect-square p-2 bg-stone-50 border border-stone-200 shadow-sm rotate-1 group-hover:rotate-0 transition-transform duration-500">
-                {item.url ? (
-                  <img
-                    src={item.url}
-                    alt={item.title}
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-stone-100 opacity-20">
-                    <Heart size={32} />
-                  </div>
-                )}
-              </div>
-              <div className="mt-4 text-center">
-                <p className="font-serif font-medium text-stone-800 text-sm">
-                  {item.title || "A Beautiful Detail"}
-                </p>
-                <p className="font-serif italic text-stone-400 text-[10px] uppercase tracking-tighter mt-1">
-                  {item.date}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
+  // Pair chunks into leaves (front/back)
+  for (let i = 0; i < allContentChunks.length; i += 2) {
+    leaves.push({
+      index: leaves.length,
+      type: "page",
+      front: allContentChunks[i],
+      back: allContentChunks[i + 1] || { type: "signature" },
+    });
+  }
+
+  // If odd number of chunks, add signature to last leaf
+  if (allContentChunks.length % 2 === 0 && allContentChunks.length > 0) {
+    leaves.push({
+      index: leaves.length,
+      type: "page",
+      front: { type: "signature" },
+      back: { type: "empty" },
+    });
+  }
 
   const handleOpen = () => {
-    if (status !== "idle") return;
-
+    if (!internalIsOpen && controlledIsOpen === undefined) {
+      setInternalIsOpen(true);
+    }
     if (onOpenChange) {
       onOpenChange(true);
     }
-
-    setStatus("cracking");
-    setTimeout(() => {
-      setStatus("revealed");
-    }, 400);
   };
 
-  // Reset when controlled isOpen becomes false
-  useEffect(() => {
-    if (controlledIsOpen === false) {
-      setStatus("idle");
-      setIsCardFoldOpen(false);
+  const renderContentPage = (content: any, isBack = false) => {
+    if (!content || content.type === "empty") {
+      return (
+        <div className="flex-1 flex flex-col items-center justify-center text-center opacity-30">
+          <Heart size={48} className="mb-4 text-cyan-400" />
+          <p className="font-mono text-xl text-cyan-300">Forever & Always</p>
+        </div>
+      );
     }
-  }, [controlledIsOpen]);
+
+    if (content.type === "message") {
+      return (
+        <div className="flex-1 space-y-4">
+          <div className="mb-4">
+            <h3 className="font-mono text-sm font-bold text-cyan-400 tracking-wider uppercase">
+              &gt; Message.log
+            </h3>
+            <div className="h-0.5 w-16 bg-linear-to-r from-cyan-400 to-transparent mt-2" />
+          </div>
+
+          {pagePhotos[content.page - 1] && pagePhotos[content.page - 1].url && (
+            <div
+              className={`w-1/3 mb-4 ${
+                pagePhotos[content.page - 1].position === "right"
+                  ? "float-right ml-4"
+                  : "float-left mr-4"
+              }`}
+            >
+              <img
+                src={pagePhotos[content.page - 1].url}
+                alt={`Page ${content.page}`}
+                className="w-full rounded border border-cyan-400/20 object-cover aspect-3/4"
+              />
+            </div>
+          )}
+
+          <div className="text-cyan-100 text-sm leading-relaxed font-mono tracking-wide">
+            {content.text}
+          </div>
+
+          <div className="mt-6 text-xs text-cyan-400/70 font-mono">
+            Page {content.page} of {content.total}
+          </div>
+        </div>
+      );
+    }
+
+    if (content.type === "memory") {
+      return (
+        <div className="flex-1 space-y-4">
+          <div className="mb-4">
+            <h3 className="font-mono text-sm font-bold text-purple-400 tracking-wider uppercase">
+              &gt; {content.categoryName}.db
+            </h3>
+            <div className="h-0.5 w-20 bg-linear-to-r from-purple-400 to-transparent mt-2" />
+          </div>
+
+          <div className="relative aspect-square bg-black/40 border border-cyan-400/20 rounded">
+            {content.url ? (
+              <img
+                src={content.url}
+                alt={content.title}
+                className="w-full h-full object-cover rounded"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Heart size={48} className="text-cyan-400/50" />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="font-mono text-sm text-cyan-300 font-semibold">
+              {content.title || "Memory Fragment"}
+            </h4>
+            <p className="font-mono text-xs text-cyan-400/70 uppercase tracking-wider">
+              Date: {content.date}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (content.type === "signature") {
+      return (
+        <div className="flex-1 flex flex-col justify-between items-center text-center h-full">
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="mb-6 opacity-30">
+              <Heart size={48} className="text-cyan-400" />
+            </div>
+            <p className="font-mono text-2xl leading-tight mb-2 text-cyan-300">
+              Connection established,
+            </p>
+            <p className="font-mono text-xl text-purple-300">{sender}</p>
+            <div className="mt-8 opacity-40">
+              <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-cyan-400">
+                End of transmission
+              </span>
+            </div>
+          </div>
+          <div className="flex justify-between items-center text-xs opacity-40 font-bold tracking-widest w-full">
+            <span className="ml-auto text-cyan-400">&lt; Tap to close</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Animation variants (following base envelope pattern)
+  const cardVariants: Variants = {
+    closed: {
+      y: 50,
+      opacity: 0,
+      scale: 0.3,
+      rotateX: 15,
+      zIndex: 10,
+      x: "-50%",
+      transition: {
+        delay: 0.6,
+        duration: 0.8,
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+      },
+    },
+    open: {
+      y: -220,
+      opacity: 1,
+      scale: 1,
+      zIndex: 40,
+      x: "-50%",
+      transition: {
+        delay: 0.6,
+        duration: 0.8,
+        type: "spring",
+        stiffness: 100,
+        damping: 20,
+      },
+    },
+    centered: {
+      y: -85,
+      opacity: 1,
+      scale: 1,
+      zIndex: 40,
+      x: 0,
+      transition: {
+        delay: 0,
+        duration: 0.8,
+        ease: easeInOut,
+      },
+    },
+    back_closed: {
+      y: -85,
+      opacity: 1,
+      scale: 1,
+      zIndex: 40,
+      x: "50%",
+      transition: {
+        delay: 0,
+        duration: 0.8,
+        ease: easeInOut,
+      },
+    },
+  };
+
+  const flapVariants: Variants = {
+    closed: {
+      rotateX: 0,
+      zIndex: 30,
+      transition: { duration: 0.8, ease: easeInOut },
+    },
+    open: {
+      rotateX: -180,
+      zIndex: 0,
+      transition: { duration: 0.8, ease: easeInOut },
+    },
+  };
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-[600px] w-full perspective-1000">
-      {/* Neon Ambient Particles/Circuit Lines */}
+      {/* Neon Ambient Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(8)].map((_, i) => (
+        {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute rounded-full"
-            initial={{
-              x: Math.random() * 400 - 200,
-              y: Math.random() * 400 - 200,
-              scale: Math.random() * 0.5 + 0.3,
-            }}
-            animate={{
-              y: [null, Math.random() * -100],
-              opacity: [0.1, 0.8, 0],
-              scale: [null, Math.random() * 0.3 + 0.2],
-            }}
-            transition={{
-              duration: Math.random() * 4 + 3,
-              repeat: Infinity,
-              ease: "linear",
-            }}
+            className="absolute w-1 h-1 rounded-full animate-pulse"
             style={{
-              width: Math.random() * 3 + 1 + "px",
-              height: Math.random() * 3 + 1 + "px",
-              background:
-                i % 2 === 0
-                  ? "linear-gradient(45deg, cyan, transparent)"
-                  : "linear-gradient(45deg, #ff00ff, transparent)",
-              boxShadow: i % 2 === 0 ? "0 0 10px cyan" : "0 0 10px #ff00ff",
-              left: "50%",
-              top: "50%",
-            }}
-          />
-        ))}
-
-        {/* Animated circuit lines */}
-        {[...Array(4)].map((_, i) => (
-          <motion.div
-            key={`line-${i}`}
-            className="absolute"
-            initial={{
-              x: Math.random() * 300 - 150,
-              y: Math.random() * 300 - 150,
-              rotate: Math.random() * 360,
-              opacity: 0.2,
-            }}
-            animate={{
-              opacity: [0.2, 0.6, 0.2],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: Math.random() * 3 + 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: Math.random() * 2,
-            }}
-            style={{
-              width: Math.random() * 60 + 20 + "px",
-              height: "1px",
               background:
                 i % 3 === 0 ? "cyan" : i % 3 === 1 ? "#ff00ff" : "#00ff00",
-              boxShadow: `0 0 5px ${i % 3 === 0 ? "cyan" : i % 3 === 1 ? "#ff00ff" : "#00ff00"}`,
-              left: "50%",
-              top: "50%",
+              left: `${20 + i * 12}%`,
+              top: `${30 + i * 10}%`,
+              boxShadow: `0 0 10px ${i % 3 === 0 ? "cyan" : i % 3 === 1 ? "#ff00ff" : "#00ff00"}`,
+              animationDelay: `${i * 0.5}s`,
+            }}
+            animate={{
+              opacity: [0.3, 1, 0.3],
+              scale: [0.8, 1.2, 0.8],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
             }}
           />
         ))}
       </div>
 
-      <div className="relative w-[340px] h-[240px] flex items-center justify-center">
-        {/* Neon Glow Burst */}
-        <AnimatePresence>
-          {status === "revealed" && (
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 2, 3], opacity: [0, 0.8, 0] }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="absolute z-0 w-80 h-80 rounded-full"
-              style={{
-                background: `
-                  radial-gradient(circle, 
-                    rgba(0, 255, 255, 0.4) 0%, 
-                    rgba(255, 0, 255, 0.3) 30%, 
-                    rgba(0, 255, 0, 0.2) 60%,
-                    transparent 100%
-                  )
-                `,
-                filter: "blur(20px)",
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Electric Shockwave Ripple */}
-        <AnimatePresence>
-          {status === "revealed" && (
-            <>
-              <motion.div
-                initial={{ scale: 0.5, opacity: 0, borderWidth: "3px" }}
-                animate={{ scale: 3, opacity: [0.9, 0], borderWidth: "0px" }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-                className="absolute z-0 w-full h-full rounded-full border-cyan-400"
-                style={{ borderRadius: "50%" }}
-              />
-              <motion.div
-                initial={{ scale: 0.3, opacity: 0, borderWidth: "2px" }}
-                animate={{ scale: 2.5, opacity: [0.7, 0], borderWidth: "0px" }}
-                transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-                className="absolute z-0 w-full h-full rounded-full border-purple-400"
-                style={{ borderRadius: "50%" }}
-              />
-            </>
-          )}
-        </AnimatePresence>
-
-        {/* 3D FOLDING CARD */}
+      <motion.div
+        className="relative w-[420px] h-[290px]"
+        initial={{ y: 0 }}
+        animate={{ y: isOpen ? -20 : 0 }}
+        transition={{ duration: 0.8 }}
+        onClick={!isOpen ? handleOpen : undefined}
+        style={{ cursor: !isOpen ? "pointer" : "default" }}
+      >
+        {/* 3D CARD */}
         <motion.div
-          className="absolute z-10 flex flex-col items-center justify-center text-center p-6 left-1/2"
-          style={{
-            x: "-50%",
-            top: "-40px",
-            width: "320px",
-            height: "400px",
-          }}
-          initial={{ scale: 0.3, y: 50, rotateX: 15, opacity: 0 }}
+          className="absolute left-1/2"
+          style={{ x: "-50%", top: "-80px", width: "320px", height: "460px" }}
+          variants={cardVariants}
+          initial="closed"
           animate={
-            status === "revealed"
-              ? {
-                  scale: 1,
-                  y: 0,
-                  rotateX: 0,
-                  opacity: 1,
-                  transition: {
-                    type: "spring",
-                    stiffness: 200,
-                    damping: 18,
-                    delay: 0.1,
-                  },
-                }
-              : {}
+            isOpen
+              ? lastOpenPageIndex === leaves.length
+                ? "back_closed"
+                : lastOpenPageIndex > 0
+                  ? "centered"
+                  : "open"
+              : "closed"
           }
-          onClick={(e) => {
-            if (status === "revealed") {
-              e.stopPropagation();
-              setIsCardFoldOpen(!isCardFoldOpen);
-            }
-          }}
         >
           <div
             className="relative w-full h-full"
             style={{ transformStyle: "preserve-3d" }}
           >
-            {/* BACK OF CARD (Right Page) - Neon Theme */}
+            {/* Card Pages */}
             <div
-              className="absolute inset-0 rounded-r-lg p-6 flex flex-col shadow-inner border border-cyan-400/30"
-              style={{
-                backgroundColor: cardColor,
-                borderLeft: "none",
-                background: `linear-gradient(135deg, ${cardColor} 0%, #0f0f2a 100%)`,
-                boxShadow: `
-                  inset 0 0 20px rgba(0, 255, 255, 0.1),
-                  0 0 20px rgba(0, 255, 255, 0.2)
-                `,
-              }}
-            >
-              <div className="absolute top-2 right-2 text-cyan-400 animate-pulse">
-                <Sparkles size={16} />
-              </div>
-              <div
-                className="absolute bottom-2 left-2 text-purple-400 animate-pulse"
-                style={{ animationDelay: "1s" }}
-              >
-                <Sparkles size={16} />
-              </div>
-              <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
-                {renderMessagePage(1, true)}
-                {renderMemories()}
-                <p className="font-mono text-2xl mt-6 font-medium bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                  With Love, <br /> {sender}
-                </p>
-              </div>
-            </div>
-
-            {/* FOLDING PART (Front Cover + Inside Left) */}
-            <motion.div
-              className="absolute inset-0 origin-left preserve-3d"
+              className="absolute inset-0"
               style={{ transformStyle: "preserve-3d" }}
-              animate={{ rotateY: isCardFoldOpen ? -175 : 0 }}
-              transition={{ duration: 0.8, ease: easeInOut }}
             >
-              {/* CARD FRONT (Cover) - Neon Theme */}
-              <div
-                className="absolute inset-0 rounded-lg p-8 flex flex-col items-center justify-center text-center shadow-md border border-cyan-400/30 relative overflow-hidden"
-                style={{
-                  backgroundColor: cardColor,
-                  background: `linear-gradient(135deg, ${cardColor} 0%, #0f0f2a 100%)`,
-                  backfaceVisibility: "hidden",
-                  zIndex: 2,
-                  boxShadow: `
-                    inset 0 0 20px rgba(0, 255, 255, 0.1),
-                    0 0 30px rgba(0, 255, 255, 0.2),
-                    0 0 60px rgba(255, 0, 255, 0.1)
-                  `,
-                }}
-              >
-                {/* Animated background grid */}
-                <div className="absolute inset-0 opacity-10">
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      backgroundImage: `
-                        linear-gradient(cyan 1px, transparent 1px),
-                        linear-gradient(90deg, cyan 1px, transparent 1px)
-                      `,
-                      backgroundSize: "20px 20px",
-                      animation: "pulse 3s ease-in-out infinite",
-                    }}
-                  />
-                </div>
+              {leaves.map((leaf, leafIndex) => {
+                const isFlipped = leafIndex < lastOpenPageIndex;
 
-                <div className="relative z-10 w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center mb-4 animate-pulse shadow-lg shadow-cyan-400/50">
-                  <Heart size={24} className="text-white" />
-                </div>
-                <h2 className="font-mono text-xl font-bold mb-2 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent tracking-wide">
-                  {title}
-                </h2>
-                <p className="font-mono text-sm text-cyan-300/80 opacity-80">
-                  For: {recipient || "Someone Special"}
-                </p>
-                <div className="mt-6 flex flex-col items-center gap-2 opacity-40">
-                  <div
-                    className="w-6 h-6 rounded-full border-2 border-cyan-400 animate-spin"
+                return (
+                  <motion.div
+                    key={leaf.index}
+                    className="absolute inset-0 origin-left"
                     style={{
-                      background: `conic-gradient(from 0deg, transparent, cyan, transparent)`,
+                      transformStyle: "preserve-3d",
+                      zIndex: isFlipped ? leafIndex : 50 - leafIndex,
                     }}
-                  />
-                  <p className="text-[8px] uppercase tracking-[0.4em] font-bold text-cyan-400">
-                    Decrypt
-                  </p>
-                </div>
-              </div>
+                    animate={{ rotateY: isFlipped ? -175 : 0 }}
+                    transition={{
+                      duration: 0.8,
+                      ease: easeInOut,
+                    }}
+                    onClick={(e) => {
+                      if (!isOpen) return;
+                      e.stopPropagation();
+                      // If closed and is top-most right leaf -> Flip Open
+                      if (!isFlipped && leafIndex === lastOpenPageIndex) {
+                        setLastOpenPageIndex(leafIndex + 1);
+                      }
+                      // If open and is top-most left leaf -> Flip Close
+                      else if (
+                        isFlipped &&
+                        leafIndex === lastOpenPageIndex - 1
+                      ) {
+                        setLastOpenPageIndex(leafIndex);
+                      }
+                    }}
+                  >
+                    {/* FRONT FACE */}
+                    <div
+                      className="absolute inset-0 rounded-l-lg rounded-r-none bg-black/80 backface-hidden shadow-inner border border-cyan-400/30 overflow-hidden p-8 flex flex-col"
+                      style={{
+                        background: `
+                          linear-gradient(135deg, 
+                            rgba(10, 10, 26, 0.95) 0%, 
+                            rgba(15, 15, 42, 0.95) 50%,
+                            rgba(20, 20, 60, 0.95) 100%
+                          ),
+                          radial-gradient(circle at 30% 30%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                          radial-gradient(circle at 70% 70%, rgba(255, 0, 255, 0.08) 0%, transparent 50%)
+                        `,
+                        borderRight: "none",
+                        backfaceVisibility: "hidden",
+                        boxShadow: `
+                          inset 0 0 30px rgba(0, 255, 255, 0.15),
+                          0 0 20px rgba(0, 255, 255, 0.2)
+                        `,
+                      }}
+                    >
+                      {leaf.front.type === "cover" ? (
+                        // COVER PAGE
+                        <div className="flex-1 flex flex-col items-center justify-center text-center">
+                          <div className="w-16 h-16 rounded-full bg-linear-to-br from-cyan-400 via-purple-500 to-pink-500 flex items-center justify-center mb-6 relative">
+                            <Heart
+                              size={28}
+                              className="text-white animate-pulse"
+                            />
+                            <div className="absolute inset-0 rounded-full bg-linear-to-br from-cyan-400/30 via-purple-500/30 to-pink-500/30 animate-ping" />
+                          </div>
 
-              {/* CARD INSIDE LEFT - Neon Theme */}
-              <div
-                className="absolute inset-0 rounded-l-lg p-6 backface-hidden flex flex-col border border-cyan-400/30"
-                style={{
-                  background: `linear-gradient(135deg, ${cardColor} 0%, #0f0f2a 100%)`,
-                  transform: "rotateY(180deg)",
-                  backfaceVisibility: "hidden",
-                  borderRight: "none",
-                  boxShadow: `
-                    inset 0 0 20px rgba(0, 255, 255, 0.1),
-                    0 0 20px rgba(0, 255, 255, 0.2)
-                  `,
-                }}
-              >
-                <div className="mt-4 flex-1 overflow-y-auto custom-scrollbar">
-                  {renderMessagePage(0)}
-                  {!messageChunks[0] && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center opacity-[0.2] h-full">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center animate-pulse">
-                        <Heart size={24} className="text-white" />
-                      </div>
-                      <p className="text-[10px] mt-3 font-bold uppercase tracking-widest text-cyan-400">
-                        Connected & Infinite
-                      </p>
+                          <h2 className="font-mono text-2xl font-bold mb-3 bg-linear-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent tracking-wide leading-tight text-center">
+                            {title}
+                          </h2>
+
+                          <div className="mb-4 px-4 py-2 bg-black/30 border border-cyan-400/30 rounded-lg backdrop-blur-sm">
+                            <p className="font-mono text-sm bg-linear-to-r from-cyan-300 to-purple-300 bg-clip-text text-transparent">
+                              &#8250; For: {recipient || "Beautiful Soul"}
+                            </p>
+                          </div>
+
+                          <div className="flex flex-col items-center gap-3 opacity-80">
+                            <div className="relative">
+                              <div
+                                className="w-8 h-8 rounded-full border-2 border-cyan-400 animate-spin"
+                                style={{
+                                  background: `conic-gradient(from 0deg, transparent, cyan, transparent)`,
+                                }}
+                              />
+                              <div
+                                className="absolute inset-1 w-6 h-6 rounded-full border-2 border-purple-400 animate-spin"
+                                style={{
+                                  background: `conic-gradient(from 180deg, transparent, #ff00ff, transparent)`,
+                                  animationDirection: "reverse",
+                                  animationDuration: "2s",
+                                }}
+                              />
+                            </div>
+                            <p className="text-[10px] uppercase tracking-[0.6em] font-bold bg-linear-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                              &#8250; Tap to open
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        renderContentPage(leaf.front)
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
+
+                    {/* BACK FACE */}
+                    <div
+                      className="absolute inset-0 rounded-l-lg rounded-r-none bg-black/80 backface-hidden shadow-inner border border-cyan-400/30 overflow-hidden p-8 flex flex-col"
+                      style={{
+                        background: `
+                          linear-gradient(225deg, 
+                            rgba(15, 0, 30, 0.95) 0%, 
+                            rgba(20, 0, 40, 0.95) 30%,
+                            rgba(25, 0, 50, 0.95) 70%,
+                            rgba(10, 0, 25, 0.95) 100%
+                          ),
+                          radial-gradient(circle at 80% 20%, rgba(255, 0, 255, 0.2) 0%, transparent 50%),
+                          radial-gradient(circle at 20% 80%, rgba(0, 255, 255, 0.15) 0%, transparent 40%)
+                        `,
+                        transform: "rotateY(180deg)",
+                        backfaceVisibility: "hidden",
+                        borderRight: "none",
+                        boxShadow: `
+                          inset 2px 0 20px rgba(255, 0, 255, 0.15),
+                          -5px 0 20px rgba(255, 0, 255, 0.1)
+                        `,
+                      }}
+                    >
+                      {renderContentPage(leaf.back, true)}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         </motion.div>
 
-        {/* ENVELOPE LAYERS */}
-        <motion.div
-          className="absolute inset-0 z-20 pointer-events-none"
-          animate={status === "idle" ? { y: [0, -8, 0] } : { y: 0 }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        {/* ENVELOPE FRONT (Pocket) */}
+        <div
+          className="absolute bottom-0 left-0 w-full h-full z-20 pointer-events-none"
+          style={{
+            clipPath: "polygon(0 100%, 100% 100%, 100% 0, 50% 50%, 0 0)",
+          }}
         >
-          {/* Top Half */}
-          <motion.div
-            className="absolute top-0 left-0 w-full h-1/2 overflow-hidden origin-bottom"
-            initial={{ y: 0, opacity: 1 }}
-            animate={
-              status === "revealed"
-                ? {
-                    y: -150,
-                    opacity: 0,
-                  }
-                : {}
-            }
+          <svg
+            width="100%"
+            height="100%"
+            viewBox="0 0 420 290"
+            preserveAspectRatio="none"
+            className="absolute bottom-0 left-0 drop-shadow-md"
+          >
+            <defs>
+              <radialGradient id="neonPocket" cx="50%" cy="50%">
+                <stop offset="0%" stopColor={pocketColor} />
+                <stop offset="100%" stopColor={envelopeColor} />
+              </radialGradient>
+            </defs>
+            <path
+              d="M0,0 L210,145 L420,0 L420,290 L0,290 Z"
+              fill="url(#neonPocket)"
+              stroke="rgba(0,255,255,0.2)"
+              strokeWidth="1"
+            />
+            <path
+              d="M0,290 L210,145 L420,290"
+              fill="none"
+              stroke="rgba(0,255,255,0.1)"
+              strokeWidth="1"
+            />
+          </svg>
+        </div>
+
+        <motion.div
+          variants={flapVariants}
+          initial="closed"
+          animate={isOpen ? "open" : "closed"}
+          className="absolute top-0 left-0 w-full h-36.25 origin-top"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          {/* Front of Flap */}
+          <div
+            className="absolute inset-0 w-full h-full"
             style={{
-              maskImage:
-                status === "revealed"
-                  ? "linear-gradient(to top, transparent, black 20%)"
-                  : undefined,
-              WebkitMaskImage:
-                status === "revealed"
-                  ? "linear-gradient(to top, transparent, black 20%)"
-                  : undefined,
+              clipPath: "polygon(0 0, 100% 0, 50% 100%)",
+              backgroundColor: flapColor,
+              backfaceVisibility: "hidden",
+              borderTop: "1px solid rgba(0,255,255,0.2)",
+              filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.3))",
+              boxShadow: "0 0 20px rgba(0,255,255,0.1)",
             }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div
-              className="w-full h-[240px] shadow-inner relative overflow-hidden"
-              style={{
-                background: `linear-gradient(to bottom right, ${envelopeColor}, ${flapBackColor})`,
-                boxShadow: `
-                  inset 0 0 50px rgba(0, 255, 255, 0.1),
-                  0 0 30px rgba(0, 255, 255, 0.2),
-                  0 0 60px rgba(255, 0, 255, 0.1)
-                `,
-              }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-purple-500/10"></div>
-              <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-170 border-l-transparent border-r-170 border-r-transparent border-t-140 drop-shadow-md origin-top"
-                style={{
-                  borderTopColor: flapColor,
-                  filter: `drop-shadow(0 0 10px rgba(0, 255, 255, 0.3))`,
-                }}
-              ></div>
-              {/* Animated neon lines */}
-              <div className="absolute inset-0 opacity-30">
-                <div className="absolute top-1/4 left-1/4 w-1/2 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse"></div>
-                <div
-                  className="absolute top-3/4 left-1/3 w-1/3 h-0.5 bg-gradient-to-r from-transparent via-purple-400 to-transparent animate-pulse"
-                  style={{ animationDelay: "1s" }}
-                ></div>
-              </div>
-            </div>
-          </motion.div>
+          />
 
-          {/* Bottom Half */}
-          <motion.div
-            className="absolute bottom-0 left-0 w-full h-1/2 overflow-hidden origin-top"
-            initial={{ y: 0, opacity: 1 }}
-            animate={
-              status === "revealed"
-                ? {
-                    y: 150,
-                    opacity: 0,
-                  }
-                : {}
-            }
+          {/* Back of Flap */}
+          <div
+            className="absolute inset-0 w-full h-full"
             style={{
-              maskImage:
-                status === "revealed"
-                  ? "linear-gradient(to bottom, transparent, black 20%)"
-                  : undefined,
-              WebkitMaskImage:
-                status === "revealed"
-                  ? "linear-gradient(to bottom, transparent, black 20%)"
-                  : undefined,
+              clipPath: "polygon(0 100%, 100% 100%, 50% 0)",
+              backgroundColor: flapBackColor,
+              transform: "rotateX(180deg)",
+              backfaceVisibility: "hidden",
             }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div
-              className="w-full h-[240px] absolute bottom-0 shadow-inner flex items-end justify-center relative overflow-hidden"
-              style={{
-                background: `linear-gradient(to top right, ${pocketColor}, ${envelopeColor})`,
-                boxShadow: `
-                  inset 0 0 50px rgba(0, 255, 255, 0.1),
-                  0 0 30px rgba(0, 255, 255, 0.2),
-                  0 0 60px rgba(255, 0, 255, 0.1)
-                `,
-              }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 via-transparent to-cyan-500/10"></div>
-              {/* Animated circuit pattern */}
-              <div className="absolute inset-0 opacity-20">
-                <div className="absolute bottom-1/4 left-1/4 w-1/2 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse"></div>
-                <div
-                  className="absolute bottom-1/2 right-1/4 w-1/3 h-0.5 bg-gradient-to-l from-transparent via-purple-400 to-transparent animate-pulse"
-                  style={{ animationDelay: "1.5s" }}
-                ></div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Wax Seal */}
-          <motion.button
-            onClick={handleOpen}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 cursor-pointer pointer-events-auto group"
-            initial={{ scale: 1 }}
-            animate={
-              status === "cracking"
-                ? { scale: [1, 1.1, 0.9, 1.05], rotate: [0, -3, 3, 0] }
-                : status === "revealed"
-                  ? { scale: 0, opacity: 0 }
-                  : { scale: 1 }
-            }
-            transition={
-              status === "cracking" ? { duration: 0.3 } : { duration: 0.4 }
-            }
-            whileHover={status === "idle" ? { scale: 1.05 } : {}}
-          >
-            <div className="w-16 h-16 rounded-full bg-linear-to-br from-red-700 via-red-600 to-red-800 shadow-lg flex items-center justify-center border-2 border-red-900/30 relative overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent"></div>
-              <div className="w-12 h-12 rounded-full border border-red-800/50 flex items-center justify-center bg-red-700/50 shadow-inner">
-                <Heart className="w-6 h-6 text-red-900 fill-red-900 drop-shadow-sm opacity-80" />
-              </div>
-              <div className="absolute top-2 left-3 w-4 h-2 bg-white/20 rounded-full blur-[1px] -rotate-12"></div>
-
-              {/* Crack Overlay */}
-              <AnimatePresence>
-                {status === "cracking" && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 flex items-center justify-center"
-                  >
-                    <svg
-                      viewBox="0 0 100 100"
-                      className="w-full h-full absolute stroke-white/80 stroke-2 fill-none"
-                    >
-                      <path d="M 50 10 L 45 40 L 55 60 L 40 90" />
-                      <path d="M 20 50 L 50 50 L 80 50" />
-                    </svg>
-                    <motion.div
-                      className="absolute inset-0 bg-white mix-blend-overlay"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: [0, 0.8, 0] }}
-                      transition={{ duration: 0.2 }}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </motion.button>
+          />
         </motion.div>
-      </div>
+      </motion.div>
 
-      {/* Neon Hint Text */}
-      <AnimatePresence>
-        {status === "idle" && (
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: [0.5, 1, 0.5], y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute bottom-20 text-cyan-400 font-mono tracking-widest text-sm uppercase cursor-pointer"
-            onClick={handleOpen}
-            style={{
-              textShadow: "0 0 10px rgba(0, 255, 255, 0.5)",
-            }}
-          >
-            › Execute decrypt.exe
-          </motion.p>
-        )}
-      </AnimatePresence>
+      {/* Instruction Text */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isOpen ? 0 : 1 }}
+        transition={{ delay: 1, duration: 1 }}
+        className="absolute -bottom-14 left-0 w-full text-center font-mono text-xl opacity-60 bg-linear-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent"
+      >
+        Click to decrypt
+      </motion.p>
 
       {/* Background Music Player */}
       {isOpen && embedUrl && (
