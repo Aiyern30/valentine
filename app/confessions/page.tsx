@@ -324,8 +324,36 @@ const ConfessionsPage = () => {
                   className="bg-white dark:bg-zinc-800 rounded-2xl shadow-lg hover:shadow-xl transition-all overflow-hidden flex flex-col"
                 >
                   {/* Envelope Preview - Compact */}
-                  <div className="bg-linear-to-br from-rose-50 to-pink-50 dark:from-zinc-700 dark:to-zinc-800 p-4 flex justify-center items-center h-56 overflow-hidden">
-                    <div className="scale-50 origin-center">
+                  <div
+                    className={`relative flex justify-center items-center h-56 overflow-hidden bg-linear-to-br ${
+                      confession.theme === "Fall"
+                        ? "from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-950 dark:via-amber-950 dark:to-yellow-950"
+                        : confession.theme === "Christmas"
+                          ? "from-red-50 via-green-50 to-emerald-50 dark:from-red-950 dark:via-green-950 dark:to-emerald-950"
+                          : confession.theme === "Birthday"
+                            ? "from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950 dark:via-pink-950 dark:to-blue-950"
+                            : "from-rose-50 via-pink-50 to-purple-50 dark:from-zinc-900 dark:via-rose-950 dark:to-purple-950"
+                    }`}
+                  >
+                    {/* Background glow based on envelope style */}
+                    <div
+                      className={`absolute inset-0 opacity-20 blur-[50px] transition-all duration-700 ${
+                        confession.envelope_style?.split("|")[0] === "Romantic"
+                          ? "bg-rose-500"
+                          : confession.envelope_style?.split("|")[0] ===
+                              "Vintage"
+                            ? "bg-amber-600"
+                            : confession.envelope_style?.split("|")[0] ===
+                                "Neon"
+                              ? "bg-cyan-500"
+                              : confession.envelope_style?.split("|")[0] ===
+                                  "Midnight"
+                                ? "bg-blue-600"
+                                : "bg-white"
+                      }`}
+                    />
+
+                    <div className="w-[800px] h-[600px] flex items-center justify-center transform scale-[0.35] origin-center pointer-events-none relative z-10 border-none">
                       {getEnvelopeComponent(confession)}
                     </div>
                   </div>
