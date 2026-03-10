@@ -113,6 +113,26 @@ const ConfessionsPage = () => {
           textColor: "#57534e",
           titleColor: "#1c1917",
         };
+      case "Modern":
+        return {
+          envelopeColor: "#fafafa", // slate-50
+          pocketColor: "#f1f5f9", // slate-100
+          flapColor: "#e2e8f0", // slate-200
+          flapBackColor: "#cbd5e1", // slate-300
+          cardColor: "#ffffff",
+          textColor: "#334155", // slate-700
+          titleColor: "#0f172a", // slate-900
+        };
+      case "Neon":
+        return {
+          envelopeColor: "#0f0f23",
+          pocketColor: "#1a1a40",
+          flapColor: "#2d2d5f",
+          flapBackColor: "#0a0a1f",
+          cardColor: "#0a0a1a",
+          textColor: "#e0e0f0",
+          titleColor: "#00ffff",
+        };
       default:
         return {
           envelopeColor: "rgba(255, 255, 255, 0.1)",

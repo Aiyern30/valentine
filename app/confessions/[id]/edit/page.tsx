@@ -69,7 +69,7 @@ type RelationshipStatus =
   | "";
 
 type Theme = "Life" | "Fall" | "Christmas" | "Birthday";
-type EnvelopeStyle = "Romantic" | "Vintage" | "Midnight" | "Modern";
+type EnvelopeStyle = "Romantic" | "Vintage" | "Midnight" | "Modern" | "Neon";
 
 const EditConfessionPage = () => {
   const params = useParams();
@@ -141,6 +141,13 @@ const EditConfessionPage = () => {
       name: "Glassmorphism",
       preview: "💎",
       colors: "bg-white/20 backdrop-blur-md border-white/30",
+    },
+    {
+      id: "Neon",
+      name: "Cyber Neon",
+      preview: "⚡",
+      colors:
+        "bg-zinc-950 border border-cyan-500/50 shadow-[0_0_15px_rgba(0,255,255,0.3)]",
     },
   ];
 
@@ -284,6 +291,16 @@ const EditConfessionPage = () => {
             cardColor: "#ffffff",
             textColor: "#334155", // slate-700
             titleColor: "#0f172a", // slate-900
+          };
+        case "Neon":
+          return {
+            envelopeColor: "#0f0f23",
+            pocketColor: "#1a1a40",
+            flapColor: "#2d2d5f",
+            flapBackColor: "#0a0a1f",
+            cardColor: "#0a0a1a",
+            textColor: "#e0e0f0",
+            titleColor: "#00ffff",
           };
         default:
           return {};
@@ -1222,7 +1239,7 @@ const EditConfessionPage = () => {
                   <Upload className="text-rose-500" size={20} />
                   Envelope Style
                 </h2>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                   {envelopeOptions.map((option) => (
                     <button
                       key={option.id}
@@ -1298,9 +1315,11 @@ const EditConfessionPage = () => {
                     ? "bg-rose-500"
                     : formData.envelopeStyle === "Vintage"
                       ? "bg-amber-600"
-                      : formData.envelopeStyle === "Midnight"
-                        ? "bg-blue-600"
-                        : "bg-white"
+                      : formData.envelopeStyle === "Neon"
+                        ? "bg-cyan-500"
+                        : formData.envelopeStyle === "Midnight"
+                          ? "bg-blue-600"
+                          : "bg-white"
                 }`}
               />
 
@@ -1359,7 +1378,7 @@ const EditConfessionPage = () => {
                 <h3 className="text-xs font-semibold mb-3 text-center text-zinc-500 uppercase tracking-widest">
                   Envelope Theme Color
                 </h3>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
                   {envelopeOptions.map((option) => (
                     <button
                       key={option.id}
