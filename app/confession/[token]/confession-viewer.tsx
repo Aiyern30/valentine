@@ -3,6 +3,7 @@ import { useState } from "react";
 import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
 import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
 import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
+import { AnimatedEnvelope as AnimatedEnvelope4 } from "@/components/AnimatedEnvelope/AnimatedEnvelope4";
 
 interface Photo {
   pageIndex: number;
@@ -49,48 +50,50 @@ export default function ConfessionViewer({
   const [isEnvelopeOpen, setIsEnvelopeOpen] = useState(false);
 
   // Get envelope colors based on style
-  const getEnvelopeColors = () => {
-    switch (confession.envelope_style) {
+  const getEnvelopeColors = (style: string) => {
+    switch (style) {
       case "Romantic":
         return {
-          envelopeColor: "#FFB6C1",
-          pocketColor: "#FFB6C1",
-          flapColor: "#FFC0CB",
-          flapBackColor: "#DB7093",
-          cardColor: "#FFF0F5",
-          titleColor: "#9D174D",
-          textColor: "#BE185D",
+          envelopeColor: "#fdf2f8", // pink-50
+          pocketColor: "#fce7f3", // pink-100
+          flapColor: "#fbcfe8", // pink-200
+          flapBackColor: "#f9a8d4", // pink-300
+          cardColor: "#ffffff",
+          textColor: "#831843", // pink-900
+          titleColor: "#be185d", // pink-700
         };
       case "Vintage":
         return {
-          envelopeColor: "#D4A574",
-          pocketColor: "#D4A574",
-          flapColor: "#DEB887",
-          flapBackColor: "#C49A6C",
-          cardColor: "#FEFCF3",
-          titleColor: "#5D4037",
-          textColor: "#8D6E63",
+          envelopeColor: "#fef3c7", // amber-50
+          pocketColor: "#fde68a", // amber-100
+          flapColor: "#fcd34d", // amber-200
+          flapBackColor: "#fbbf24", // amber-400
+          cardColor: "#fffbeb", // amber-50
+          textColor: "#78350f", // amber-900
+          titleColor: "#92400e", // amber-800
         };
       case "Midnight":
         return {
-          envelopeColor: "#18181b",
-          pocketColor: "#18181b",
-          flapColor: "#27272a",
-          flapBackColor: "#09090b",
-          cardColor: "#FDFBF7",
-          textColor: "#57534e",
-          titleColor: "#1c1917",
+          envelopeColor: "#18181b", // zinc-900
+          pocketColor: "#27272a", // zinc-800
+          flapColor: "#3f3f46", // zinc-700
+          flapBackColor: "#52525b", // zinc-600
+          cardColor: "#09090b", // zinc-950
+          textColor: "#e4e4e7", // zinc-200
+          titleColor: "#60a5fa", // blue-400
+        };
+      case "Modern":
+        return {
+          envelopeColor: "#fafafa", // slate-50
+          pocketColor: "#f1f5f9", // slate-100
+          flapColor: "#e2e8f0", // slate-200
+          flapBackColor: "#cbd5e1", // slate-300
+          cardColor: "#ffffff",
+          textColor: "#334155", // slate-700
+          titleColor: "#0f172a", // slate-900
         };
       default:
-        return {
-          envelopeColor: "rgba(255, 255, 255, 0.1)",
-          pocketColor: "rgba(255, 255, 255, 0.1)",
-          flapColor: "rgba(255, 255, 255, 0.2)",
-          flapBackColor: "rgba(255, 255, 255, 0.05)",
-          cardColor: "rgba(255, 255, 255, 0.9)",
-          titleColor: "#333",
-          textColor: "#666",
-        };
+        return {};
     }
   };
 
@@ -127,6 +130,10 @@ export default function ConfessionViewer({
 
   // Get envelope component based on style
   const getEnvelopeComponent = () => {
+    const [parsedStyle, parsedVariant] = (
+      confession.envelope_style || "Romantic|Classic"
+    ).split("|");
+
     const commonProps = {
       title: confession.title,
       recipient: confession.loved_one_name,
@@ -137,14 +144,18 @@ export default function ConfessionViewer({
       pagePhotos: pagePhotos || {},
       categories: categories || [],
       music: confession.music_url || "",
-      ...getEnvelopeColors(),
+      ...getEnvelopeColors(parsedStyle),
     };
 
-    switch (confession.envelope_style) {
-      case "Vintage":
+    switch (parsedVariant) {
+      case "Classic":
+        return <AnimatedEnvelope1 {...commonProps} />;
+      case "Wax Seal":
         return <AnimatedEnvelope2 {...commonProps} />;
-      case "Midnight":
+      case "Dramatic":
         return <AnimatedEnvelope3 {...commonProps} />;
+      case "Elegant":
+        return <AnimatedEnvelope4 {...commonProps} />;
       default:
         return <AnimatedEnvelope1 {...commonProps} />;
     }

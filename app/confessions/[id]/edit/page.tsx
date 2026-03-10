@@ -18,6 +18,7 @@ import Image from "next/image";
 import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
 import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
 import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
+import { AnimatedEnvelope as AnimatedEnvelope4 } from "@/components/AnimatedEnvelope/AnimatedEnvelope4";
 
 interface PagePhoto {
   file: File | null;
@@ -49,8 +50,11 @@ interface FormData {
   categories: Category[];
   theme: Theme;
   envelopeStyle: EnvelopeStyle;
+  animationVariant: AnimationVariant;
   musicUrl: string;
 }
+
+type AnimationVariant = "Classic" | "Wax Seal" | "Elegant" | "Dramatic";
 
 type RelationshipStatus =
   | "Dating"
@@ -93,6 +97,7 @@ const EditConfessionPage = () => {
     ],
     theme: "Life",
     envelopeStyle: "Romantic",
+    animationVariant: "Classic",
     musicUrl: "",
   });
 
@@ -164,6 +169,10 @@ const EditConfessionPage = () => {
             {},
           );
 
+          const [parsedStyle, parsedVariant] = (
+            confession.envelope_style || "Romantic|Classic"
+          ).split("|");
+
           setFormData({
             title: confession.title,
             lovedOneName: confession.loved_one_name,
@@ -174,7 +183,8 @@ const EditConfessionPage = () => {
             pagePhotos: pagePhotos,
             categories: confession.categories || [],
             theme: confession.theme,
-            envelopeStyle: confession.envelope_style,
+            envelopeStyle: parsedStyle as EnvelopeStyle,
+            animationVariant: (parsedVariant as AnimationVariant) || "Classic",
             musicUrl: confession.music_url || "",
           });
 
@@ -237,51 +247,53 @@ const EditConfessionPage = () => {
       switch (formData.envelopeStyle) {
         case "Romantic":
           return {
-            envelopeColor: "#FFB6C1",
-            pocketColor: "#FFB6C1",
-            flapColor: "#FFC0CB",
-            flapBackColor: "#DB7093",
-            cardColor: "#FFF0F5",
-            titleColor: "#9D174D",
-            textColor: "#BE185D",
+            envelopeColor: "#fdf2f8", // pink-50
+            pocketColor: "#fce7f3", // pink-100
+            flapColor: "#fbcfe8", // pink-200
+            flapBackColor: "#f9a8d4", // pink-300
+            cardColor: "#ffffff",
+            textColor: "#831843", // pink-900
+            titleColor: "#be185d", // pink-700
           };
         case "Vintage":
           return {
-            envelopeColor: "#D4A574",
-            pocketColor: "#D4A574",
-            flapColor: "#DEB887",
-            flapBackColor: "#C49A6C",
-            cardColor: "#FEFCF3",
-            titleColor: "#5D4037",
-            textColor: "#8D6E63",
+            envelopeColor: "#fef3c7", // amber-50
+            pocketColor: "#fde68a", // amber-100
+            flapColor: "#fcd34d", // amber-200
+            flapBackColor: "#fbbf24", // amber-400
+            cardColor: "#fffbeb", // amber-50
+            textColor: "#78350f", // amber-900
+            titleColor: "#92400e", // amber-800
           };
         case "Midnight":
           return {
-            envelopeColor: "#18181b",
-            pocketColor: "#18181b",
-            flapColor: "#27272a",
-            flapBackColor: "#09090b",
-            cardColor: "#FDFBF7",
-            textColor: "#57534e",
-            titleColor: "#1c1917",
+            envelopeColor: "#18181b", // zinc-900
+            pocketColor: "#27272a", // zinc-800
+            flapColor: "#3f3f46", // zinc-700
+            flapBackColor: "#52525b", // zinc-600
+            cardColor: "#09090b", // zinc-950
+            textColor: "#e4e4e7", // zinc-200
+            titleColor: "#60a5fa", // blue-400
+          };
+        case "Modern":
+          return {
+            envelopeColor: "#fafafa", // slate-50
+            pocketColor: "#f1f5f9", // slate-100
+            flapColor: "#e2e8f0", // slate-200
+            flapBackColor: "#cbd5e1", // slate-300
+            cardColor: "#ffffff",
+            textColor: "#334155", // slate-700
+            titleColor: "#0f172a", // slate-900
           };
         default:
-          return {
-            envelopeColor: "rgba(255, 255, 255, 0.1)",
-            pocketColor: "rgba(255, 255, 255, 0.1)",
-            flapColor: "rgba(255, 255, 255, 0.2)",
-            flapBackColor: "rgba(255, 255, 255, 0.05)",
-            cardColor: "rgba(255, 255, 255, 0.9)",
-            titleColor: "#333",
-            textColor: "#666",
-          };
+          return {};
       }
     };
 
     const commonProps = {
       title: formData.title,
       recipient: formData.lovedOneName,
-      sender: formData.yourName || "Someone Special",
+      sender: formData.yourName || "Someone special",
       message: formData.message,
       isOpen: isPreviewOpen,
       onOpenChange: setIsPreviewOpen,
@@ -291,11 +303,15 @@ const EditConfessionPage = () => {
       ...getEnvelopeColors(),
     };
 
-    switch (formData.envelopeStyle) {
-      case "Vintage":
+    switch (formData.animationVariant) {
+      case "Classic":
+        return <AnimatedEnvelope1 {...commonProps} />;
+      case "Wax Seal":
         return <AnimatedEnvelope2 {...commonProps} />;
-      case "Midnight":
+      case "Dramatic":
         return <AnimatedEnvelope3 {...commonProps} />;
+      case "Elegant":
+        return <AnimatedEnvelope4 {...commonProps} />;
       default:
         return <AnimatedEnvelope1 {...commonProps} />;
     }
@@ -368,7 +384,10 @@ const EditConfessionPage = () => {
       formDataToSend.append("relationship_status", formData.relationshipStatus);
       formDataToSend.append("message", formData.message);
       formDataToSend.append("theme", formData.theme);
-      formDataToSend.append("envelope_style", formData.envelopeStyle);
+      formDataToSend.append(
+        "envelope_style",
+        `${formData.envelopeStyle}|${formData.animationVariant}`,
+      );
       formDataToSend.append("music_url", formData.musicUrl);
 
       const response = await fetch(`/api/confessions/${confessionId}`, {
@@ -1080,9 +1099,7 @@ const EditConfessionPage = () => {
                                     <div className="custom-datepicker-wrapper">
                                       <DatePicker
                                         selected={
-                                          item.date
-                                            ? new Date(item.date)
-                                            : null
+                                          item.date ? new Date(item.date) : null
                                         }
                                         onChange={(date: Date | null) => {
                                           const newCategories = [
@@ -1098,8 +1115,7 @@ const EditConfessionPage = () => {
                                             ).padStart(2, "0");
                                             newCategories[catIndex].items[
                                               itemIndex
-                                            ].date =
-                                              `${year}-${month}-${day}`;
+                                            ].date = `${year}-${month}-${day}`;
                                           } else {
                                             newCategories[catIndex].items[
                                               itemIndex
@@ -1307,10 +1323,41 @@ const EditConfessionPage = () => {
 
             {/* Style Toggles for Preview Page */}
             <div className="space-y-4 max-w-md mx-auto">
+              {/* Animation Variant Selector */}
+              <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-4 border border-rose-100 dark:border-rose-900/20 shadow-lg">
+                <h3 className="text-xs font-semibold mb-3 text-center text-zinc-500 uppercase tracking-widest">
+                  Animation Style
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {["Classic", "Wax Seal", "Elegant", "Dramatic"].map(
+                    (variant) => (
+                      <button
+                        key={variant}
+                        onClick={() =>
+                          handleInputChange({
+                            target: {
+                              name: "animationVariant",
+                              value: variant,
+                            },
+                          } as any)
+                        }
+                        className={`p-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${
+                          formData.animationVariant === variant
+                            ? "border-rose-500 bg-rose-50 dark:bg-rose-500/20"
+                            : "border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800"
+                        }`}
+                      >
+                        <span className="text-sm font-medium">{variant}</span>
+                      </button>
+                    ),
+                  )}
+                </div>
+              </div>
+
               {/* Envelope Theme Selector */}
               <div className="bg-white dark:bg-rose-950/10 backdrop-blur rounded-3xl p-4 border border-rose-100 dark:border-rose-900/20 shadow-lg">
                 <h3 className="text-xs font-semibold mb-3 text-center text-zinc-500 uppercase tracking-widest">
-                  Envelope Theme
+                  Envelope Theme Color
                 </h3>
                 <div className="grid grid-cols-4 gap-2">
                   {envelopeOptions.map((option) => (

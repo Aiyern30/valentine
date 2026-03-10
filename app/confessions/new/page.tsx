@@ -76,7 +76,7 @@ type Theme = "Life" | "Fall" | "Christmas" | "Birthday";
 
 type EnvelopeStyle = "Vintage" | "Romantic" | "Midnight" | "Modern";
 
-type AnimationVariant = "Classic" | "Elegant" | "Dramatic";
+type AnimationVariant = "Classic" | "Wax Seal" | "Elegant" | "Dramatic";
 
 interface EnvelopeOption {
   id: EnvelopeStyle;
@@ -385,7 +385,10 @@ export default function CondolenceForm() {
       submitFormData.append("relationshipStatus", formData.relationshipStatus);
       submitFormData.append("message", formData.message);
       submitFormData.append("theme", formData.theme);
-      submitFormData.append("envelopeStyle", formData.envelopeStyle);
+      submitFormData.append(
+        "envelopeStyle",
+        `${formData.envelopeStyle}|${formData.animationVariant}`,
+      );
       submitFormData.append("musicUrl", formData.musicUrl);
       submitFormData.append("fullName", formData.fullName);
       submitFormData.append("email", formData.email);
@@ -1706,58 +1709,79 @@ export default function CondolenceForm() {
                   />
 
                   <div className="scale-75 md:scale-100 origin-center transition-transform duration-500">
-                    {formData.envelopeStyle === "Romantic" && (
-                      <AnimatedEnvelope1
-                        title={formData.title}
-                        recipient={formData.lovedOneName}
-                        sender={formData.yourName || "Someone special"}
-                        message={formData.message}
-                        isOpen={isPreviewOpen}
-                        onOpenChange={setIsPreviewOpen}
-                        pagePhotos={formData.pagePhotos}
-                        categories={formData.categories}
-                        music={formData.musicUrl}
-                      />
-                    )}
-                    {formData.envelopeStyle === "Vintage" && (
-                      <AnimatedEnvelope2
-                        title={formData.title}
-                        recipient={formData.lovedOneName}
-                        sender={formData.yourName || "Someone special"}
-                        message={formData.message}
-                        isOpen={isPreviewOpen}
-                        onOpenChange={setIsPreviewOpen}
-                        pagePhotos={formData.pagePhotos}
-                        categories={formData.categories}
-                        music={formData.musicUrl}
-                      />
-                    )}
-                    {formData.envelopeStyle === "Midnight" && (
-                      <AnimatedEnvelope3
-                        title={formData.title}
-                        recipient={formData.lovedOneName}
-                        sender={formData.yourName || "Someone special"}
-                        message={formData.message}
-                        isOpen={isPreviewOpen}
-                        onOpenChange={setIsPreviewOpen}
-                        pagePhotos={formData.pagePhotos}
-                        categories={formData.categories}
-                        music={formData.musicUrl}
-                      />
-                    )}
-                    {formData.envelopeStyle === "Modern" && (
-                      <AnimatedEnvelope4
-                        title={formData.title}
-                        recipient={formData.lovedOneName}
-                        sender={formData.yourName || "Someone special"}
-                        message={formData.message}
-                        isOpen={isPreviewOpen}
-                        onOpenChange={setIsPreviewOpen}
-                        pagePhotos={formData.pagePhotos}
-                        categories={formData.categories}
-                        music={formData.musicUrl}
-                      />
-                    )}
+                    {(() => {
+                      const getThemeColors = (style: EnvelopeStyle) => {
+                        switch (style) {
+                          case "Romantic":
+                            return {
+                              envelopeColor: "#fdf2f8", // pink-50
+                              pocketColor: "#fce7f3", // pink-100
+                              flapColor: "#fbcfe8", // pink-200
+                              flapBackColor: "#f9a8d4", // pink-300
+                              cardColor: "#ffffff",
+                              textColor: "#831843", // pink-900
+                              titleColor: "#be185d", // pink-700
+                            };
+                          case "Vintage":
+                            return {
+                              envelopeColor: "#fef3c7", // amber-50
+                              pocketColor: "#fde68a", // amber-100
+                              flapColor: "#fcd34d", // amber-200
+                              flapBackColor: "#fbbf24", // amber-400
+                              cardColor: "#fffbeb", // amber-50
+                              textColor: "#78350f", // amber-900
+                              titleColor: "#92400e", // amber-800
+                            };
+                          case "Midnight":
+                            return {
+                              envelopeColor: "#18181b", // zinc-900
+                              pocketColor: "#27272a", // zinc-800
+                              flapColor: "#3f3f46", // zinc-700
+                              flapBackColor: "#52525b", // zinc-600
+                              cardColor: "#09090b", // zinc-950
+                              textColor: "#e4e4e7", // zinc-200
+                              titleColor: "#60a5fa", // blue-400
+                            };
+                          case "Modern":
+                            return {
+                              envelopeColor: "#fafafa", // slate-50
+                              pocketColor: "#f1f5f9", // slate-100
+                              flapColor: "#e2e8f0", // slate-200
+                              flapBackColor: "#cbd5e1", // slate-300
+                              cardColor: "#ffffff",
+                              textColor: "#334155", // slate-700
+                              titleColor: "#0f172a", // slate-900
+                            };
+                        }
+                      };
+
+                      const colors = getThemeColors(formData.envelopeStyle);
+                      const commonProps = {
+                        title: formData.title,
+                        recipient: formData.lovedOneName,
+                        sender: formData.yourName || "Someone special",
+                        message: formData.message,
+                        isOpen: isPreviewOpen,
+                        onOpenChange: setIsPreviewOpen,
+                        pagePhotos: formData.pagePhotos,
+                        categories: formData.categories,
+                        music: formData.musicUrl,
+                        ...colors,
+                      };
+
+                      switch (formData.animationVariant) {
+                        case "Classic":
+                          return <AnimatedEnvelope1 {...commonProps} />;
+                        case "Wax Seal":
+                          return <AnimatedEnvelope2 {...commonProps} />;
+                        case "Dramatic":
+                          return <AnimatedEnvelope3 {...commonProps} />;
+                        case "Elegant":
+                          return <AnimatedEnvelope4 {...commonProps} />;
+                        default:
+                          return <AnimatedEnvelope1 {...commonProps} />;
+                      }
+                    })()}
                   </div>
 
                   {isPreviewOpen && (
@@ -1781,24 +1805,28 @@ export default function CondolenceForm() {
                       Animation Style
                     </h3>
                     <div className="grid grid-cols-3 gap-2">
-                      {["Classic", "Elegant", "Dramatic"].map((variant) => (
-                        <button
-                          key={variant}
-                          onClick={() =>
-                            updateFormData(
-                              "animationVariant",
-                              variant as AnimationVariant,
-                            )
-                          }
-                          className={`p-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${
-                            formData.animationVariant === variant
-                              ? "border-rose-500 bg-rose-50 dark:bg-rose-500/20"
-                              : "border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800"
-                          }`}
-                        >
-                          <span className="text-sm font-medium">{variant}</span>
-                        </button>
-                      ))}
+                      {["Classic", "Wax Seal", "Elegant", "Dramatic"].map(
+                        (variant) => (
+                          <button
+                            key={variant}
+                            onClick={() =>
+                              updateFormData(
+                                "animationVariant",
+                                variant as AnimationVariant,
+                              )
+                            }
+                            className={`p-3 rounded-xl border flex flex-col items-center gap-1 transition-all ${
+                              formData.animationVariant === variant
+                                ? "border-rose-500 bg-rose-50 dark:bg-rose-500/20"
+                                : "border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800"
+                            }`}
+                          >
+                            <span className="text-sm font-medium">
+                              {variant}
+                            </span>
+                          </button>
+                        ),
+                      )}
                     </div>
                   </div>
 

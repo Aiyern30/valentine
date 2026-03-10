@@ -7,6 +7,7 @@ import { Edit2, Trash2, Plus, Heart, Copy, Check, Loader2 } from "lucide-react";
 import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
 import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
 import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
+import { AnimatedEnvelope as AnimatedEnvelope4 } from "@/components/AnimatedEnvelope/AnimatedEnvelope4";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
 interface Confession {
@@ -148,6 +149,10 @@ const ConfessionsPage = () => {
       ),
     }));
 
+    const [parsedStyle, parsedVariant] = (
+      confession.envelope_style || "Romantic|Classic"
+    ).split("|");
+
     const commonProps = {
       title: confession.title,
       recipient: confession.loved_one_name,
@@ -158,14 +163,18 @@ const ConfessionsPage = () => {
       pagePhotos: pagePhotos || {},
       categories: categories || [],
       music: confession.music_url || "",
-      ...getEnvelopeColors(confession.envelope_style),
+      ...getEnvelopeColors(parsedStyle),
     };
 
-    switch (confession.envelope_style) {
-      case "Vintage":
+    switch (parsedVariant) {
+      case "Classic":
+        return <AnimatedEnvelope1 {...commonProps} />;
+      case "Wax Seal":
         return <AnimatedEnvelope2 {...commonProps} />;
-      case "Midnight":
+      case "Dramatic":
         return <AnimatedEnvelope3 {...commonProps} />;
+      case "Elegant":
+        return <AnimatedEnvelope4 {...commonProps} />;
       default:
         return <AnimatedEnvelope1 {...commonProps} />;
     }
