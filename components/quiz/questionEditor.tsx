@@ -51,13 +51,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
         <MultipleChoiceEditor
           options={question.options as ChoiceOption[]}
           correctOption={question.correct_option}
-          onChange={(opts, newCorrect) => {
-            if (newCorrect !== undefined) {
-              update({ options: opts, correct_option: newCorrect });
-            } else {
-              update({ options: opts });
-            }
-          }}
+          onChange={(opts) => update({ options: opts })}
           onCorrectChange={(key) => update({ correct_option: key })}
         />
       );
@@ -67,13 +61,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
         <CheckboxesEditor
           options={question.options as ChoiceOption[]}
           correctOption={question.correct_option}
-          onChange={(opts, newCorrect) => {
-            if (newCorrect !== undefined) {
-              update({ options: opts, correct_option: newCorrect });
-            } else {
-              update({ options: opts });
-            }
-          }}
+          onChange={(opts) => update({ options: opts })}
           onCorrectChange={(val) => update({ correct_option: val })}
         />
       );
@@ -83,13 +71,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
         <DropdownEditor
           options={question.options as ChoiceOption[]}
           correctOption={question.correct_option}
-          onChange={(opts, newCorrect) => {
-            if (newCorrect !== undefined) {
-              update({ options: opts, correct_option: newCorrect });
-            } else {
-              update({ options: opts });
-            }
-          }}
+          onChange={(opts) => update({ options: opts })}
           onCorrectChange={(key) => update({ correct_option: key })}
         />
       );
