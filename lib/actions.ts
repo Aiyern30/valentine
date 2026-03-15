@@ -542,7 +542,8 @@ export async function uploadPhoto(formData: FormData) {
       .from("relationships")
       .select("id")
       .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
-      .single();
+      .in("status", ["active", "pending"])
+      .maybeSingle();
 
     // Generate unique filename
     const fileExt = file.name.split(".").pop();

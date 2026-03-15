@@ -21,12 +21,13 @@ export async function POST(req: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Check if user already has an ACTIVE relationship OR is already partner2 in a relationship
+  // Check if user already has an ACTIVE or PENDING relationship
   const { data: existingRelationship } = await supabase
     .from("relationships")
     .select("*")
     .or(`partner1_id.eq.${user.id},partner2_id.eq.${user.id}`)
-    .single();
+    .in("status", ["active", "pending"])
+    .maybeSingle();
 
   if (existingRelationship) {
     // If user is partner2 in any relationship, they can't send invitations

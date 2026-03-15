@@ -173,11 +173,7 @@ export async function getPhotos(userId: string) {
   const supabase = await createClient();
 
   // Get user's relationship
-  const { data: relationship } = await supabase
-    .from("relationships")
-    .select("id")
-    .or(`partner1_id.eq.${userId},partner2_id.eq.${userId}`)
-    .single();
+  const relationship = await getRelationship(userId);
 
   if (!relationship) {
     return [];
@@ -236,11 +232,7 @@ export async function getPhoto(photoId: string) {
 export async function getDiaries(userId: string) {
   const supabase = await createClient();
 
-  const { data: relationship } = await supabase
-    .from("relationships")
-    .select("id")
-    .or(`partner1_id.eq.${userId},partner2_id.eq.${userId}`)
-    .single();
+  const relationship = await getRelationship(userId);
 
   if (!relationship) return [];
 
