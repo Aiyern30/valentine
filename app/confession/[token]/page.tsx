@@ -42,13 +42,18 @@ export default async function ConfessionPage({ params }: PageProps) {
 
   // Mark as opened if not already
   if (!confession.is_opened) {
-    await supabase
-      .from("confessions")
-      .update({
-        is_opened: true,
-        opened_at: new Date().toISOString(),
-      })
-      .eq("id", confession.id);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Only mark as opened if the person opening it is NOT the creator
+    if (!user || user.id !== confession.sender_id) {
+      await supabase
+        .from("confessions")
+        .update({
+          is_opened: true,
+          opened_at: new Date().toISOString(),
+        })
+        .eq("id", confession.id);
+    }
   }
 
   return <ConfessionViewer confession={confession} />;

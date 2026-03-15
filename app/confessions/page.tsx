@@ -324,8 +324,10 @@ const ConfessionsPage = () => {
                   className="bg-white dark:bg-zinc-800 rounded-2xl shadow-lg hover:shadow-xl transition-all overflow-hidden flex flex-col"
                 >
                   {/* Envelope Preview - Compact */}
-                  <div
-                    className={`relative flex justify-center items-center h-56 overflow-hidden bg-linear-to-br ${
+                  <Link
+                    href={`/confession/${confession.link_token}`}
+                    target="_blank"
+                    className={`relative flex justify-center items-center h-56 overflow-hidden bg-linear-to-br cursor-pointer hover:opacity-95 transition-opacity ${
                       confession.theme === "Fall"
                         ? "from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-950 dark:via-amber-950 dark:to-yellow-950"
                         : confession.theme === "Christmas"
@@ -356,7 +358,7 @@ const ConfessionsPage = () => {
                     <div className="w-[800px] h-[600px] flex items-center justify-center transform scale-[0.35] origin-center pointer-events-none relative z-10 border-none">
                       {getEnvelopeComponent(confession)}
                     </div>
-                  </div>
+                  </Link>
 
                   {/* Confession Info */}
                   <div className="p-4 space-y-3 flex-1 flex flex-col">
