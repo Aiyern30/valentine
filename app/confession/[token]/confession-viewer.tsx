@@ -92,8 +92,26 @@ export default function ConfessionViewer({
           textColor: "#334155", // slate-700
           titleColor: "#0f172a", // slate-900
         };
+      case "Neon":
+        return {
+          envelopeColor: "#0f0f23",
+          pocketColor: "#1a1a40",
+          flapColor: "#2d2d5f",
+          flapBackColor: "#0a0a1f",
+          cardColor: "#0a0a1a",
+          textColor: "#e0e0f0",
+          titleColor: "#00ffff",
+        };
       default:
-        return {};
+        return {
+          envelopeColor: "rgba(255, 255, 255, 0.1)",
+          pocketColor: "rgba(255, 255, 255, 0.1)",
+          flapColor: "rgba(255, 255, 255, 0.2)",
+          flapBackColor: "rgba(255, 255, 255, 0.05)",
+          cardColor: "rgba(255, 255, 255, 0.9)",
+          titleColor: "#333",
+          textColor: "#666",
+        };
     }
   };
 
@@ -177,11 +195,26 @@ export default function ConfessionViewer({
 
   return (
     <div
-      className={`min-h-screen bg-linear-to-br ${getThemeStyles()} flex items-center justify-center p-4`}
+      className={`min-h-screen bg-linear-to-br ${getThemeStyles()} flex items-center justify-center p-4 relative overflow-hidden`}
     >
-      <div className="max-w-4xl w-full">
+      {/* Background glow based on envelope style */}
+      <div
+        className={`absolute inset-0 opacity-20 blur-[100px] transition-all duration-700 pointer-events-none ${
+          confession.envelope_style?.split("|")[0] === "Romantic"
+            ? "bg-rose-500"
+            : confession.envelope_style?.split("|")[0] === "Vintage"
+              ? "bg-amber-600"
+              : confession.envelope_style?.split("|")[0] === "Neon"
+                ? "bg-cyan-500"
+                : confession.envelope_style?.split("|")[0] === "Midnight"
+                  ? "bg-blue-600"
+                  : "bg-white"
+        }`}
+      />
+
+      <div className="max-w-4xl w-full relative z-10">
         {/* Envelope */}
-        <div className="flex justify-center">{getEnvelopeComponent()}</div>
+        <div className="flex justify-center scale-90 md:scale-100 origin-center">{getEnvelopeComponent()}</div>
       </div>
     </div>
   );
