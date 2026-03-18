@@ -23,7 +23,9 @@ const checkFileSizeBeforeUpload = (file: File): boolean => {
   const maxSizeMB = 30; // Max 30MB before compression
   const fileSizeMB = file.size / 1024 / 1024;
   if (fileSizeMB > maxSizeMB) {
-    alert(`File too large: ${fileSizeMB.toFixed(2)}MB. Maximum is ${maxSizeMB}MB.`);
+    alert(
+      `File too large: ${fileSizeMB.toFixed(2)}MB. Maximum is ${maxSizeMB}MB.`,
+    );
     return false;
   }
   return true;
@@ -794,17 +796,19 @@ const EditConfessionPage = () => {
                                       if (!checkFileSizeBeforeUpload(file)) {
                                         return;
                                       }
-                                      
+
                                       try {
-                                        console.log(`Compressing page photo: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-                                        // Compress image to reduce size
-                                        const compressedFile = await compressImage(
-                                          file,
-                                          0.7,
-                                          1920,
+                                        console.log(
+                                          `Compressing page photo: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`,
                                         );
-                                        console.log(`Compressed to: ${(compressedFile.size / 1024).toFixed(2)}KB`);
-                                        const url = URL.createObjectURL(compressedFile);
+                                        // Compress image to reduce size
+                                        const compressedFile =
+                                          await compressImage(file, 0.7, 1920);
+                                        console.log(
+                                          `Compressed to: ${(compressedFile.size / 1024).toFixed(2)}KB`,
+                                        );
+                                        const url =
+                                          URL.createObjectURL(compressedFile);
                                         const newPhotos = {
                                           ...formData.pagePhotos,
                                         };
@@ -818,7 +822,10 @@ const EditConfessionPage = () => {
                                           pagePhotos: newPhotos,
                                         }));
                                       } catch (error) {
-                                        console.error("Error compressing page photo:", error);
+                                        console.error(
+                                          "Error compressing page photo:",
+                                          error,
+                                        );
                                         alert(
                                           `Failed to process image: ${error instanceof Error ? error.message : "Unknown error"}`,
                                         );
@@ -1033,25 +1040,34 @@ const EditConfessionPage = () => {
                                 const files = Array.from(e.target.files || []);
                                 if (files.length > 0) {
                                   // Filter files by size
-                                  const validFiles = files.filter(checkFileSizeBeforeUpload);
+                                  const validFiles = files.filter(
+                                    checkFileSizeBeforeUpload,
+                                  );
                                   if (validFiles.length === 0) {
                                     e.target.value = "";
                                     return;
                                   }
-                                  
+
                                   try {
-                                    console.log(`Compressing ${validFiles.length} images...`);
-                                    // Compress all images
-                                    const compressedFiles = await compressImages(
-                                      validFiles,
-                                      0.7,
-                                      1920,
+                                    console.log(
+                                      `Compressing ${validFiles.length} images...`,
                                     );
-                                    console.log("Compression complete. File sizes:");
+                                    // Compress all images
+                                    const compressedFiles =
+                                      await compressImages(
+                                        validFiles,
+                                        0.7,
+                                        1920,
+                                      );
+                                    console.log(
+                                      "Compression complete. File sizes:",
+                                    );
                                     compressedFiles.forEach((f, i) => {
-                                      console.log(`  Image ${i + 1}: ${(f.size / 1024).toFixed(2)}KB`);
+                                      console.log(
+                                        `  Image ${i + 1}: ${(f.size / 1024).toFixed(2)}KB`,
+                                      );
                                     });
-                                    
+
                                     const newCategories = [
                                       ...formData.categories,
                                     ];
@@ -1069,7 +1085,10 @@ const EditConfessionPage = () => {
                                       categories: newCategories,
                                     }));
                                   } catch (error) {
-                                    console.error("Error compressing images:", error);
+                                    console.error(
+                                      "Error compressing images:",
+                                      error,
+                                    );
                                     alert(
                                       `Failed to process images: ${error instanceof Error ? error.message : "Unknown error"}`,
                                     );
@@ -1162,17 +1181,23 @@ const EditConfessionPage = () => {
                                         if (!checkFileSizeBeforeUpload(file)) {
                                           return;
                                         }
-                                        
+
                                         try {
-                                          console.log(`Compressing category image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
-                                          // Compress image to reduce size
-                                          const compressedFile = await compressImage(
-                                            file,
-                                            0.7,
-                                            1920,
+                                          console.log(
+                                            `Compressing category image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`,
                                           );
-                                          console.log(`Compressed to: ${(compressedFile.size / 1024).toFixed(2)}KB`);
-                                          const url = URL.createObjectURL(compressedFile);
+                                          // Compress image to reduce size
+                                          const compressedFile =
+                                            await compressImage(
+                                              file,
+                                              0.7,
+                                              1920,
+                                            );
+                                          console.log(
+                                            `Compressed to: ${(compressedFile.size / 1024).toFixed(2)}KB`,
+                                          );
+                                          const url =
+                                            URL.createObjectURL(compressedFile);
                                           const newCategories = [
                                             ...formData.categories,
                                           ];
@@ -1190,7 +1215,10 @@ const EditConfessionPage = () => {
                                             categories: newCategories,
                                           }));
                                         } catch (error) {
-                                          console.error("Error compressing image:", error);
+                                          console.error(
+                                            "Error compressing image:",
+                                            error,
+                                          );
                                           alert(
                                             `Failed to process image: ${error instanceof Error ? error.message : "Unknown error"}`,
                                           );

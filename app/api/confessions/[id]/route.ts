@@ -122,7 +122,9 @@ export async function PUT(
     // Upload new page photos
     const photosArray: any[] = [];
     const pagePhotosMetadata = formData.get("pagePhotos") as string;
-    const pagePhotosData = pagePhotosMetadata ? JSON.parse(pagePhotosMetadata) : {};
+    const pagePhotosData = pagePhotosMetadata
+      ? JSON.parse(pagePhotosMetadata)
+      : {};
 
     for (const [pageIndex, photoData] of Object.entries(pagePhotosData)) {
       const photoFile = formData.get(`pagePhoto_${pageIndex}`) as File;
@@ -176,7 +178,7 @@ export async function PUT(
         ) as File;
 
         let itemUrl = item.url || ""; // Keep existing URL if no new file
-        
+
         if (itemFile) {
           const fileExt = itemFile.name.split(".").pop();
           const fileName = `${nanoid()}.${fileExt}`;
@@ -209,8 +211,12 @@ export async function PUT(
     }
 
     // Update confession with uploaded photos and categories
-    const finalPhotos = photosArray.length > 0 ? photosArray : existingConfession.photos;
-    const finalCategories = processedCategories.length > 0 ? processedCategories : existingConfession.categories;
+    const finalPhotos =
+      photosArray.length > 0 ? photosArray : existingConfession.photos;
+    const finalCategories =
+      processedCategories.length > 0
+        ? processedCategories
+        : existingConfession.categories;
 
     // Update confession
     const { error: updateError } = await supabase
