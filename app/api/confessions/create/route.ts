@@ -18,12 +18,14 @@ export async function POST(request: NextRequest) {
 
     // Check content type
     const contentType = request.headers.get("content-type") || "";
-    
+
     if (!contentType.includes("multipart/form-data")) {
       console.error("Invalid content-type:", contentType);
       return NextResponse.json(
-        { error: `Invalid content-type: ${contentType}. Expected multipart/form-data` },
-        { status: 400 }
+        {
+          error: `Invalid content-type: ${contentType}. Expected multipart/form-data`,
+        },
+        { status: 400 },
       );
     }
 
@@ -34,8 +36,10 @@ export async function POST(request: NextRequest) {
     } catch (parseError) {
       console.error("FormData parsing error:", parseError);
       return NextResponse.json(
-        { error: `Failed to parse form data: ${parseError instanceof Error ? parseError.message : "Unknown error"}` },
-        { status: 400 }
+        {
+          error: `Failed to parse form data: ${parseError instanceof Error ? parseError.message : "Unknown error"}`,
+        },
+        { status: 400 },
       );
     }
 

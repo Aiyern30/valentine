@@ -15,7 +15,19 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
+import { compressImage, compressImages } from "@/lib/compress-image";
 import { AnimatedEnvelope as AnimatedEnvelope1 } from "@/components/AnimatedEnvelope/AnimatedEnvelope";
+
+// Check if file size is reasonable before compression
+const checkFileSizeBeforeUpload = (file: File): boolean => {
+  const maxSizeMB = 30; // Max 30MB before compression
+  const fileSizeMB = file.size / 1024 / 1024;
+  if (fileSizeMB > maxSizeMB) {
+    alert(`File too large: ${fileSizeMB.toFixed(2)}MB. Maximum is ${maxSizeMB}MB.`);
+    return false;
+  }
+  return true;
+};
 import { AnimatedEnvelope as AnimatedEnvelope2 } from "@/components/AnimatedEnvelope/AnimatedEnvelope2";
 import { AnimatedEnvelope as AnimatedEnvelope3 } from "@/components/AnimatedEnvelope/AnimatedEnvelope3";
 import { AnimatedEnvelope as AnimatedEnvelope4 } from "@/components/AnimatedEnvelope/AnimatedEnvelope4";
@@ -407,6 +419,49 @@ const EditConfessionPage = () => {
       );
       formDataToSend.append("music_url", formData.musicUrl);
 
+      // Add page photos metadata
+      const pagePhotosMetadata: { [key: number]: { position: string } } = {};
+      Object.entries(formData.pagePhotos).forEach(([pageIndex, photo]) => {
+        if (photo.file && photo.position) {
+          pagePhotosMetadata[parseInt(pageIndex)] = {
+            position: photo.position,
+          };
+          formDataToSend.append(`pagePhoto_${pageIndex}`, photo.file);
+        }
+      });
+      formDataToSend.append("pagePhotos", JSON.stringify(pagePhotosMetadata));
+
+      // Add categories metadata
+      const categoriesMetadata = formData.categories.map((category) => ({
+        id: category.id,
+        name: category.name,
+        items: category.items.map((item) => ({
+          title: item.title,
+          date: item.date,
+        })),
+      }));
+      formDataToSend.append("categories", JSON.stringify(categoriesMetadata));
+
+      // Add category photo files
+      formData.categories.forEach((category, catIndex) => {
+        category.items.forEach((item, itemIndex) => {
+          if (item.file) {
+            formDataToSend.append(
+              `category_${catIndex}_${itemIndex}`,
+              item.file,
+            );
+          }
+        });
+      });
+
+      // Log FormData contents for debugging
+      console.log("Submitting FormData with fields:");
+      for (const [key, value] of formDataToSend.entries()) {
+        console.log(
+          `  ${key}: ${value instanceof File ? `File(${value.name}, ${value.size} bytes)` : String(value).substring(0, 50)}`,
+        );
+      }
+
       const response = await fetch(`/api/confessions/${confessionId}`, {
         method: "PUT",
         body: formDataToSend,
@@ -732,22 +787,42 @@ const EditConfessionPage = () => {
                                   type="file"
                                   accept="image/*"
                                   className="hidden"
-                                  onChange={(e) => {
+                                  onChange={async (e) => {
                                     const file = e.target.files?.[0];
                                     if (file) {
-                                      const url = URL.createObjectURL(file);
-                                      const newPhotos = {
-                                        ...formData.pagePhotos,
-                                      };
-                                      newPhotos[index] = {
-                                        file,
-                                        position: "left",
-                                        url,
-                                      };
-                                      setFormData((prev) => ({
-                                        ...prev,
-                                        pagePhotos: newPhotos,
-                                      }));
+                                      // Check file size first
+                                      if (!checkFileSizeBeforeUpload(file)) {
+                                        return;
+                                      }
+                                      
+                                      try {
+                                        console.log(`Compressing page photo: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+                                        // Compress image to reduce size
+                                        const compressedFile = await compressImage(
+                                          file,
+                                          0.7,
+                                          1920,
+                                        );
+                                        console.log(`Compressed to: ${(compressedFile.size / 1024).toFixed(2)}KB`);
+                                        const url = URL.createObjectURL(compressedFile);
+                                        const newPhotos = {
+                                          ...formData.pagePhotos,
+                                        };
+                                        newPhotos[index] = {
+                                          file: compressedFile,
+                                          position: "left",
+                                          url,
+                                        };
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          pagePhotos: newPhotos,
+                                        }));
+                                      } catch (error) {
+                                        console.error("Error compressing page photo:", error);
+                                        alert(
+                                          `Failed to process image: ${error instanceof Error ? error.message : "Unknown error"}`,
+                                        );
+                                      }
                                     }
                                   }}
                                 />
@@ -954,25 +1029,51 @@ const EditConfessionPage = () => {
                               accept="image/*"
                               multiple
                               className="hidden"
-                              onChange={(e) => {
+                              onChange={async (e) => {
                                 const files = Array.from(e.target.files || []);
                                 if (files.length > 0) {
-                                  const newCategories = [
-                                    ...formData.categories,
-                                  ];
-                                  files.forEach((file) => {
-                                    const url = URL.createObjectURL(file);
-                                    newCategories[catIndex].items.push({
-                                      file,
-                                      url,
-                                      title: "",
-                                      date: "",
+                                  // Filter files by size
+                                  const validFiles = files.filter(checkFileSizeBeforeUpload);
+                                  if (validFiles.length === 0) {
+                                    e.target.value = "";
+                                    return;
+                                  }
+                                  
+                                  try {
+                                    console.log(`Compressing ${validFiles.length} images...`);
+                                    // Compress all images
+                                    const compressedFiles = await compressImages(
+                                      validFiles,
+                                      0.7,
+                                      1920,
+                                    );
+                                    console.log("Compression complete. File sizes:");
+                                    compressedFiles.forEach((f, i) => {
+                                      console.log(`  Image ${i + 1}: ${(f.size / 1024).toFixed(2)}KB`);
                                     });
-                                  });
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    categories: newCategories,
-                                  }));
+                                    
+                                    const newCategories = [
+                                      ...formData.categories,
+                                    ];
+                                    compressedFiles.forEach((file) => {
+                                      const url = URL.createObjectURL(file);
+                                      newCategories[catIndex].items.push({
+                                        file,
+                                        url,
+                                        title: "",
+                                        date: "",
+                                      });
+                                    });
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      categories: newCategories,
+                                    }));
+                                  } catch (error) {
+                                    console.error("Error compressing images:", error);
+                                    alert(
+                                      `Failed to process images: ${error instanceof Error ? error.message : "Unknown error"}`,
+                                    );
+                                  }
                                 }
                                 e.target.value = "";
                               }}
@@ -1054,26 +1155,46 @@ const EditConfessionPage = () => {
                                     type="file"
                                     accept="image/*"
                                     className="hidden"
-                                    onChange={(e) => {
+                                    onChange={async (e) => {
                                       const file = e.target.files?.[0];
                                       if (file) {
-                                        const url = URL.createObjectURL(file);
-                                        const newCategories = [
-                                          ...formData.categories,
-                                        ];
-                                        newCategories[catIndex].items[
-                                          itemIndex
-                                        ] = {
-                                          ...newCategories[catIndex].items[
+                                        // Check file size first
+                                        if (!checkFileSizeBeforeUpload(file)) {
+                                          return;
+                                        }
+                                        
+                                        try {
+                                          console.log(`Compressing category image: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+                                          // Compress image to reduce size
+                                          const compressedFile = await compressImage(
+                                            file,
+                                            0.7,
+                                            1920,
+                                          );
+                                          console.log(`Compressed to: ${(compressedFile.size / 1024).toFixed(2)}KB`);
+                                          const url = URL.createObjectURL(compressedFile);
+                                          const newCategories = [
+                                            ...formData.categories,
+                                          ];
+                                          newCategories[catIndex].items[
                                             itemIndex
-                                          ],
-                                          file,
-                                          url,
-                                        };
-                                        setFormData((prev) => ({
-                                          ...prev,
-                                          categories: newCategories,
-                                        }));
+                                          ] = {
+                                            ...newCategories[catIndex].items[
+                                              itemIndex
+                                            ],
+                                            file: compressedFile,
+                                            url,
+                                          };
+                                          setFormData((prev) => ({
+                                            ...prev,
+                                            categories: newCategories,
+                                          }));
+                                        } catch (error) {
+                                          console.error("Error compressing image:", error);
+                                          alert(
+                                            `Failed to process image: ${error instanceof Error ? error.message : "Unknown error"}`,
+                                          );
+                                        }
                                       }
                                     }}
                                   />
