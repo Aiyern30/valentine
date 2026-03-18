@@ -421,13 +421,19 @@ const EditConfessionPage = () => {
       );
       formDataToSend.append("music_url", formData.musicUrl);
 
-      // Add page photos metadata
-      const pagePhotosMetadata: { [key: number]: { position: string } } = {};
+      // Add page photos metadata and keep existing URLs
+      const pagePhotosMetadata: {
+        [key: number]: { position: string; url?: string };
+      } = {};
       Object.entries(formData.pagePhotos).forEach(([pageIndex, photo]) => {
-        if (photo.file && photo.position) {
-          pagePhotosMetadata[parseInt(pageIndex)] = {
-            position: photo.position,
-          };
+        if (!photo.position) return;
+
+        pagePhotosMetadata[parseInt(pageIndex)] = {
+          position: photo.position,
+          ...(photo.url ? { url: photo.url } : {}),
+        };
+
+        if (photo.file) {
           formDataToSend.append(`pagePhoto_${pageIndex}`, photo.file);
         }
       });
@@ -440,6 +446,7 @@ const EditConfessionPage = () => {
         items: category.items.map((item) => ({
           title: item.title,
           date: item.date,
+          url: item.url || "",
         })),
       }));
       formDataToSend.append("categories", JSON.stringify(categoriesMetadata));
